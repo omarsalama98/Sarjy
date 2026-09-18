@@ -1,0 +1,286 @@
+<title>Source quality map — add these to NotebookLM alongside the PDFs</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --ink:       #14171c;
+    --ink-2:     #474e5a;
+    --ink-3:     #767e8b;
+    --line:      #e2e5ea;
+    --line-2:    #eef0f4;
+    --accent:    #2d4a7c;
+    --accent-bg: #edf1f8;
+    --warn:      #a6421f;
+    --warn-bg:   #fbf0eb;
+    --code-bg:   #f0f2f6;
+    --shadow:    0 1px 2px rgba(20,23,28,.05), 0 8px 24px -12px rgba(20,23,28,.15);
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #101317;
+      --surface:   #171b21;
+      --ink:       #e7eaef;
+      --ink-2:     #a8b0bc;
+      --ink-3:     #7b838f;
+      --line:      #2a2f38;
+      --line-2:    #22262d;
+      --accent:    #8fb0e6;
+      --accent-bg: #1a2130;
+      --warn:      #e2916d;
+      --warn-bg:   #2a1d17;
+      --code-bg:   #1d222a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #101317;
+    --surface:   #171b21;
+    --ink:       #e7eaef;
+    --ink-2:     #a8b0bc;
+    --ink-3:     #7b838f;
+    --line:      #2a2f38;
+    --line-2:    #22262d;
+    --accent:    #8fb0e6;
+    --accent-bg: #1a2130;
+    --warn:      #e2916d;
+    --warn-bg:   #2a1d17;
+    --code-bg:   #1d222a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .5rem 2.25rem; margin: 0; }
+  dl.meta div { display: flex; flex-direction: column; gap: .1rem; }
+  dl.meta dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  dl.meta dd { margin: 0; font-size: .9rem; color: var(--ink-2); }
+
+  /* ---- toc ---- */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 3rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--ink-3);
+    margin: 0 0 .75rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: flex;
+    gap: .7rem;
+    font-size: .92rem;
+    border-radius: 2px;
+  }
+  .toc a:hover { color: var(--accent); }
+  .tocnum, .secnum {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: .8em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- headings ---- */
+  h2, h3, h4 { font-family: var(--serif); letter-spacing: -.01em; text-wrap: balance; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    font-weight: 600;
+    margin: 3.5rem 0 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .75rem;
+    align-items: baseline;
+  }
+  h3 { font-size: 1.14rem; font-weight: 600; margin: 2.25rem 0 .7rem; display: flex; gap: .6rem; align-items: baseline; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; color: var(--ink-2); }
+  h2 .secnum, h3 .secnum { flex: none; }
+
+  p { margin: 0 0 1.05rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line-2); margin: 2.5rem 0; }
+
+  ul, ol { margin: 0 0 1.15rem; padding-left: 1.35rem; max-width: 68ch; }
+  li { margin-bottom: .38rem; }
+  li::marker { color: var(--ink-3); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+  .codewrap { overflow-x: auto; margin: 0 0 1.4rem; }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 0;
+    min-width: min-content;
+  }
+  pre code { background: none; padding: 0; font-size: .845rem; line-height: 1.6; }
+
+  blockquote {
+    margin: 0 0 1.4rem;
+    padding: .1rem 0 .1rem 1.15rem;
+    border-left: 3px solid var(--line);
+    color: var(--ink-2);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+  }
+  .callout p { margin-bottom: .6rem; color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--warn); }
+
+  .tablewrap { overflow-x: auto; margin: 0 0 1.6rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  th, td { padding: .6rem .85rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <h1>Source quality map — add these to NotebookLM alongside the PDFs</h1>
+    <dl class="meta"><div><dt>Date</dt><dd>2026-09-18 · <strong>Purpose:</strong> the eight audio-AI research docs are Perplexity syntheses. This maps which parts rest on primary sources and which don't, and lists the papers to add directly so NotebookLM has something authoritative to ground against.</dd></div></dl>
+  </header>
+  <nav class="toc" aria-label="Contents"><p class="eyebrow">Contents</p><ol><li><a href="#read-this-first">Read this first</a></li><li><a href="#where-the-docs-are-weakest-and-its-the-load-bearing-part">Where the docs are weakest — and it's the load-bearing part</a></li><li><a href="#primary-sources-already-cited-in-the-docs">Primary sources already cited in the docs</a></li><li><a href="#papers-to-add-for-the-three-weak-docs">Papers to add for the three weak docs</a></li><li><a href="#vendor-docs-legitimate-with-a-caveat">Vendor docs — legitimate, with a caveat</a></li><li><a href="#sources-to-treat-with-suspicion">Sources to treat with suspicion</a></li><li><a href="#suggested-notebooklm-setup">Suggested NotebookLM setup</a></li></ol></nav>
+  <main>
+<h2 id="read-this-first"><span class="htext">Read this first</span></h2>
+<p><strong>Ranked by citation count, the top sources in these docs are content farms and vendor marketing</strong> — gradium.ai (56 citations), inworld.ai (39), arunbaby.com (39), heardright.app (26), praveentn.live (25), smallest.ai (22), theorempath.com (13), localaimaster.com (13). Across all eight docs there are only ~43 arXiv citations.</p>
+<p>That matters because <strong>NotebookLM will synthesise confident study notes from whatever it is given</strong>, and you will carry those into a technical interview where someone builds voice agents for a living.</p>
+<p><strong>The fix is cheap:</strong> add the primary papers below as sources alongside the PDFs. NotebookLM accepts arXiv URLs directly. Where a paper and a blog disagree, the paper wins — and you will be able to see the disagreement, which you cannot do now.</p>
+<h2 id="where-the-docs-are-weakest-and-its-the-load-bearing-part"><span class="htext">Where the docs are weakest — and it's the load-bearing part</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Doc</th><th style="text-align:left">Primary-source citations</th><th style="text-align:left">Verdict</th></tr></thead><tbody><tr><td style="text-align:left">TTS architectures</td><td style="text-align:left">37</td><td style="text-align:left">Well sourced</td></tr><tr><td style="text-align:left">Turn detection and endpointing</td><td style="text-align:left">36</td><td style="text-align:left">Well sourced</td></tr><tr><td style="text-align:left">Full-duplex conversation modelling</td><td style="text-align:left">30</td><td style="text-align:left">Well sourced</td></tr><tr><td style="text-align:left">Evaluating voice agents</td><td style="text-align:left">15</td><td style="text-align:left">Adequate</td></tr><tr><td style="text-align:left">ASR architectures</td><td style="text-align:left">13</td><td style="text-align:left">Adequate</td></tr><tr><td style="text-align:left"><strong>Cascaded vs. end-to-end</strong></td><td style="text-align:left"><strong>0</strong></td><td style="text-align:left"><strong>Blogs only</strong></td></tr><tr><td style="text-align:left"><strong>How audio becomes consumable</strong></td><td style="text-align:left"><strong>0</strong></td><td style="text-align:left"><strong>Blogs only</strong></td></tr><tr><td style="text-align:left"><strong>Streaming and latency engineering</strong></td><td style="text-align:left"><strong>0</strong></td><td style="text-align:left"><strong>Blogs only</strong></td></tr></tbody></table></div>
+<p>The three unsourced docs cover <strong>the architecture decision you are making and the system you are building</strong>. That's where to spend the effort.</p>
+<h2 id="primary-sources-already-cited-in-the-docs"><span class="htext">Primary sources already cited in the docs</span></h2>
+<p>Verified present in the markdown — safe to add directly.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Source</th><th style="text-align:left">Topic</th></tr></thead><tbody><tr><td style="text-align:left"><a href="https://arxiv.org/abs/2510.07037">arxiv.org/abs/2510.07037</a></td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><a href="https://arxiv.org/abs/2608.09930">arxiv.org/abs/2608.09930</a></td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><a href="https://arxiv.org/html/2601.04233v1">arxiv.org/html/2601.04233v1</a></td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><a href="https://arxiv.org/html/2602.05207v1">arxiv.org/html/2602.05207v1</a></td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><a href="https://arxiv.org/html/2604.01760v1">arxiv.org/html/2604.01760v1</a></td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><a href="https://proceedings.iclr.cc/paper_files/paper/2026/file/ddeadff481e7ddf478234961ea7aae8b-Paper-Conference.pdf">ICLR 2026 conference paper</a></td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><a href="https://aclanthology.org/2025.emnlp-main.1266.pdf">EMNLP 2025 main.1266</a></td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12517399/">PMC12517399</a></td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><a href="https://www.computer.org/csdl/journal/tp/2026/04/11298521/2cojfroKS0U">IEEE TPAMI — Discrete Speech Tokens survey (2026)</a></td><td style="text-align:left">Semantic vs. acoustic tokenizers</td></tr></tbody></table></div>
+<p>Named in prose with IDs:</p>
+<ul>
+<li><strong>Moshi</strong> — <code>arXiv:2410.00037</code> — full-duplex speech model, Mimi codec</li>
+<li><strong>Beyond Word Error Rate</strong> — <code>arXiv:2609.11786</code> — evaluation</li>
+<li><strong>SteerDuplex</strong> — <code>arXiv:2609.12623</code> — full-duplex steering</li>
+<li><strong>SoundStream</strong> — <code>arXiv:2107.03312</code> — RVQ for neural audio codecs</li>
+<li><strong>EnCodec</strong> — <code>arXiv:2210.13438</code> — high-fidelity neural audio compression</li>
+<li><strong>AudioLM</strong> — <code>arXiv:2209.03143</code> — two-stage semantic + acoustic generation</li>
+<li>Also cited without titles: <code>arXiv:2606.19453</code>, <code>arXiv:2608.09930</code>, <code>arXiv:2609.11786</code>, <code>arXiv:2609.12623</code></li>
+</ul>
+<h2 id="papers-to-add-for-the-three-weak-docs"><span class="htext">Papers to add for the three weak docs</span></h2>
+<aside class="callout critical" role="note"><p>⚠️ These are from my own knowledge, not extracted from your docs. The IDs for SoundStream / EnCodec / AudioLM / Moshi are corroborated by your docs; <strong>Whisper's is not — verify it resolves before relying on it.</strong> Everything here should be opened once before being trusted.</p></aside>
+<p><strong>For &quot;How audio becomes something a model can consume&quot;:</strong></p>
+<ul>
+<li>SoundStream <code>arXiv:2107.03312</code> — where RVQ came from</li>
+<li>EnCodec <code>arXiv:2210.13438</code> — the codec most systems actually use</li>
+<li>AudioLM <code>arXiv:2209.03143</code> — the semantic/acoustic token split</li>
+<li>IEEE TPAMI discrete speech tokens survey (linked above) — the best single overview</li>
+</ul>
+<p><strong>For &quot;Cascaded vs. end-to-end speech-to-speech&quot;:</strong></p>
+<ul>
+<li>Moshi <code>arXiv:2410.00037</code> — the clearest end-to-end architecture, and its paper is explicit about the latency argument</li>
+<li>The GPT-4o and Gemini Live system cards — vendor, but primary for what those systems actually do</li>
+<li>Search NotebookLM for the trade-off directly: the honest answer is that <strong>cascaded gives you a text checkpoint to inspect and gate</strong>, which is the reason your PRD picks it</li>
+</ul>
+<p><strong>For &quot;Streaming and latency engineering&quot;:</strong></p>
+<ul>
+<li>Whisper <code>arXiv:2212.04356</code> — <strong>verify this ID</strong> — explains why it is architecturally non-streaming</li>
+<li>RNN-Transducer literature for the streaming-ASR contrast</li>
+<li>Vendor engineering docs below are legitimate here, because latency numbers are properties of their systems</li>
+</ul>
+<h2 id="vendor-docs-legitimate-with-a-caveat"><span class="htext">Vendor docs — legitimate, with a caveat</span></h2>
+<p>Fine as primary sources <strong>for their own products' behaviour</strong>; not for claims about the field.</p>
+<ul>
+<li><a href="https://developers.deepgram.com">Deepgram docs</a> — 19 citations, streaming ASR and endpointing</li>
+<li><a href="https://docs.livekit.io/agents/">LiveKit Agents</a> — turn detection, pipeline architecture</li>
+<li><a href="https://elevenlabs.io/docs">ElevenLabs docs</a> — TTS latency, language tagging</li>
+<li>Also cited: inworld.ai, smallest.ai, bland.ai — vendor blogs, treat as marketing unless they publish method</li>
+</ul>
+<h2 id="sources-to-treat-with-suspicion"><span class="htext">Sources to treat with suspicion</span></h2>
+<p>Heavily cited in the docs, no editorial standard, several appear to be AI-generated content aggregators: <strong>gradium.ai, arunbaby.com, heardright.app, praveentn.live, made-in-jurgistan.github.io, studocu.vn, aiwiki.ai, theorempath.com, localaimaster.com, themoonlight.io, qubittool.com</strong>.</p>
+<p>Not necessarily wrong — but nothing in them is checkable, and several of the confident numbers in your docs trace back only to these. <strong>Do not quote a figure in the presentation whose only source is one of these.</strong></p>
+<h2 id="suggested-notebooklm-setup"><span class="htext">Suggested NotebookLM setup</span></h2>
+<ol>
+<li>Add the eight PDFs.</li>
+<li>Add the arXiv links above as separate sources.</li>
+<li>Add the three project research docs (<code>voice-stack</code>, <code>arabic-voice</code>, <code>travel-api</code>) — those were researched with sources and dates, and they carry their own &quot;what I could not verify&quot; sections.</li>
+<li>First question to ask it: <em>&quot;Where do these sources disagree with each other, and which claims appear in only one source?&quot;</em> That surfaces the soft spots before an interviewer does.</li>
+</ol>
+  </main>
+</div>

@@ -1,0 +1,333 @@
+<title>Document</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --ink:       #14171c;
+    --ink-2:     #474e5a;
+    --ink-3:     #767e8b;
+    --line:      #e2e5ea;
+    --line-2:    #eef0f4;
+    --accent:    #2d4a7c;
+    --accent-bg: #edf1f8;
+    --warn:      #a6421f;
+    --warn-bg:   #fbf0eb;
+    --code-bg:   #f0f2f6;
+    --shadow:    0 1px 2px rgba(20,23,28,.05), 0 8px 24px -12px rgba(20,23,28,.15);
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #101317;
+      --surface:   #171b21;
+      --ink:       #e7eaef;
+      --ink-2:     #a8b0bc;
+      --ink-3:     #7b838f;
+      --line:      #2a2f38;
+      --line-2:    #22262d;
+      --accent:    #8fb0e6;
+      --accent-bg: #1a2130;
+      --warn:      #e2916d;
+      --warn-bg:   #2a1d17;
+      --code-bg:   #1d222a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #101317;
+    --surface:   #171b21;
+    --ink:       #e7eaef;
+    --ink-2:     #a8b0bc;
+    --ink-3:     #7b838f;
+    --line:      #2a2f38;
+    --line-2:    #22262d;
+    --accent:    #8fb0e6;
+    --accent-bg: #1a2130;
+    --warn:      #e2916d;
+    --warn-bg:   #2a1d17;
+    --code-bg:   #1d222a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .5rem 2.25rem; margin: 0; }
+  dl.meta div { display: flex; flex-direction: column; gap: .1rem; }
+  dl.meta dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  dl.meta dd { margin: 0; font-size: .9rem; color: var(--ink-2); }
+
+  /* ---- toc ---- */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 3rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--ink-3);
+    margin: 0 0 .75rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: flex;
+    gap: .7rem;
+    font-size: .92rem;
+    border-radius: 2px;
+  }
+  .toc a:hover { color: var(--accent); }
+  .tocnum, .secnum {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: .8em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- headings ---- */
+  h2, h3, h4 { font-family: var(--serif); letter-spacing: -.01em; text-wrap: balance; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    font-weight: 600;
+    margin: 3.5rem 0 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .75rem;
+    align-items: baseline;
+  }
+  h3 { font-size: 1.14rem; font-weight: 600; margin: 2.25rem 0 .7rem; display: flex; gap: .6rem; align-items: baseline; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; color: var(--ink-2); }
+  h2 .secnum, h3 .secnum { flex: none; }
+
+  p { margin: 0 0 1.05rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line-2); margin: 2.5rem 0; }
+
+  ul, ol { margin: 0 0 1.15rem; padding-left: 1.35rem; max-width: 68ch; }
+  li { margin-bottom: .38rem; }
+  li::marker { color: var(--ink-3); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+  .codewrap { overflow-x: auto; margin: 0 0 1.4rem; }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 0;
+    min-width: min-content;
+  }
+  pre code { background: none; padding: 0; font-size: .845rem; line-height: 1.6; }
+
+  blockquote {
+    margin: 0 0 1.4rem;
+    padding: .1rem 0 .1rem 1.15rem;
+    border-left: 3px solid var(--line);
+    color: var(--ink-2);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+  }
+  .callout p { margin-bottom: .6rem; color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--warn); }
+
+  .tablewrap { overflow-x: auto; margin: 0 0 1.6rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  th, td { padding: .6rem .85rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <h1>Document</h1>
+    
+  </header>
+  <nav class="toc" aria-label="Contents"><p class="eyebrow">Contents</p><ol><li><a href="#full-duplex-architectures-two-parallel-audio-streams">Full-Duplex Architectures: Two Parallel Audio Streams</a></li><li><a href="#handling-overlapping-speech-interruptions-and-backchannels">Handling Overlapping Speech, Interruptions, and Backchannels</a></li><li><a href="#human-conversation-timing-norms-200-ms-gap">Human Conversation Timing Norms (~200 ms Gap)</a></li><li><a href="#production-systems-vs-research-prototypes">Production Systems vs. Research Prototypes</a></li><li><a href="#key-papers-and-system-cards">Key Papers and System Cards</a></li></ol></nav>
+  <main>
+<h2 id="full-duplex-architectures-two-parallel-audio-streams"><span class="htext">Full-Duplex Architectures: Two Parallel Audio Streams</span></h2>
+<h3 id="core-innovation-multi-stream-token-modeling"><span class="htext">Core Innovation: Multi-Stream Token Modeling</span></h3>
+<p>The key insight behind full-duplex models like <strong>Moshi</strong> (Kyutai, 2024) is to model conversation as <strong>two simultaneous token streams</strong> rather than one:</p>
+<ul>
+<li><strong>Stream 1</strong>: User's audio tokens (incoming speech)</li>
+<li><strong>Stream 2</strong>: Agent's audio tokens (outgoing speech)</li>
+</ul>
+<p>Both streams are processed jointly at every timestep (80 ms for Mimi codec), with no explicit turn boundaries. The model learns to coordinate speaking and listening from stereo training data (e.g., telephone conversations with separate left/right channels). <a href="https://gradium.ai/content/turn-taking-voice-agents-vad">gradium</a></p>
+<div class="codewrap"><pre><code>Timestep t (80 ms):
+  User audio tokens:  [semantic][acoustic_1][acoustic_2]...[acoustic_7]
+  Agent audio tokens: [semantic][acoustic_1][acoustic_2]...[acoustic_7]
+  
+Joint sequence: 17 tokens per timestep (1 text + 8 user audio + 8 agent audio)</code></pre></div>
+<p><strong>Moshi architecture</strong> (7.7B parameters): <a href="https://aiwiki.ai/wiki/moshi">aiwiki</a></p>
+<ul>
+<li><strong>Helium</strong>: 7B-parameter text LLM backbone (32-layer Transformer)</li>
+<li><strong>Mimi</strong>: Streaming neural audio codec (12.5 Hz, 1.1 kbps, 80 ms latency)</li>
+<li><strong>RQ-Transformer</strong>: Two-level transformer (Temporal + Depth) predicts 17-token joint sequence per timestep</li>
+</ul>
+<h3 id="architectural-hierarchy-l0l3-duplex-levels"><span class="htext">Architectural Hierarchy: L0–L3 Duplex Levels</span></h3>
+<p>A 2026 survey proposes an <strong>L0–L3 hierarchy</strong> to classify where duplex decisions are made: <a href="https://www.alphaxiv.org/abs/2606.19453">alphaxiv</a></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Level</th><th style="text-align:left">Decision Location</th><th style="text-align:left">Example Systems</th><th style="text-align:left">Duplex Capability</th></tr></thead><tbody><tr><td style="text-align:left"><strong>L0 (Module-level)</strong></td><td style="text-align:left">External VAD / Dialogue Manager</td><td style="text-align:left">FireRedChat, FlexDuo</td><td style="text-align:left">Rule-based interruptions; limited overlap handling  <a href="https://www.alphaxiv.org/abs/2606.19453">alphaxiv</a></td></tr><tr><td style="text-align:left"><strong>L1 (Hidden-state-level)</strong></td><td style="text-align:left">Sidecar predictor monitors LLM hidden states</td><td style="text-align:left">MinMo, Freeze-Omni</td><td style="text-align:left">Learns when to interrupt from internal representations  <a href="https://www.alphaxiv.org/abs/2606.19453">alphaxiv</a></td></tr><tr><td style="text-align:left"><strong>L2 (Token-level)</strong></td><td style="text-align:left">Duplex decision encoded in token stream</td><td style="text-align:left">Moshi, LSLM</td><td style="text-align:left">Native full-duplex; both streams modeled jointly  <a href="https://aiwiki.ai/wiki/moshi">aiwiki</a></td></tr><tr><td style="text-align:left"><strong>L3 (Representation-level)</strong></td><td style="text-align:left">Continuous latent fusion (theoretical)</td><td style="text-align:left">None yet</td><td style="text-align:left">No discrete tokens; fully continuous multi-stream modeling  <a href="https://www.alphaxiv.org/abs/2606.19453">alphaxiv</a></td></tr></tbody></table></div>
+<p>Most production systems in 2026 are <strong>L0</strong> (cascaded with external VAD), while research prototypes like Moshi are <strong>L2</strong> (token-level full-duplex). <a href="https://gradium.ai/content/turn-taking-voice-agents-vad">gradium</a></p>
+<h2 id="handling-overlapping-speech-interruptions-and-backchannels"><span class="htext">Handling Overlapping Speech, Interruptions, and Backchannels</span></h2>
+<h3 id="overlapping-speech-classification"><span class="htext">Overlapping Speech Classification</span></h3>
+<p>Full-duplex systems must distinguish four overlap types with different required responses: <a href="https://www.alphaxiv.org/abs/2606.19453">alphaxiv</a></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Overlap Class</th><th style="text-align:left">User Intent</th><th style="text-align:left">Expected Agent Behavior</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Backchannel</strong> (&quot;mhm&quot;, &quot;yeah&quot;, &quot;right&quot;)</td><td style="text-align:left">Acknowledgment without taking floor</td><td style="text-align:left">Continue speaking; do not yield turn  <a href="https://gradium.ai/content/turn-taking-voice-agents-vad">gradium</a></td></tr><tr><td style="text-align:left"><strong>Cooperative barge-in</strong> (user completes agent's sentence)</td><td style="text-align:left">Collaborative completion</td><td style="text-align:left">Stop speaking; let user finish  <a href="https://qubittool.com/blog/voice-conversation-ai-agent-latency-architecture">qubittool</a></td></tr><tr><td style="text-align:left"><strong>Competitive interruption</strong> (user changes topic/corrects)</td><td style="text-align:left">Floor-claiming; redirect conversation</td><td style="text-align:left">Yield immediately; process new request  <a href="https://qubittool.com/blog/voice-conversation-ai-agent-latency-architecture">qubittool</a></td></tr><tr><td style="text-align:left"><strong>Background speech</strong> (user talking to someone else)</td><td style="text-align:left">Not addressed to agent</td><td style="text-align:left">Hold state; ignore without corrupting context  <a href="https://qubittool.com/blog/voice-conversation-ai-agent-latency-architecture">qubittool</a></td></tr></tbody></table></div>
+<p><strong>Moshi's approach</strong>: The model learns these distinctions implicitly from stereo training data (Fisher corpus, 2,000 hours of telephone conversations). No explicit classifier is needed; the joint token stream encodes both user and agent speech simultaneously. <a href="https://aiwiki.ai/wiki/moshi">aiwiki</a></p>
+<h3 id="backchannels-without-turn-switching"><span class="htext">Backchannels Without Turn Switching</span></h3>
+<p><strong>Backchannels</strong> (&quot;uh-huh&quot;, &quot;I see&quot;, &quot;go on&quot;) are critical for natural conversation but problematic for turn-based systems:</p>
+<ul>
+<li><strong>Half-duplex failure</strong>: Agent detects &quot;mhm&quot; as speech → triggers end-of-turn → stops speaking → awkward pause <a href="https://gradium.ai/content/turn-taking-voice-agents-vad">gradium</a></li>
+<li><strong>Full-duplex solution</strong>: Agent recognizes &quot;mhm&quot; as backchannel (via prosody + lexical cues) → continues speaking uninterrupted <a href="https://gradium.ai/content/turn-taking-voice-agents-vad">gradium</a></li>
+</ul>
+<p><strong>Moshi training</strong>: Instruction fine-tuning includes 20,000+ hours of synthetic conversations with explicit backchannel examples. The model learns to emit backchannel tokens (&quot;mhm&quot;, &quot;yeah&quot;) while the user speaks, then resume main response after user finishes. <a href="https://aiwiki.ai/wiki/moshi">aiwiki</a></p>
+<h3 id="interruption-handling-barge-in"><span class="htext">Interruption Handling (Barge-In)</span></h3>
+<p><strong>Barge-in</strong> occurs when user speaks over agent mid-utterance. Full-duplex systems handle this via: <a href="https://gradium.ai/content/turn-taking-voice-agents-vad">gradium</a></p>
+<ol>
+<li><strong>Continuous listening</strong>: Agent always processes user audio, even while speaking (no VAD gate)</li>
+<li><strong>Epoch invalidation</strong>: When interruption detected, invalidate current generation epoch; flush buffered audio</li>
+<li><strong>Cooperative cancellation</strong>: Stop TTS playback; cancel LLM generation; preserve context from interruption point</li>
+<li><strong>Context recovery</strong>: Resume conversation from last coherent state (not from scratch)</li>
+</ol>
+<p><strong>Moshi's latency</strong>: Theoretical 160 ms (80 ms Mimi frame + 80 ms acoustic delay); practical ~200 ms on L4 GPU. This is <strong>faster than human average</strong> (230 ms across 10 languages), enabling natural interruption timing. <a href="https://aiwiki.ai/wiki/moshi">aiwiki</a></p>
+<h2 id="human-conversation-timing-norms-200-ms-gap"><span class="htext">Human Conversation Timing Norms (~200 ms Gap)</span></h2>
+<h3 id="research-on-turn-taking-latency"><span class="htext">Research on Turn-Taking Latency</span></h3>
+<p>Decades of conversation analysis establish that <strong>human turn gaps average 200 ms</strong> across languages: <a href="https://gradium.ai/content/turn-taking-voice-agents-vad">gradium</a></p>
+<ul>
+<li><strong>Stivers et al. (2009, PNAS)</strong>: Average gap 208 ms across 10 languages (English, German, Japanese, etc.) <a href="https://gradium.ai/content/turn-taking-voice-agents-vad">gradium</a></li>
+<li><strong>Dingemanse &amp; Liesenfeld (2022)</strong>: Gap range 59–200 ms depending on social context <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12517399/">pmc.ncbi.nlm.nih</a></li>
+<li><strong>Levinson (2016)</strong>: Gaps too fast for reactive planning; listeners predict turn completion mid-utterance <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12517399/">pmc.ncbi.nlm.nih</a></li>
+</ul>
+<p><strong>Implication for AI</strong>: Agents with &gt;300 ms latency feel sluggish; &lt;150 ms latency feels unnaturally fast (like interrupting). Sweet spot: <strong>160–230 ms</strong> matches human norms. <a href="https://gradium.ai/content/turn-taking-voice-agents-vad">gradium</a></p>
+<h3 id="why-200-ms-is-the-target"><span class="htext">Why 200 ms Is the Target</span></h3>
+<p>Human conversation relies on <strong>predictive processing</strong>: listeners anticipate turn completion based on:</p>
+<ul>
+<li><strong>Syntactic cues</strong>: Sentence structure signals approaching end (e.g., subject-verb-object completion) <a href="https://gradium.ai/content/turn-taking-voice-agents-vad">gradium</a></li>
+<li><strong>Prosodic cues</strong>: Falling pitch (F0 downdrift) marks declarative completion; rising pitch signals continuation <a href="https://gradium.ai/content/turn-taking-voice-agents-vad">gradium</a></li>
+<li><strong>Pragmatic cues</strong>: Question-answer adjacency pairs create expectation of response <a href="https://gradium.ai/content/turn-taking-voice-agents-vad">gradium</a></li>
+</ul>
+<p>AI systems that wait for silence (500–700 ms threshold) miss these predictive signals, creating unnatural delays. Full-duplex models like Moshi achieve 160–200 ms latency by:</p>
+<ul>
+<li><strong>Streaming codec</strong>: Mimi processes audio in 80 ms frames (vs. 30-second Whisper windows) <a href="https://aiwiki.ai/wiki/moshi">aiwiki</a></li>
+<li><strong>Joint modeling</strong>: No separate VAD → ASR → LLM → TTS handoffs; single forward pass <a href="https://aiwiki.ai/wiki/moshi">aiwiki</a></li>
+</ul>
+<h2 id="production-systems-vs-research-prototypes"><span class="htext">Production Systems vs. Research Prototypes</span></h2>
+<h3 id="what-production-systems-actually-do-2026"><span class="htext">What Production Systems Actually Do (2026)</span></h3>
+<p><strong>Virtually all production voice agents use cascaded half-duplex architecture</strong>: <a href="https://gradium.ai/content/turn-taking-voice-agents-vad">gradium</a></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">System</th><th style="text-align:left">Architecture</th><th style="text-align:left">Duplex Level</th><th style="text-align:left">Latency</th><th style="text-align:left">Overlap Handling</th></tr></thead><tbody><tr><td style="text-align:left"><strong>OpenAI Realtime API</strong></td><td style="text-align:left">Audio-native LLM (GPT-4o)</td><td style="text-align:left">L1 (hidden-state predictor)</td><td style="text-align:left">232–320 ms  <a href="https://aiwiki.ai/wiki/moshi">aiwiki</a></td><td style="text-align:left">Barge-in detection via VAD; backchannels partially supported</td></tr><tr><td style="text-align:left"><strong>Google Gemini Live</strong></td><td style="text-align:left">Multimodal LLM</td><td style="text-align:left">L1</td><td style="text-align:left">~300 ms</td><td style="text-align:left">Interrupts on speech onset; limited backchannel awareness</td></tr><tr><td style="text-align:left"><strong>ElevenLabs + LLM</strong></td><td style="text-align:left">Cascaded (STT + LLM + TTS)</td><td style="text-align:left">L0 (external VAD)</td><td style="text-align:left">600–1,200 ms</td><td style="text-align:left">Rule-based barge-in; backchannels trigger false turn ends  <a href="https://gradium.ai/content/turn-taking-voice-agents-vad">gradium</a></td></tr><tr><td style="text-align:left"><strong>Gradium STT + LLM</strong></td><td style="text-align:left">Cascaded with semantic VAD</td><td style="text-align:left">L0 (semantic endpointing)</td><td style="text-align:left">400–800 ms</td><td style="text-align:left">Semantic VAD reduces interruptions; still half-duplex  <a href="https://gradium.ai/content/turn-taking-voice-agents-vad">gradium</a></td></tr></tbody></table></div>
+<p><strong>Why production lags research</strong>: <a href="https://gradium.ai/content/turn-taking-voice-agents-vad">gradium</a></p>
+<ul>
+<li><strong>Modularity</strong>: Cascaded systems allow swapping LLM/STT/TTS independently; full-duplex requires retraining entire model</li>
+<li><strong>LLM evolution</strong>: Rapid LLM improvements (multiple releases/year) make full-duplex retraining prohibitively expensive</li>
+<li><strong>Tool integration</strong>: Cascaded systems inherit mature LLM function-calling; full-duplex models lack tool use (Moshi has no function calling) <a href="https://aiwiki.ai/wiki/moshi">aiwiki</a></li>
+</ul>
+<h3 id="what-research-prototypes-demonstrate"><span class="htext">What Research Prototypes Demonstrate</span></h3>
+<p><strong>Moshi</strong> (Kyutai, 2024): First open full-duplex model with: <a href="https://aiwiki.ai/wiki/moshi">aiwiki</a></p>
+<ul>
+<li><strong>Simultaneous streams</strong>: Two audio token streams (user + agent) processed jointly at 12.5 Hz</li>
+<li><strong>No turn-taking</strong>: Model can speak while listening; user can interrupt without triggering state reset</li>
+<li><strong>Backchannel generation</strong>: Emits &quot;mhm&quot;, &quot;yeah&quot; mid-user-utterance without yielding floor</li>
+<li><strong>Latency</strong>: 160 ms theoretical, 200 ms practical (below human 230 ms average)</li>
+</ul>
+<p><strong>Successor models</strong>:</p>
+<ul>
+<li><strong>Hibiki</strong> (Kyutai, 2025): Simultaneous speech translation (French → English) with voice preservation <a href="https://aiwiki.ai/wiki/moshi">aiwiki</a></li>
+<li><strong>MoshiVis</strong> (2025): Vision-augmented full-duplex (discuss images in real-time) <a href="https://aiwiki.ai/wiki/moshi">aiwiki</a></li>
+<li><strong>Unmute</strong> (Kyutai, 2025): Wraps any text LLM with Kyutai's STT/TTS for modular full-duplex <a href="https://aiwiki.ai/wiki/moshi">aiwiki</a></li>
+<li><strong>SteerDuplex</strong> (2026): Extends Moshi with explicit control over tone, persona, accent, speaking speed <a href="https://www.alphaxiv.org/abs/2609.12623">alphaxiv</a></li>
+<li><strong>PersonaPlex-7B</strong> (NVIDIA, 2026): Dual-stream full-duplex with persona control <a href="https://www.marktechpost.com/2026/01/17/nvidia-releases-personaplex-7b-v1-a-real-time-speech-to-speech-model-designed-for-natural-and-full-duplex-conversations/">marktechpost</a></li>
+</ul>
+<h3 id="the-realization-gap"><span class="htext">The Realization Gap</span></h3>
+<p>A 2026 survey identifies a <strong>realization gap</strong>: many L2 architectures can <em>in principle</em> operate full-duplex, but <em>in practice</em> revert to half-duplex behavior due to: <a href="https://www.alphaxiv.org/abs/2606.19453">alphaxiv</a></p>
+<ul>
+<li><strong>Training data bottleneck</strong>: Public datasets (Fisher, Switchboard) have ~5K hours of stereo data; industrial corpora are undisclosed but likely much larger</li>
+<li><strong>Evaluation mismatch</strong>: Standard metrics (WER, BLEU) ignore timing and overlap handling; new benchmarks (Full-Duplex-Bench) focus on stop-latency and response-appropriateness <a href="https://www.alphaxiv.org/abs/2606.19453">alphaxiv</a></li>
+<li><strong>Concurrent speech gap</strong>: Sustained overlap (both parties speaking for &gt;1 second) is almost entirely absent from training/evaluation data <a href="https://www.alphaxiv.org/abs/2606.19453">alphaxiv</a></li>
+</ul>
+<h2 id="key-papers-and-system-cards"><span class="htext">Key Papers and System Cards</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Paper / System</th><th style="text-align:left">Year</th><th style="text-align:left">Contribution</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Moshi</strong> (Défossez et al., arXiv:2410.00037)</td><td style="text-align:left">2024</td><td style="text-align:left">First open full-duplex speech-text foundation model; two-stream token modeling  <a href="https://aiwiki.ai/wiki/moshi">aiwiki</a></td></tr><tr><td style="text-align:left"><strong>Full-Duplex-Bench v1.5</strong> (Lin et al., ICASSP 2026)</td><td style="text-align:left">2026</td><td style="text-align:left">Automated benchmark for overlap handling; decomposes interruptions, backchannels, background speech  <a href="https://www.alphaxiv.org/abs/2507.23159">alphaxiv</a></td></tr><tr><td style="text-align:left"><strong>Survey of Full-Duplex SDS</strong> (Lin et al., arXiv:2606.19453)</td><td style="text-align:left">2026</td><td style="text-align:left">L0–L3 architectural hierarchy; T×I×R interaction ontology; Decision State Machine  <a href="https://www.alphaxiv.org/abs/2606.19453">alphaxiv</a></td></tr><tr><td style="text-align:left"><strong>SteerDuplex</strong> (arXiv:2609.12623)</td><td style="text-align:left">2026</td><td style="text-align:left">Extends Moshi with explicit steering over tone, persona, vocal style, accent  <a href="https://www.alphaxiv.org/abs/2609.12623">alphaxiv</a></td></tr><tr><td style="text-align:left"><strong>PersonaPlex-7B</strong> (NVIDIA)</td><td style="text-align:left">2026</td><td style="text-align:left">Real-time full-duplex S2S model with dual-stream configuration  <a href="https://www.marktechpost.com/2026/01/17/nvidia-releases-personaplex-7b-v1-a-real-time-speech-to-speech-model-designed-for-natural-and-full-duplex-conversations/">marktechpost</a></td></tr><tr><td style="text-align:left"><strong>Turn-Taking in Voice Agents</strong> (Gradium, 2026)</td><td style="text-align:left">2026</td><td style="text-align:left">Analysis of VAD failures; semantic VAD as intermediate step toward full-duplex  <a href="https://gradium.ai/content/turn-taking-voice-agents-vad">gradium</a></td></tr></tbody></table></div>
+<p><strong>Human conversation benchmarks</strong>:</p>
+<ul>
+<li><strong>Stivers et al. (2009, PNAS)</strong>: 208 ms average turn gap across 10 languages <a href="https://gradium.ai/content/turn-taking-voice-agents-vad">gradium</a></li>
+<li><strong>Dingemanse &amp; Liesenfeld (2022)</strong>: 59–200 ms gap range depending on social context <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12517399/">pmc.ncbi.nlm.nih</a></li>
+</ul>
+<p>Production systems in 2026 remain <strong>cascaded half-duplex</strong> (L0) with semantic VAD improvements, while research prototypes demonstrate <strong>native full-duplex</strong> (L2) with human-parity timing. The gap is operational (modularity, tool integration) rather than architectural. <a href="https://gradium.ai/content/turn-taking-voice-agents-vad">gradium</a></p>
+  </main>
+</div>

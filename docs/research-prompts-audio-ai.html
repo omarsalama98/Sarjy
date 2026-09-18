@@ -1,0 +1,269 @@
+<title>Perplexity prompts — how voice AI actually works</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --ink:       #14171c;
+    --ink-2:     #474e5a;
+    --ink-3:     #767e8b;
+    --line:      #e2e5ea;
+    --line-2:    #eef0f4;
+    --accent:    #2d4a7c;
+    --accent-bg: #edf1f8;
+    --warn:      #a6421f;
+    --warn-bg:   #fbf0eb;
+    --code-bg:   #f0f2f6;
+    --shadow:    0 1px 2px rgba(20,23,28,.05), 0 8px 24px -12px rgba(20,23,28,.15);
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #101317;
+      --surface:   #171b21;
+      --ink:       #e7eaef;
+      --ink-2:     #a8b0bc;
+      --ink-3:     #7b838f;
+      --line:      #2a2f38;
+      --line-2:    #22262d;
+      --accent:    #8fb0e6;
+      --accent-bg: #1a2130;
+      --warn:      #e2916d;
+      --warn-bg:   #2a1d17;
+      --code-bg:   #1d222a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #101317;
+    --surface:   #171b21;
+    --ink:       #e7eaef;
+    --ink-2:     #a8b0bc;
+    --ink-3:     #7b838f;
+    --line:      #2a2f38;
+    --line-2:    #22262d;
+    --accent:    #8fb0e6;
+    --accent-bg: #1a2130;
+    --warn:      #e2916d;
+    --warn-bg:   #2a1d17;
+    --code-bg:   #1d222a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .5rem 2.25rem; margin: 0; }
+  dl.meta div { display: flex; flex-direction: column; gap: .1rem; }
+  dl.meta dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  dl.meta dd { margin: 0; font-size: .9rem; color: var(--ink-2); }
+
+  /* ---- toc ---- */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 3rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--ink-3);
+    margin: 0 0 .75rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: flex;
+    gap: .7rem;
+    font-size: .92rem;
+    border-radius: 2px;
+  }
+  .toc a:hover { color: var(--accent); }
+  .tocnum, .secnum {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: .8em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- headings ---- */
+  h2, h3, h4 { font-family: var(--serif); letter-spacing: -.01em; text-wrap: balance; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    font-weight: 600;
+    margin: 3.5rem 0 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .75rem;
+    align-items: baseline;
+  }
+  h3 { font-size: 1.14rem; font-weight: 600; margin: 2.25rem 0 .7rem; display: flex; gap: .6rem; align-items: baseline; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; color: var(--ink-2); }
+  h2 .secnum, h3 .secnum { flex: none; }
+
+  p { margin: 0 0 1.05rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line-2); margin: 2.5rem 0; }
+
+  ul, ol { margin: 0 0 1.15rem; padding-left: 1.35rem; max-width: 68ch; }
+  li { margin-bottom: .38rem; }
+  li::marker { color: var(--ink-3); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+  .codewrap { overflow-x: auto; margin: 0 0 1.4rem; }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 0;
+    min-width: min-content;
+  }
+  pre code { background: none; padding: 0; font-size: .845rem; line-height: 1.6; }
+
+  blockquote {
+    margin: 0 0 1.4rem;
+    padding: .1rem 0 .1rem 1.15rem;
+    border-left: 3px solid var(--line);
+    color: var(--ink-2);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+  }
+  .callout p { margin-bottom: .6rem; color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--warn); }
+
+  .tablewrap { overflow-x: auto; margin: 0 0 1.6rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  th, td { padding: .6rem .85rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <h1>Perplexity prompts — how voice AI actually works</h1>
+    <dl class="meta"><div><dt>Purpose</dt><dd>the <em>mechanism</em> layer, not the vendor layer. <code>voice-stack-research.md</code> and <code>arabic-voice-research.md</code> already cover providers, pricing, and measured latency — don't re-research those. This is for understanding what's happening underneath, so the codebase walkthrough goes well.</dd></div><div><dt>Why it matters for the grade</dt><dd>the rubric asks <em>&quot;do you understand it thoroughly?&quot;</em> and the presentation ends in a live codebase discussion. The difference between &quot;I used Pipecat&quot; and &quot;here's why endpointing dominates the latency budget and what the model is actually doing with the audio&quot; is most of that score.</dd></div><div><dt>note</dt><dd>Work through these in order — each builds on the last. Prompts 1–4 are the core; 5–8 are depth if time allows.</dd></div></dl>
+  </header>
+  <nav class="toc" aria-label="Contents"><p class="eyebrow">Contents</p><ol><li><a href="#1-how-audio-becomes-something-a-model-can-consume"><span class="tocnum">1</span>How audio becomes something a model can consume</a></li><li><a href="#2-cascaded-vs-end-to-end-speech-to-speech"><span class="tocnum">2</span>Cascaded vs. end-to-end speech-to-speech</a></li><li><a href="#3-turn-detection-and-endpointing"><span class="tocnum">3</span>Turn detection and endpointing</a></li><li><a href="#4-streaming-and-latency-engineering"><span class="tocnum">4</span>Streaming and latency engineering</a></li><li><a href="#5-asr-architectures"><span class="tocnum">5</span>ASR architectures</a></li><li><a href="#6-tts-architectures"><span class="tocnum">6</span>TTS architectures</a></li><li><a href="#7-full-duplex-conversation-modelling"><span class="tocnum">7</span>Full-duplex conversation modelling</a></li><li><a href="#8-evaluating-voice-agents"><span class="tocnum">8</span>Evaluating voice agents</a></li><li><a href="#how-to-use-the-results">How to use the results</a></li><li><a href="#follow-up-prompt-pattern">Follow-up prompt pattern</a></li></ol></nav>
+  <main>
+<h2 id="1-how-audio-becomes-something-a-model-can-consume"><span class="secnum">1</span><span class="htext">How audio becomes something a model can consume</span></h2>
+<blockquote><p>Explain how raw audio is represented for modern speech AI models. Cover: waveform vs. mel-spectrogram representations; neural audio codecs (EnCodec, SoundStream, DAC) and residual vector quantization; the distinction between <em>semantic</em> tokens and <em>acoustic</em> tokens and why some architectures use both; typical frame rates and token rates (tokens per second of audio) and how those compare to text token rates. Explain why audio token rate is the central constraint on latency and context length in speech-to-speech models. Use diagrams or tables where helpful, and cite papers.</p></blockquote>
+<p><strong>What this buys you:</strong> the single most useful mental model. Once you know audio is ~50–100 tokens/second versus text at ~3–4, most architectural decisions in the field become obvious.</p>
+<hr />
+<h2 id="2-cascaded-vs-end-to-end-speech-to-speech"><span class="secnum">2</span><span class="htext">Cascaded vs. end-to-end speech-to-speech</span></h2>
+<blockquote><p>Compare the two dominant architectures for conversational voice AI: (a) the cascaded pipeline — VAD → ASR → LLM → TTS — and (b) end-to-end speech-to-speech models that consume and emit audio tokens directly. For each, explain the data flow, where latency accumulates, and what information is preserved or lost. Specifically: what paralinguistic information (tone, emotion, emphasis, hesitation, speaker identity) does a cascaded pipeline discard at the ASR step, and what can an end-to-end model do with it? Cover the trade-offs in controllability, debuggability, cost, and the ability to inject tool calls or guardrails mid-turn. Cite the key papers and system cards.</p></blockquote>
+<p><strong>What this buys you:</strong> the central architectural question of your project, and a near-certain interview question. Note the guardrails angle especially — a cascaded pipeline gives you a text checkpoint to inspect and gate, which an end-to-end model does not. That's directly relevant to your deep dive.</p>
+<hr />
+<h2 id="3-turn-detection-and-endpointing"><span class="secnum">3</span><span class="htext">Turn detection and endpointing</span></h2>
+<blockquote><p>Explain how conversational voice systems decide that a user has finished speaking. Cover: energy-based VAD vs. neural VAD (Silero); the silence-threshold approach and why default thresholds of 500–700 ms are a large fraction of the total latency budget; semantic turn detection models that predict end-of-turn from linguistic content rather than silence; and integrated approaches where the ASR itself emits an end-of-turn signal. Explain the fundamental trade-off between cutting a user off and making them wait, and how production systems tune it. Cover backchannels (&quot;mhm&quot;, &quot;yeah&quot;) and why they must not trigger a turn. Cite benchmarks and papers.</p></blockquote>
+<p><strong>What this buys you:</strong> the highest-leverage latency knob, and the one most take-homes never touch. Your research already found that a default VAD threshold can exceed the entire STT+LLM+TTS budget combined.</p>
+<hr />
+<h2 id="4-streaming-and-latency-engineering"><span class="secnum">4</span><span class="htext">Streaming and latency engineering</span></h2>
+<blockquote><p>Explain the techniques used to minimise time-to-first-audio in a conversational voice pipeline. Cover: streaming ASR (partial hypotheses, lookahead, chunked attention) and why some models like Whisper are architecturally non-streaming; streaming LLM generation and how TTS can begin on the first clause rather than the complete response; streaming TTS and how time-to-first-byte is achieved; sentence/clause chunking strategies for feeding TTS; and how systems overlap stages rather than running them sequentially. Also cover barge-in handling — detecting user speech during playback, cancelling in-flight generation, and acoustic echo cancellation. Cite real system architectures.</p></blockquote>
+<p><strong>What this buys you:</strong> the concrete engineering of the thing you're building, plus the vocabulary to explain your choices.</p>
+<hr />
+<h2 id="5-asr-architectures"><span class="secnum">5</span><span class="htext">ASR architectures</span></h2>
+<blockquote><p>Explain the main neural ASR architectures and their trade-offs: CTC, attention-based encoder-decoder, and RNN-Transducer (RNN-T). For each, cover streaming capability, latency characteristics, and typical accuracy. Explain specifically how Whisper is designed (encoder-decoder, 30-second windows) and why that makes true streaming difficult, plus what techniques exist to approximate streaming with it. Cover how modern ASR handles code-switching between languages within a single utterance, and why that is architecturally hard. Cite papers.</p></blockquote>
+<p><strong>What this buys you:</strong> why Whisper-based pipelines behave the way they do, and the code-switching mechanism behind your Arabic plan.</p>
+<hr />
+<h2 id="6-tts-architectures"><span class="secnum">6</span><span class="htext">TTS architectures</span></h2>
+<blockquote><p>Explain modern neural text-to-speech architectures. Cover: autoregressive token-based TTS vs. non-autoregressive approaches; diffusion and flow-matching based TTS; the role of neural vocoders; and zero-shot voice cloning from short reference audio. Explain how streaming TTS achieves low time-to-first-byte and what quality trade-offs that involves. Cover how TTS systems handle multilingual text and embedded foreign words — for example an English drug name inside an Arabic sentence — and why language detection on code-mixed text is unreliable. Cite papers and system cards.</p></blockquote>
+<p><strong>What this buys you:</strong> the output leg, which your Arabic research flagged as the real risk rather than the input.</p>
+<hr />
+<h2 id="7-full-duplex-conversation-modelling"><span class="secnum">7</span><span class="htext">Full-duplex conversation modelling</span></h2>
+<blockquote><p>Explain how voice AI systems model conversation as a full-duplex process rather than strict turn-taking. Cover: architectures that continuously process input while generating output; how models handle overlapping speech, interruptions, and backchannels; and the research on making AI conversation feel natural in timing (response latency norms in human conversation, typically around 200 ms). Cover what current production systems actually do versus what research prototypes demonstrate. Cite papers.</p></blockquote>
+<p><strong>What this buys you:</strong> why voice agents feel robotic even when fast, and a good answer to &quot;what would you do with another week?&quot;</p>
+<hr />
+<h2 id="8-evaluating-voice-agents"><span class="secnum">8</span><span class="htext">Evaluating voice agents</span></h2>
+<blockquote><p>Explain how conversational voice AI systems are evaluated. Cover: ASR accuracy metrics (WER, CER) and their known weaknesses — particularly how WER penalises semantically-correct transcription variants and how it behaves on code-switched speech; TTS quality metrics (MOS, CMOS, intelligibility); latency metrics and how time-to-first-audio is defined inconsistently across vendors; and end-to-end conversational quality evaluation including LLM-as-judge approaches. Cover what makes voice agent evaluation harder than text agent evaluation. Cite papers and benchmarks.</p></blockquote>
+<p><strong>What this buys you:</strong> the measurement discipline your deep dive rests on, plus why vendor latency numbers aren't comparable.</p>
+<hr />
+<h2 id="how-to-use-the-results"><span class="htext">How to use the results</span></h2>
+<p>Don't paste the answers into the repo. Take notes in your own words — the point is the walkthrough, and notes you wrote yourself are the ones you'll still remember in three weeks.</p>
+<p>Two things worth capturing as you go:</p>
+<ul>
+<li><strong>A latency budget diagram</strong> you drew yourself, with your own numbers in it once you measure.</li>
+<li><strong>One paragraph on why you chose cascaded or end-to-end</strong>, written before you build. That paragraph goes almost verbatim into the writeup, and it's the question you're most likely to be asked.</li>
+</ul>
+<h2 id="follow-up-prompt-pattern"><span class="htext">Follow-up prompt pattern</span></h2>
+<p>When an answer is too shallow, this usually fixes it:</p>
+<blockquote><p>That was a good overview. Now go a level deeper on [X]. I want the actual mechanism, not the summary — specific architectures, specific numbers, and the papers they come from. Where sources disagree, say so.</p></blockquote>
+  </main>
+</div>

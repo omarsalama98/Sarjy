@@ -1,0 +1,306 @@
+<title>Document</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --ink:       #14171c;
+    --ink-2:     #474e5a;
+    --ink-3:     #767e8b;
+    --line:      #e2e5ea;
+    --line-2:    #eef0f4;
+    --accent:    #2d4a7c;
+    --accent-bg: #edf1f8;
+    --warn:      #a6421f;
+    --warn-bg:   #fbf0eb;
+    --code-bg:   #f0f2f6;
+    --shadow:    0 1px 2px rgba(20,23,28,.05), 0 8px 24px -12px rgba(20,23,28,.15);
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #101317;
+      --surface:   #171b21;
+      --ink:       #e7eaef;
+      --ink-2:     #a8b0bc;
+      --ink-3:     #7b838f;
+      --line:      #2a2f38;
+      --line-2:    #22262d;
+      --accent:    #8fb0e6;
+      --accent-bg: #1a2130;
+      --warn:      #e2916d;
+      --warn-bg:   #2a1d17;
+      --code-bg:   #1d222a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #101317;
+    --surface:   #171b21;
+    --ink:       #e7eaef;
+    --ink-2:     #a8b0bc;
+    --ink-3:     #7b838f;
+    --line:      #2a2f38;
+    --line-2:    #22262d;
+    --accent:    #8fb0e6;
+    --accent-bg: #1a2130;
+    --warn:      #e2916d;
+    --warn-bg:   #2a1d17;
+    --code-bg:   #1d222a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .5rem 2.25rem; margin: 0; }
+  dl.meta div { display: flex; flex-direction: column; gap: .1rem; }
+  dl.meta dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  dl.meta dd { margin: 0; font-size: .9rem; color: var(--ink-2); }
+
+  /* ---- toc ---- */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 3rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--ink-3);
+    margin: 0 0 .75rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: flex;
+    gap: .7rem;
+    font-size: .92rem;
+    border-radius: 2px;
+  }
+  .toc a:hover { color: var(--accent); }
+  .tocnum, .secnum {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: .8em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- headings ---- */
+  h2, h3, h4 { font-family: var(--serif); letter-spacing: -.01em; text-wrap: balance; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    font-weight: 600;
+    margin: 3.5rem 0 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .75rem;
+    align-items: baseline;
+  }
+  h3 { font-size: 1.14rem; font-weight: 600; margin: 2.25rem 0 .7rem; display: flex; gap: .6rem; align-items: baseline; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; color: var(--ink-2); }
+  h2 .secnum, h3 .secnum { flex: none; }
+
+  p { margin: 0 0 1.05rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line-2); margin: 2.5rem 0; }
+
+  ul, ol { margin: 0 0 1.15rem; padding-left: 1.35rem; max-width: 68ch; }
+  li { margin-bottom: .38rem; }
+  li::marker { color: var(--ink-3); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+  .codewrap { overflow-x: auto; margin: 0 0 1.4rem; }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 0;
+    min-width: min-content;
+  }
+  pre code { background: none; padding: 0; font-size: .845rem; line-height: 1.6; }
+
+  blockquote {
+    margin: 0 0 1.4rem;
+    padding: .1rem 0 .1rem 1.15rem;
+    border-left: 3px solid var(--line);
+    color: var(--ink-2);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+  }
+  .callout p { margin-bottom: .6rem; color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--warn); }
+
+  .tablewrap { overflow-x: auto; margin: 0 0 1.6rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  th, td { padding: .6rem .85rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <h1>Document</h1>
+    
+  </header>
+  <nav class="toc" aria-label="Contents"><p class="eyebrow">Contents</p><ol><li><a href="#cascaded-pipeline-vad-asr-llm-tts">Cascaded Pipeline: VAD → ASR → LLM → TTS</a></li><li><a href="#end-to-end-speech-to-speech-models">End-to-End Speech-to-Speech Models</a></li><li><a href="#trade-off-summary">Trade-Off Summary</a></li><li><a href="#key-papers-and-system-cards">Key Papers and System Cards</a></li></ol></nav>
+  <main>
+<h2 id="cascaded-pipeline-vad-asr-llm-tts"><span class="htext">Cascaded Pipeline: VAD → ASR → LLM → TTS</span></h2>
+<h3 id="data-flow"><span class="htext">Data Flow</span></h3>
+<ol>
+<li><strong>Voice Activity Detection (VAD)</strong>: Detects speech onset/offset to segment audio into utterances. Modern systems use <strong>semantic VAD</strong> that waits for linguistically complete turns rather than silence gaps. <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></li>
+<li><strong>ASR (Automatic Speech Recognition)</strong>: Streams partial transcripts while user speaks, finalizes on turn end. Outputs: text transcript + confidence scores. <a href="https://livekit.com/blog/voice-agent-architecture-stt-llm-tts-pipelines-explained">livekit</a></li>
+<li><strong>LLM</strong>: Receives transcript, generates text response token-by-token. Can invoke tools, access RAG, apply guardrails mid-generation. <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></li>
+<li><strong>TTS (Text-to-Speech)</strong>: Converts LLM tokens to audio, streams first audio chunk before LLM finishes. <a href="https://deepgram.com/learn/unified-end-to-end-text-to-speech-architecture-cuts-latency">deepgram</a></li>
+</ol>
+<div class="codewrap"><pre><code>User audio → VAD → ASR (text) → LLM (text) → TTS → Agent audio
+                    ↑              ↑              ↑
+                transcript    tool calls    voice synthesis</code></pre></div>
+<h3 id="where-latency-accumulates"><span class="htext">Where Latency Accumulates</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Stage</th><th style="text-align:left">Typical Latency (P50)</th><th style="text-align:left">Notes</th></tr></thead><tbody><tr><td style="text-align:left">VAD end-of-speech detection</td><td style="text-align:left">20–100 ms</td><td style="text-align:left">Semantic VAD reduces false endpoints  <a href="https://gradium.ai/content/cascaded-voice-agent-vs-speech-to-speech-2026">gradium</a></td></tr><tr><td style="text-align:left">ASR first partial</td><td style="text-align:left">100–300 ms</td><td style="text-align:left">Streaming; final transcript adds 50–100 ms  <a href="https://livekit.com/blog/voice-agent-architecture-stt-llm-tts-pipelines-explained">livekit</a></td></tr><tr><td style="text-align:left">LLM time-to-first-token (TTFT)</td><td style="text-align:left">200–600 ms</td><td style="text-align:left">Dominates pipeline; depends on model size  <a href="https://deepgram.com/learn/unified-end-to-end-text-to-speech-architecture-cuts-latency">deepgram</a></td></tr><tr><td style="text-align:left">TTS time-to-first-audio (TTFA)</td><td style="text-align:left">75–300 ms</td><td style="text-align:left">Modern APIs (e.g., Realtime TTS-2 Flash) achieve &lt;100 ms P99  <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></td></tr><tr><td style="text-align:left">Network + orchestration</td><td style="text-align:left">50–200 ms</td><td style="text-align:left">WebRTC &lt;50 ms; PSTN 150–700 ms  <a href="https://livekit.com/blog/voice-agent-architecture-stt-llm-tts-pipelines-explained">livekit</a></td></tr><tr><td style="text-align:left"><strong>Total TTFA</strong></td><td style="text-align:left"><strong>600–1,200 ms</strong></td><td style="text-align:left">Sub-500 ms achievable with aggressive streaming  <a href="https://futureagi.com/blog/cascaded-voice-ai-vs-speech-to-speech-2026/">futureagi</a></td></tr></tbody></table></div>
+<p>Latency is <strong>additive</strong>: each stage must wait for prior stage output, though streaming overlaps ASR→LLM→TTS partially. <a href="https://livekit.com/blog/voice-agent-architecture-stt-llm-tts-pipelines-explained">livekit</a></p>
+<h3 id="information-lost-at-asr-step"><span class="htext">Information Lost at ASR Step</span></h3>
+<p>ASR discards <strong>all paralinguistic information</strong>:</p>
+<ul>
+<li><strong>Tone</strong>: pitch contour, intonation patterns (question vs. statement)</li>
+<li><strong>Emotion</strong>: frustration, excitement, sarcasm, uncertainty</li>
+<li><strong>Emphasis</strong>: which words are stressed for contrast or focus</li>
+<li><strong>Hesitation</strong>: filled pauses (&quot;um&quot;, &quot;uh&quot;), elongated vowels, restarts</li>
+<li><strong>Speaker identity</strong>: voice timbre, accent, age/gender cues</li>
+<li><strong>Background context</strong>: ambient noise, overlapping speech, laughter <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></li>
+</ul>
+<p>Example: User says &quot;*I'm <strong>fine</strong>*&quot; with flat tone and elongated &quot;fine&quot; (indicating frustration). ASR outputs <code>&quot;I'm fine&quot;</code>—the LLM cannot distinguish genuine vs. ironic fine. <a href="https://gradium.ai/content/cascaded-voice-agent-vs-speech-to-speech-2026">gradium</a></p>
+<h3 id="what-cascaded-pipelines-can-do-with-paralinguistic-cues"><span class="htext">What Cascaded Pipelines Can Do With Paralinguistic Cues</span></h3>
+<p><strong>Nothing directly.</strong> The LLM reasons over text only. Some systems attempt reconstruction:</p>
+<ul>
+<li>TTS can add prosody based on punctuation or SSML tags, but this is synthetic, not responsive to user emotion. <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></li>
+<li>Separate emotion classifiers on audio (pre-ASR) can inject metadata, but this is ad-hoc and rarely production-grade. <a href="https://gradium.ai/content/cascaded-voice-agent-vs-speech-to-speech-2026">gradium</a></li>
+</ul>
+<h3 id="controllability-debuggability-cost-tool-calls-guardrails"><span class="htext">Controllability, Debuggability, Cost, Tool Calls, Guardrails</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Dimension</th><th style="text-align:left">Cascaded Pipeline</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Controllability</strong></td><td style="text-align:left">High: swap STT/LLM/TTS independently; tune each component; apply SSML to TTS; prompt-engineer LLM  <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></td></tr><tr><td style="text-align:left"><strong>Debuggability</strong></td><td style="text-align:left">High: per-stage spans (ASR WER, LLM hallucination, TTS mispronunciation); transcript-native logging for compliance  <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></td></tr><tr><td style="text-align:left"><strong>Cost</strong></td><td style="text-align:left">Per-component pricing: STT ~$0.15/hr, TTS ~$25/1M chars, LLM at-cost routing. Can downgrade LLM without touching voice quality.  <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></td></tr><tr><td style="text-align:left"><strong>Tool calls</strong></td><td style="text-align:left">Mature: inherits LLM provider's full function-calling surface (OpenAI, Anthropic). Supports multi-tool chains, strict JSON schema, parallel calls.  <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></td></tr><tr><td style="text-align:left"><strong>Guardrails mid-turn</strong></td><td style="text-align:left">Easy: intercept transcript pre-LLM (PII redaction, moderation); intercept LLM tokens pre-TTS (safety filters, RAG injection).  <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></td></tr></tbody></table></div>
+<h2 id="end-to-end-speech-to-speech-models"><span class="htext">End-to-End Speech-to-Speech Models</span></h2>
+<h3 id="data-flow"><span class="htext">Data Flow</span></h3>
+<p>Single multimodal model consumes audio tokens, emits audio tokens directly:</p>
+<div class="codewrap"><pre><code>User audio → Audio codec (tokens) → S2S transformer → Audio codec (tokens) → Agent audio
+                 ↑                                        ↑
+           EnCodec/DAC tokens                      DAC/EnCodec decoder</code></pre></div>
+<p>No intermediate transcript on hot path. Transcript may be generated for logging via separate ASR pass. <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></p>
+<p>Key systems:</p>
+<ul>
+<li><strong>OpenAI Realtime API</strong> (<code>gpt-realtime</code>): WebRTC/WebSocket, function calling, multi-modal (audio + text + image). <a href="https://futureagi.com/blog/cascaded-voice-ai-vs-speech-to-speech-2026/">futureagi</a></li>
+<li><strong>Google Gemini Live API</strong>: Native audio/video/text input, tool calling, long-context conversation. <a href="https://futureagi.com/blog/cascaded-voice-ai-vs-speech-to-speech-2026/">futureagi</a></li>
+<li><strong>Moshi</strong> (Kyutai, 2024): Open-weight, full-duplex (two simultaneous audio streams), no turn-taking mechanism. <a href="https://gradium.ai/content/cascaded-voice-agent-vs-speech-to-speech-2026">gradium</a></li>
+</ul>
+<h3 id="where-latency-accumulates"><span class="htext">Where Latency Accumulates</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Component</th><th style="text-align:left">Typical Latency</th><th style="text-align:left">Notes</th></tr></thead><tbody><tr><td style="text-align:left">Single inference pass (audio-in → audio-out)</td><td style="text-align:left">300–500 ms TTFA</td><td style="text-align:left">No STT/LLM/TTS handoff; warm WebRTC connection  <a href="https://inworld.ai/resources/best-speech-to-speech-model">inworld</a></td></tr><tr><td style="text-align:left">Network + transport</td><td style="text-align:left">50–150 ms</td><td style="text-align:left">WebRTC optimized  <a href="https://livekit.com/blog/voice-agent-architecture-stt-llm-tts-pipelines-explained">livekit</a></td></tr><tr><td style="text-align:left"><strong>Total TTFA</strong></td><td style="text-align:left"><strong>300–500 ms</strong></td><td style="text-align:left">~2× faster than typical cascaded  <a href="https://inworld.ai/resources/best-speech-to-speech-model">inworld</a></td></tr></tbody></table></div>
+<p>Latency is <strong>non-additive</strong>: single forward pass avoids sequential bottlenecks. However, large multimodal models may have higher per-token compute cost. <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></p>
+<h3 id="paralinguistic-information-preserved"><span class="htext">Paralinguistic Information Preserved</span></h3>
+<p>S2S models perceive and respond to:</p>
+<ul>
+<li><strong>Tone</strong>: matches output prosody to user's pitch contour (e.g., gentle response to flat tone). <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></li>
+<li><strong>Emotion</strong>: detects frustration, excitement, sarcasm from audio features; modulates response accordingly. <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></li>
+<li><strong>Emphasis</strong>: hears which words user stressed; can mirror or contrast in response. <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></li>
+<li><strong>Hesitation</strong>: detects uncertainty from filled pauses, elongations; can offer clarification or encouragement. <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></li>
+<li><strong>Speaker identity</strong>: recognizes voice timbre across turns; enables personalized voice cloning without explicit enrollment. <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></li>
+<li><strong>Background context</strong>: laughter, overlapping speech, ambient noise inform turn-taking and response timing. <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></li>
+</ul>
+<p>Example: User says &quot;*I'm <strong>fine</strong>*&quot; with frustrated tone. S2S model hears frustration, responds gently: &quot;*You sound upset—want to talk about it?*&quot; <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></p>
+<h3 id="full-duplex-conversation"><span class="htext">Full-Duplex Conversation</span></h3>
+<p>Moshi and similar models process <strong>two simultaneous audio streams</strong> (user + agent), eliminating turn-taking:</p>
+<ul>
+<li>No VAD required; model can respond while user speaks (backchanneling: &quot;mhm&quot;, &quot;uh-huh&quot;). <a href="https://gradium.ai/content/cascaded-voice-agent-vs-speech-to-speech-2026">gradium</a></li>
+<li>Natural overlap handling: user interrupts, model pauses, both speak briefly. <a href="https://gradium.ai/content/cascaded-voice-agent-vs-speech-to-speech-2026">gradium</a></li>
+</ul>
+<h3 id="controllability-debuggability-cost-tool-calls-guardrails"><span class="htext">Controllability, Debuggability, Cost, Tool Calls, Guardrails</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Dimension</th><th style="text-align:left">End-to-End S2S</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Controllability</strong></td><td style="text-align:left">Low: LLM baked into weights; cannot swap components; fixed voice sets; prompt engineering not directly applicable.  <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></td></tr><tr><td style="text-align:left"><strong>Debuggability</strong></td><td style="text-align:left">Low: single audio-in/audio-out span; no per-stage transcript; must sample-decode to text for retrospective eval.  <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></td></tr><tr><td style="text-align:left"><strong>Cost</strong></td><td style="text-align:left">Bundled audio-token pricing: OpenAI gpt-realtime-2.1 at $32/1M input tokens + $64/1M output tokens; Gemini Live at $0.005/min in + $0.018/min out. No per-component levers.  <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></td></tr><tr><td style="text-align:left"><strong>Tool calls</strong></td><td style="text-align:left">Emerging: OpenAI Realtime and Gemini Live support function calling, but edge cases (mid-turn barge-in during tool call, strict schema validation) are rougher than cascaded.  <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></td></tr><tr><td style="text-align:left"><strong>Guardrails mid-turn</strong></td><td style="text-align:left">Limited: no transcript boundary to intercept; must run inline audio moderation (e.g., Future AGI Protect on output audio).  <a href="https://futureagi.com/blog/cascaded-voice-ai-vs-speech-to-speech-2026/">futureagi</a></td></tr></tbody></table></div>
+<h2 id="trade-off-summary"><span class="htext">Trade-Off Summary</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Axis</th><th style="text-align:left">Cascaded Wins When...</th><th style="text-align:left">S2S Wins When...</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Latency</strong></td><td style="text-align:left">Aggressive streaming + co-located components achieve sub-500 ms  <a href="https://futureagi.com/blog/cascaded-voice-ai-vs-speech-to-speech-2026/">futureagi</a></td><td style="text-align:left">Default 300–500 ms without tuning; critical for conversational UX  <a href="https://inworld.ai/resources/best-speech-to-speech-model">inworld</a></td></tr><tr><td style="text-align:left"><strong>Paralinguistic awareness</strong></td><td style="text-align:left">Not required (transactional: scheduling, support, healthcare)  <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></td><td style="text-align:left">Core product (companions, language tutors, social apps)  <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></td></tr><tr><td style="text-align:left"><strong>Tool depth</strong></td><td style="text-align:left">5+ tools with strict schemas (booking, payments, PHI)  <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></td><td style="text-align:left">1–3 tools with loose validation (search, lookup)  <a href="https://futureagi.com/blog/cascaded-voice-ai-vs-speech-to-speech-2026/">futureagi</a></td></tr><tr><td style="text-align:left"><strong>Observability</strong></td><td style="text-align:left">Compliance, moderation, eval require transcript-native logging  <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></td><td style="text-align:left">Prototype/research; can tolerate post-hoc sampled transcript eval  <a href="https://futureagi.com/blog/cascaded-voice-ai-vs-speech-to-speech-2026/">futureagi</a></td></tr><tr><td style="text-align:left"><strong>Vendor flexibility</strong></td><td style="text-align:left">Need to swap LLM quarterly; multi-vendor STT/TTS  <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></td><td style="text-align:left">Single-vendor simplicity acceptable; locked to S2S provider  <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></td></tr><tr><td style="text-align:left"><strong>Voice cloning</strong></td><td style="text-align:left">Custom brand voice required (ElevenLabs, Cartesia)  <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></td><td style="text-align:left">Fixed voice sets sufficient (OpenAI shimmer/alloy/echo)  <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></td></tr></tbody></table></div>
+<h2 id="key-papers-and-system-cards"><span class="htext">Key Papers and System Cards</span></h2>
+<ul>
+<li><strong>Moshi</strong> (Kyutai, 2024, arXiv:2410.00037): First open full-duplex S2S model with two simultaneous audio streams. <a href="https://gradium.ai/content/cascaded-voice-agent-vs-speech-to-speech-2026">gradium</a></li>
+<li><strong>OpenAI Realtime API</strong> (2024–2026): Production S2S with function calling, multi-modal input. Pricing: $32/1M input tokens, $64/1M output tokens (gpt-realtime-2.1). <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></li>
+<li><strong>Gemini Live API</strong> (Google, 2025–2026): Native audio/video/text S2S with tool calling. Pricing: $0.005/min in, $0.018/min out. <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></li>
+<li><strong>SoundStream</strong> (Zeghidour et al., 2021, arXiv:2107.03312): Neural audio codec enabling discrete audio tokens for S2S. <a href="https://gradium.ai/content/cascaded-voice-agent-vs-speech-to-speech-2026">gradium</a></li>
+<li><strong>Cascaded vs. S2S comparisons</strong>: Inworld AI (July 2026), Gradium (Sept 2026), Future AGI (April 2026). <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></li>
+</ul>
+<p>The field is converging toward <strong>hybrid architectures</strong>: semantic VAD + streaming cascaded pipelines with S2S-like prosody transfer, or S2S models with modular LLM backends. Until then, cascaded remains the production default; S2S leads in conversational naturalness. <a href="https://inworld.ai/resources/cascaded-vs-speech-to-speech-voice-architecture">inworld</a></p>
+  </main>
+</div>

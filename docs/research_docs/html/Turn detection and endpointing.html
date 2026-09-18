@@ -1,0 +1,311 @@
+<title>Document</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --ink:       #14171c;
+    --ink-2:     #474e5a;
+    --ink-3:     #767e8b;
+    --line:      #e2e5ea;
+    --line-2:    #eef0f4;
+    --accent:    #2d4a7c;
+    --accent-bg: #edf1f8;
+    --warn:      #a6421f;
+    --warn-bg:   #fbf0eb;
+    --code-bg:   #f0f2f6;
+    --shadow:    0 1px 2px rgba(20,23,28,.05), 0 8px 24px -12px rgba(20,23,28,.15);
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #101317;
+      --surface:   #171b21;
+      --ink:       #e7eaef;
+      --ink-2:     #a8b0bc;
+      --ink-3:     #7b838f;
+      --line:      #2a2f38;
+      --line-2:    #22262d;
+      --accent:    #8fb0e6;
+      --accent-bg: #1a2130;
+      --warn:      #e2916d;
+      --warn-bg:   #2a1d17;
+      --code-bg:   #1d222a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #101317;
+    --surface:   #171b21;
+    --ink:       #e7eaef;
+    --ink-2:     #a8b0bc;
+    --ink-3:     #7b838f;
+    --line:      #2a2f38;
+    --line-2:    #22262d;
+    --accent:    #8fb0e6;
+    --accent-bg: #1a2130;
+    --warn:      #e2916d;
+    --warn-bg:   #2a1d17;
+    --code-bg:   #1d222a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .5rem 2.25rem; margin: 0; }
+  dl.meta div { display: flex; flex-direction: column; gap: .1rem; }
+  dl.meta dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  dl.meta dd { margin: 0; font-size: .9rem; color: var(--ink-2); }
+
+  /* ---- toc ---- */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 3rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--ink-3);
+    margin: 0 0 .75rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: flex;
+    gap: .7rem;
+    font-size: .92rem;
+    border-radius: 2px;
+  }
+  .toc a:hover { color: var(--accent); }
+  .tocnum, .secnum {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: .8em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- headings ---- */
+  h2, h3, h4 { font-family: var(--serif); letter-spacing: -.01em; text-wrap: balance; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    font-weight: 600;
+    margin: 3.5rem 0 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .75rem;
+    align-items: baseline;
+  }
+  h3 { font-size: 1.14rem; font-weight: 600; margin: 2.25rem 0 .7rem; display: flex; gap: .6rem; align-items: baseline; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; color: var(--ink-2); }
+  h2 .secnum, h3 .secnum { flex: none; }
+
+  p { margin: 0 0 1.05rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line-2); margin: 2.5rem 0; }
+
+  ul, ol { margin: 0 0 1.15rem; padding-left: 1.35rem; max-width: 68ch; }
+  li { margin-bottom: .38rem; }
+  li::marker { color: var(--ink-3); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+  .codewrap { overflow-x: auto; margin: 0 0 1.4rem; }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 0;
+    min-width: min-content;
+  }
+  pre code { background: none; padding: 0; font-size: .845rem; line-height: 1.6; }
+
+  blockquote {
+    margin: 0 0 1.4rem;
+    padding: .1rem 0 .1rem 1.15rem;
+    border-left: 3px solid var(--line);
+    color: var(--ink-2);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+  }
+  .callout p { margin-bottom: .6rem; color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--warn); }
+
+  .tablewrap { overflow-x: auto; margin: 0 0 1.6rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  th, td { padding: .6rem .85rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <h1>Document</h1>
+    
+  </header>
+  <nav class="toc" aria-label="Contents"><p class="eyebrow">Contents</p><ol><li><a href="#energy-based-vad-vs-neural-vad-silero">Energy-Based VAD vs. Neural VAD (Silero)</a></li><li><a href="#silence-threshold-approach-and-the-500700-ms-latency-tax">Silence-Threshold Approach and the 500–700 ms Latency Tax</a></li><li><a href="#semantic-turn-detection">Semantic Turn Detection</a></li><li><a href="#integrated-asr-based-end-of-turn-signals">Integrated ASR-Based End-of-Turn Signals</a></li><li><a href="#the-fundamental-trade-off-cutting-off-vs-making-them-wait">The Fundamental Trade-Off: Cutting Off vs. Making Them Wait</a></li><li><a href="#backchannels-mhm-yeah-and-why-they-must-not-trigger-a-turn">Backchannels (&quot;mhm&quot;, &quot;yeah&quot;) and Why They Must Not Trigger a Turn</a></li><li><a href="#benchmarks-and-key-papers">Benchmarks and Key Papers</a></li></ol></nav>
+  <main>
+<h2 id="energy-based-vad-vs-neural-vad-silero"><span class="htext">Energy-Based VAD vs. Neural VAD (Silero)</span></h2>
+<h3 id="energy-based-vad"><span class="htext">Energy-Based VAD</span></h3>
+<p><strong>Energy-based VAD</strong> measures the root-mean-square (RMS) energy of each audio frame (typically 10–30 ms) and compares it against an adaptive noise floor. Frames above threshold are labeled speech; frames below are silence. <a href="https://www.callmissed.com/blog/vad-and-endpointing-why-your-voice-agent-feels-slow-and-how-to-fix-it">callmissed</a></p>
+<p><strong>Limitations:</strong></p>
+<ul>
+<li>Fails in noisy environments (TV, café, keyboard clicks) where background energy exceeds speech energy</li>
+<li>Cannot distinguish human speech from other loud sounds (door slams, music)</li>
+<li>High false-positive rate in telephony (G.711 μ-law narrowband) due to codec artifacts <a href="https://proceedings.iclr.cc/paper_files/paper/2026/file/ddeadff481e7ddf478234961ea7aae8b-Paper-Conference.pdf">proceedings.iclr</a></li>
+</ul>
+<h3 id="neural-vad-silero"><span class="htext">Neural VAD (Silero)</span></h3>
+<p><strong>Neural VAD</strong> (e.g., Silero VAD v5) replaces hand-crafted energy thresholds with a recurrent neural network trained on thousands of hours of labeled speech across languages, accents, and noise conditions. The model outputs a per-frame speech probability \(P(\text{speech}) \in [0, 1]\). <a href="https://proceedings.iclr.cc/paper_files/paper/2026/file/ddeadff481e7ddf478234961ea7aae8b-Paper-Conference.pdf">proceedings.iclr</a></p>
+<p><strong>Advantages:</strong></p>
+<ul>
+<li>Detects speech in &lt;15 ms with high robustness to non-speech noise</li>
+<li>Learns vocal formant resonances (F1, F2, F3) and pitch harmonics (F0), rejecting sirens, dogs, typing <a href="https://proceedings.iclr.cc/paper_files/paper/2026/file/ddeadff481e7ddf478234961ea7aae8b-Paper-Conference.pdf">proceedings.iclr</a></li>
+<li>Silero v5 achieves ~87.7% speech detection at 5% false-positive rate vs. ~63% for WebRTC GMM energy filter <a href="https://aclanthology.org/2025.emnlp-main.1266.pdf">aclanthology</a></li>
+</ul>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">VAD Type</th><th style="text-align:left">Technical Basis</th><th style="text-align:left">Latency</th><th style="text-align:left">Noise Robustness</th><th style="text-align:left">False Trigger Rate</th></tr></thead><tbody><tr><td style="text-align:left">Energy-based (WebRTC legacy)</td><td style="text-align:left">RMS energy + spectral flatness</td><td style="text-align:left">&lt;1 ms</td><td style="text-align:left">Low</td><td style="text-align:left">24.5%  <a href="https://proceedings.iclr.cc/paper_files/paper/2026/file/ddeadff481e7ddf478234961ea7aae8b-Paper-Conference.pdf">proceedings.iclr</a></td></tr><tr><td style="text-align:left">Neural (Silero v5)</td><td style="text-align:left">RNN on mel-spectrogram</td><td style="text-align:left">1–5 ms</td><td style="text-align:left">High</td><td style="text-align:left">6.8%  <a href="https://proceedings.iclr.cc/paper_files/paper/2026/file/ddeadff481e7ddf478234961ea7aae8b-Paper-Conference.pdf">proceedings.iclr</a></td></tr></tbody></table></div>
+<h2 id="silence-threshold-approach-and-the-500700-ms-latency-tax"><span class="htext">Silence-Threshold Approach and the 500–700 ms Latency Tax</span></h2>
+<p>The <strong>silence-threshold approach</strong> waits for a fixed duration of continuous silence (e.g., 500 ms) before declaring end-of-turn. This is the default in most production STT APIs and voice pipelines. <a href="https://www.autointerviewai.com/blog/what-is-turn-taking-vad-in-voice-ai-interruptions-2026">autointerviewai</a></p>
+<p><strong>Why 500–700 ms is a large fraction of the latency budget:</strong></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Pipeline Stage</th><th style="text-align:left">Typical Latency (P50)</th></tr></thead><tbody><tr><td style="text-align:left">VAD end-of-speech hold</td><td style="text-align:left"><strong>300–700 ms</strong> (configurable)  <a href="https://dev.to/lenajhoffmann/barge-in-vad-and-the-latency-budget-engineering-realtime-voice-3i1b">dev</a></td></tr><tr><td style="text-align:left">ASR streaming first partial</td><td style="text-align:left">100–300 ms  <a href="https://hamming.ai/resources/voice-ai-latency-whats-fast-whats-slow-how-to-fix-it">hamming</a></td></tr><tr><td style="text-align:left">LLM time-to-first-token</td><td style="text-align:left">200–600 ms</td></tr><tr><td style="text-align:left">TTS time-to-first-audio</td><td style="text-align:left">75–300 ms</td></tr><tr><td style="text-align:left"><strong>Total</strong></td><td style="text-align:left"><strong>675–1,900 ms</strong></td></tr></tbody></table></div>
+<p>At 500 ms silence threshold, VAD endpointing alone consumes <strong>30–50% of a sub-1-second latency budget</strong>, leaving insufficient margin for ASR, LLM, and TTS. <a href="https://www.autointerviewai.com/blog/what-is-turn-taking-vad-in-voice-ai-interruptions-2026">autointerviewai</a></p>
+<p><strong>The 200 ms human baseline:</strong> In natural human conversation, the average gap between turns is ~200 ms (Stivers et al., PNAS 2009). A 500 ms silence threshold is <strong>2.5× the human baseline</strong>, making agents feel sluggish even if downstream stages are fast. <a href="https://gradium.ai/content/semantic-vad-voice-agents-turn-detection-2026">gradium</a></p>
+<h2 id="semantic-turn-detection"><span class="htext">Semantic Turn Detection</span></h2>
+<p><strong>Semantic turn detection</strong> (semantic VAD, semantic endpointing) predicts end-of-turn from linguistic content rather than silence duration alone. It answers: <em>&quot;Has the speaker finished a complete thought?&quot;</em> instead of <em>&quot;Has there been N ms of silence?&quot;</em> <a href="https://gradium.ai/content/semantic-vad-voice-agents-turn-detection-2026">gradium</a></p>
+<h3 id="how-it-works"><span class="htext">How It Works</span></h3>
+<p>Semantic VAD analyzes:</p>
+<ul>
+<li><strong>Syntactic completeness</strong>: Does the partial transcript end mid-clause (&quot;I want to...&quot;) or at a grammatical boundary (&quot;I want to book a flight.&quot;)? <a href="https://gradium.ai/content/semantic-vad-voice-agents-turn-detection-2026">gradium</a></li>
+<li><strong>Intonation contours</strong>: Falling pitch (F0 downdrift) signals completion; level/rising pitch signals continuation <a href="https://proceedings.iclr.cc/paper_files/paper/2026/file/ddeadff481e7ddf478234961ea7aae8b-Paper-Conference.pdf">proceedings.iclr</a></li>
+<li><strong>Filler words and hesitations</strong>: &quot;um&quot;, &quot;uh&quot;, &quot;let me think&quot; extend the pause threshold dynamically <a href="https://gradium.ai/content/semantic-vad-voice-agents-turn-detection-2026">gradium</a></li>
+<li><strong>Question-answer adjacency pairs</strong>: A question (&quot;What's my balance?&quot;) implies an expected response, triggering faster endpointing <a href="https://gradium.ai/content/semantic-vad-voice-agents-turn-detection-2026">gradium</a></li>
+</ul>
+<h3 id="multi-horizon-inactivity-prediction"><span class="htext">Multi-Horizon Inactivity Prediction</span></h3>
+<p>Modern semantic VAD (e.g., Gradium STT) emits a <strong>multi-horizon inactivity forecast</strong> every 80 ms: an array of probabilities that the user will remain silent over the next 0.5, 1, 2, or 3 seconds. The agent reads whichever horizon matches its reactivity needs. <a href="https://gradium.ai/content/semantic-vad-voice-agents-turn-detection-2026">gradium</a></p>
+<div class="codewrap"><pre><code>vad: [0.12, 0.35, 0.68, 0.89]  # P(inactive over 0.5s, 1s, 2s, 3s)</code></pre></div>
+<p>This allows:</p>
+<ul>
+<li><strong>Snappy assistants</strong>: Read <code>vad [gradium](https://gradium.ai/content/semantic-vad-voice-agents-turn-detection-2026)</code> (0.5s horizon) at threshold 0.30 → commit after 1–2 high-confidence frames <a href="https://gradium.ai/content/semantic-vad-voice-agents-turn-detection-2026">gradium</a></li>
+<li><strong>Noisy telephony</strong>: Read <code>vad [autointerviewai](https://www.autointerviewai.com/blog/what-is-turn-taking-vad-in-voice-ai-interruptions-2026)</code> (3s horizon) at threshold 0.60 + require 3 consecutive high frames → robust to codec artifacts <a href="https://gradium.ai/content/semantic-vad-voice-agents-turn-detection-2026">gradium</a></li>
+</ul>
+<h3 id="latency-impact"><span class="htext">Latency Impact</span></h3>
+<p>Semantic VAD reduces endpointing latency from 500 ms to <strong>100–200 ms</strong> without increasing interruption rate, because it distinguishes hesitation pauses from true turn endings. <a href="https://gradium.ai/content/semantic-vad-voice-agents-turn-detection-2026">gradium</a></p>
+<h2 id="integrated-asr-based-end-of-turn-signals"><span class="htext">Integrated ASR-Based End-of-Turn Signals</span></h2>
+<p>Some systems integrate turn detection directly into the ASR model. The ASR emits an <strong>end-of-turn (EOT) flag</strong> alongside partial transcripts, trained jointly on transcription and turn-completion prediction. <a href="https://gradium.ai/content/semantic-vad-voice-agents-turn-detection-2026">gradium</a></p>
+<p><strong>Advantages:</strong></p>
+<ul>
+<li>Zero additional model in the turn-detection loop: EOT signal comes from the same forward pass as the transcript <a href="https://gradium.ai/content/semantic-vad-voice-agents-turn-detection-2026">gradium</a></li>
+<li>Context-aware: ASR has already seen the full acoustic context, so EOT is more accurate than a separate VAD <a href="https://gradium.ai/content/how-to-connect-tts-to-llm-voice-pipeline">gradium</a></li>
+</ul>
+<p><strong>Example</strong>: Gradium STT integrates semantic VAD natively, emitting <code>vad</code> arrays in the same WebSocket stream as transcripts. No separate endpointing component is needed. <a href="https://gradium.ai/content/semantic-vad-voice-agents-turn-detection-2026">gradium</a></p>
+<h2 id="the-fundamental-trade-off-cutting-off-vs-making-them-wait"><span class="htext">The Fundamental Trade-Off: Cutting Off vs. Making Them Wait</span></h2>
+<p>Turn detection faces an <strong>unavoidable precision-recall trade-off</strong>:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Setting</th><th style="text-align:left">Effect</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Low silence threshold (200–300 ms)</strong></td><td style="text-align:left">Fast responses, but high interruption rate (cuts users off mid-thought)  <a href="https://dev.to/lenajhoffmann/barge-in-vad-and-the-latency-budget-engineering-realtime-voice-3i1b">dev</a></td></tr><tr><td style="text-align:left"><strong>High silence threshold (800–1,200 ms)</strong></td><td style="text-align:left">Fewer interruptions, but every turn carries 500+ ms of dead air → agent feels slow  <a href="https://gradium.ai/content/semantic-vad-voice-agents-turn-detection-2026">gradium</a></td></tr></tbody></table></div>
+<p><strong>Why no single threshold works:</strong> A 400 ms pause mid-sentence (&quot;I'd like to book a flight to... uh... Lisbon&quot;) is acoustically identical to a 400 ms pause at sentence end. Silence duration alone cannot distinguish hesitation from completion. <a href="https://gradium.ai/content/semantic-vad-voice-agents-turn-detection-2026">gradium</a></p>
+<h3 id="production-tuning-strategies"><span class="htext">Production Tuning Strategies</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Use Case</th><th style="text-align:left">Silence Threshold</th><th style="text-align:left">Min Speech Duration</th><th style="text-align:left">Consecutive High Frames</th><th style="text-align:left">Notes</th></tr></thead><tbody><tr><td style="text-align:left">Snappy assistant, clean audio</td><td style="text-align:left">200–300 ms</td><td style="text-align:left">500 ms</td><td style="text-align:left">1</td><td style="text-align:left">Aggressive; risk of interruptions  <a href="https://dev.to/lenajhoffmann/barge-in-vad-and-the-latency-budget-engineering-realtime-voice-3i1b">dev</a></td></tr><tr><td style="text-align:left">Default conversational agent</td><td style="text-align:left">400–500 ms</td><td style="text-align:left">800 ms</td><td style="text-align:left">1–2</td><td style="text-align:left">Balanced; industry default  <a href="https://dev.to/lenajhoffmann/barge-in-vad-and-the-latency-budget-engineering-realtime-voice-3i1b">dev</a></td></tr><tr><td style="text-align:left">Phone IVR, noisy channels</td><td style="text-align:left">600–800 ms</td><td style="text-align:left">1,000 ms</td><td style="text-align:left">3</td><td style="text-align:left">Conservative; tolerates codec artifacts  <a href="https://gradium.ai/content/semantic-vad-voice-agents-turn-detection-2026">gradium</a></td></tr><tr><td style="text-align:left">Semantic VAD enabled</td><td style="text-align:left">100–200 ms (effective)</td><td style="text-align:left">N/A</td><td style="text-align:left">1–2 high-confidence horizons</td><td style="text-align:left">Reduces dead air without increasing interruptions  <a href="https://gradium.ai/content/semantic-vad-voice-agents-turn-detection-2026">gradium</a></td></tr></tbody></table></div>
+<p><strong>Dynamic tuning:</strong> Some systems adjust thresholds per user (fast talkers vs. slow thinkers) or per dialog state (open-ended questions → longer threshold; yes/no questions → shorter threshold). <a href="https://gradium.ai/content/semantic-vad-voice-agents-turn-detection-2026">gradium</a></p>
+<h2 id="backchannels-mhm-yeah-and-why-they-must-not-trigger-a-turn"><span class="htext">Backchannels (&quot;mhm&quot;, &quot;yeah&quot;) and Why They Must Not Trigger a Turn</span></h2>
+<p><strong>Backchannels</strong> are short listener responses (&quot;mhm&quot;, &quot;yeah&quot;, &quot;I see&quot;, &quot;right&quot;) that signal active listening <strong>without seizing the conversational floor</strong>. In human conversation, backchannels occur ~2–4 times per minute and are essential for natural flow. <a href="https://proceedings.iclr.cc/paper_files/paper/2026/file/ddeadff481e7ddf478234961ea7aae8b-Paper-Conference.pdf">proceedings.iclr</a></p>
+<h3 id="why-backchannels-are-problematic-for-vad"><span class="htext">Why Backchannels Are Problematic for VAD</span></h3>
+<ul>
+<li><strong>Acoustically identical to turns</strong>: &quot;mhm&quot; is 200–400 ms of speech, indistinguishable from a short turn (&quot;yes&quot;) to energy-based VAD <a href="https://proceedings.iclr.cc/paper_files/paper/2026/file/ddeadff481e7ddf478234961ea7aae8b-Paper-Conference.pdf">proceedings.iclr</a></li>
+<li><strong>If misclassified as turn</strong>: Agent stops speaking, waits for user response → awkward pause, or responds prematurely to a non-question <a href="https://proceedings.iclr.cc/paper_files/paper/2026/file/ddeadff481e7ddf478234961ea7aae8b-Paper-Conference.pdf">proceedings.iclr</a></li>
+</ul>
+<h3 id="how-production-systems-handle-backchannels"><span class="htext">How Production Systems Handle Backchannels</span></h3>
+<ol>
+<li><strong>Duration filtering</strong>: Ignore speech segments &lt;300 ms unless followed by silence &gt;800 ms <a href="https://proceedings.iclr.cc/paper_files/paper/2026/file/ddeadff481e7ddf478234961ea7aae8b-Paper-Conference.pdf">proceedings.iclr</a></li>
+<li><strong>Lexical classification</strong>: Train a classifier to detect backchannel words/phrases (&quot;mhm&quot;, &quot;uh-huh&quot;, &quot;got it&quot;) and suppress turn detection <a href="https://proceedings.iclr.cc/paper_files/paper/2026/file/ddeadff481e7ddf478234961ea7aae8b-Paper-Conference.pdf">proceedings.iclr</a></li>
+<li><strong>Prosodic cues</strong>: Backchannels have flat or rising pitch contour (not falling like turn-yielding statements) <a href="https://proceedings.iclr.cc/paper_files/paper/2026/file/ddeadff481e7ddf478234961ea7aae8b-Paper-Conference.pdf">proceedings.iclr</a></li>
+<li><strong>Semantic VAD</strong>: Recognizes that &quot;mhm&quot; after agent's explanation is not a complete thought requiring response <a href="https://gradium.ai/content/semantic-vad-voice-agents-turn-detection-2026">gradium</a></li>
+</ol>
+<p><strong>Example</strong>: User says &quot;mhm&quot; while agent explains a refund policy. Semantic VAD sees no syntactic completion, no falling pitch, no question structure → continues agent turn without pause. <a href="https://gradium.ai/content/semantic-vad-voice-agents-turn-detection-2026">gradium</a></p>
+<h2 id="benchmarks-and-key-papers"><span class="htext">Benchmarks and Key Papers</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">System</th><th style="text-align:left">VAD Architecture</th><th style="text-align:left">Speech Onset Detection</th><th style="text-align:left">Barge-In Speed</th><th style="text-align:left">Accidental Interruption Rate</th></tr></thead><tbody><tr><td style="text-align:left">WebRTC Energy VAD</td><td style="text-align:left">GMM energy filter</td><td style="text-align:left">65 ms</td><td style="text-align:left">280 ms</td><td style="text-align:left">24.5%  <a href="https://proceedings.iclr.cc/paper_files/paper/2026/file/ddeadff481e7ddf478234961ea7aae8b-Paper-Conference.pdf">proceedings.iclr</a></td></tr><tr><td style="text-align:left">Silero VAD v5</td><td style="text-align:left">RNN</td><td style="text-align:left">20 ms</td><td style="text-align:left">85 ms</td><td style="text-align:left">6.8%  <a href="https://proceedings.iclr.cc/paper_files/paper/2026/file/ddeadff481e7ddf478234961ea7aae8b-Paper-Conference.pdf">proceedings.iclr</a></td></tr><tr><td style="text-align:left">OpenAI Realtime VAD</td><td style="text-align:left">Server-side audio gating</td><td style="text-align:left">40 ms</td><td style="text-align:left">120 ms</td><td style="text-align:left">4.2%  <a href="https://proceedings.iclr.cc/paper_files/paper/2026/file/ddeadff481e7ddf478234961ea7aae8b-Paper-Conference.pdf">proceedings.iclr</a></td></tr><tr><td style="text-align:left">Deepgram Flux</td><td style="text-align:left">Semantic endpointing</td><td style="text-align:left">25 ms</td><td style="text-align:left">75 ms</td><td style="text-align:left">3.6%  <a href="https://proceedings.iclr.cc/paper_files/paper/2026/file/ddeadff481e7ddf478234961ea7aae8b-Paper-Conference.pdf">proceedings.iclr</a></td></tr></tbody></table></div>
+<p><strong>Key references:</strong></p>
+<ul>
+<li><strong>Stivers et al. (2009, PNAS)</strong>: &quot;Universals and cultural variation in turn-taking in conversation&quot; — establishes 200 ms average human turn gap <a href="https://gradium.ai/content/semantic-vad-voice-agents-turn-detection-2026">gradium</a></li>
+<li><strong>Gradium Semantic VAD (2026)</strong>: Multi-horizon inactivity prediction integrated into STT <a href="https://gradium.ai/content/semantic-vad-voice-agents-turn-detection-2026">gradium</a></li>
+<li><strong>Silero VAD (2021–2026)</strong>: Open-source neural VAD with ONNX runtime <a href="https://proceedings.iclr.cc/paper_files/paper/2026/file/ddeadff481e7ddf478234961ea7aae8b-Paper-Conference.pdf">proceedings.iclr</a></li>
+<li><strong>OpenAI Realtime API (2024–2026)</strong>: Semantic VAD mode with function calling <a href="https://gradium.ai/content/semantic-vad-voice-agents-turn-detection-2026">gradium</a></li>
+</ul>
+<p>Production systems in 2026 increasingly adopt <strong>hybrid architectures</strong>: acoustic VAD for input gating + semantic VAD for turn completion, achieving sub-500 ms end-to-end latency with human-parity interruption rates. <a href="https://gradium.ai/content/semantic-vad-voice-agents-turn-detection-2026">gradium</a></p>
+  </main>
+</div>

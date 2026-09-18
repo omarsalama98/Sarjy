@@ -1,0 +1,553 @@
+<title>Python Realtime Voice Stack</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --ink:       #14171c;
+    --ink-2:     #474e5a;
+    --ink-3:     #767e8b;
+    --line:      #e2e5ea;
+    --line-2:    #eef0f4;
+    --accent:    #2d4a7c;
+    --accent-bg: #edf1f8;
+    --warn:      #a6421f;
+    --warn-bg:   #fbf0eb;
+    --code-bg:   #f0f2f6;
+    --shadow:    0 1px 2px rgba(20,23,28,.05), 0 8px 24px -12px rgba(20,23,28,.15);
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #101317;
+      --surface:   #171b21;
+      --ink:       #e7eaef;
+      --ink-2:     #a8b0bc;
+      --ink-3:     #7b838f;
+      --line:      #2a2f38;
+      --line-2:    #22262d;
+      --accent:    #8fb0e6;
+      --accent-bg: #1a2130;
+      --warn:      #e2916d;
+      --warn-bg:   #2a1d17;
+      --code-bg:   #1d222a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #101317;
+    --surface:   #171b21;
+    --ink:       #e7eaef;
+    --ink-2:     #a8b0bc;
+    --ink-3:     #7b838f;
+    --line:      #2a2f38;
+    --line-2:    #22262d;
+    --accent:    #8fb0e6;
+    --accent-bg: #1a2130;
+    --warn:      #e2916d;
+    --warn-bg:   #2a1d17;
+    --code-bg:   #1d222a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .5rem 2.25rem; margin: 0; }
+  dl.meta div { display: flex; flex-direction: column; gap: .1rem; }
+  dl.meta dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  dl.meta dd { margin: 0; font-size: .9rem; color: var(--ink-2); }
+
+  /* ---- toc ---- */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 3rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--ink-3);
+    margin: 0 0 .75rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: flex;
+    gap: .7rem;
+    font-size: .92rem;
+    border-radius: 2px;
+  }
+  .toc a:hover { color: var(--accent); }
+  .tocnum, .secnum {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: .8em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- headings ---- */
+  h2, h3, h4 { font-family: var(--serif); letter-spacing: -.01em; text-wrap: balance; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    font-weight: 600;
+    margin: 3.5rem 0 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .75rem;
+    align-items: baseline;
+  }
+  h3 { font-size: 1.14rem; font-weight: 600; margin: 2.25rem 0 .7rem; display: flex; gap: .6rem; align-items: baseline; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; color: var(--ink-2); }
+  h2 .secnum, h3 .secnum { flex: none; }
+
+  p { margin: 0 0 1.05rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line-2); margin: 2.5rem 0; }
+
+  ul, ol { margin: 0 0 1.15rem; padding-left: 1.35rem; max-width: 68ch; }
+  li { margin-bottom: .38rem; }
+  li::marker { color: var(--ink-3); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+  .codewrap { overflow-x: auto; margin: 0 0 1.4rem; }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 0;
+    min-width: min-content;
+  }
+  pre code { background: none; padding: 0; font-size: .845rem; line-height: 1.6; }
+
+  blockquote {
+    margin: 0 0 1.4rem;
+    padding: .1rem 0 .1rem 1.15rem;
+    border-left: 3px solid var(--line);
+    color: var(--ink-2);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+  }
+  .callout p { margin-bottom: .6rem; color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--warn); }
+
+  .tablewrap { overflow-x: auto; margin: 0 0 1.6rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  th, td { padding: .6rem .85rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <h1>Python Realtime Voice Stack</h1>
+    <dl class="meta"><div><dt>note</dt><dd><strong>Deployment targets and free-tier reality for a FastAPI WebSocket voice agent.</strong></dd></div><div><dt>note</dt><dd><strong>Date of research: 18 September 2026.</strong> Everything below was verified against live</dd></div><div><dt>note</dt><dd>sources on that date. All prices, model IDs and rate limits are volatile —</dd></div><div><dt>note</dt><dd>re-check the two dashboards named in §0.3 before you commit code.</dd></div></dl>
+  </header>
+  <nav class="toc" aria-label="Contents"><p class="eyebrow">Contents</p><ol><li><a href="#0-one-page-summary"><span class="tocnum">0</span>One-page summary</a></li><li><a href="#1-modal-websockets-timeouts-warmth-cost"><span class="tocnum">1</span>Modal — WebSockets, timeouts, warmth, cost</a></li><li><a href="#2-hugging-face-spaces-viable-for-a-demo-probably-not"><span class="tocnum">2</span>Hugging Face Spaces — viable for a demo? Probably not</a></li><li><a href="#3-flyio-and-render-compared"><span class="tocnum">3</span>Fly.io and Render compared</a></li><li><a href="#4-groq-free-tier-todays-actual-numbers"><span class="tocnum">4</span>Groq free tier — today's actual numbers</a></li><li><a href="#5-google-gemini-free-tier-todays-reality"><span class="tocnum">5</span>Google Gemini free tier — today's reality</a></li><li><a href="#6-the-batch-stt-latency-problem"><span class="tocnum">6</span>The batch-STT latency problem</a></li><li><a href="#7-python-realtime-audio-what-people-actually-use"><span class="tocnum">7</span>Python realtime audio: what people actually use</a></li><li><a href="#8-explicit-list-of-what-i-could-not-verify"><span class="tocnum">8</span>Explicit list of what I could NOT verify</a></li><li><a href="#9-sources"><span class="tocnum">9</span>Sources</a></li></ol></nav>
+  <main>
+<h2 id="0-one-page-summary"><span class="secnum">0</span><span class="htext">One-page summary</span></h2>
+<h3 id="01-recommended-stack"><span class="secnum">0.1</span><span class="htext">Recommended stack</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Layer</th><th style="text-align:left">Choice</th><th style="text-align:left">Why</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Deploy target</strong></td><td style="text-align:left"><strong>Modal</strong>, <code>@modal.asgi_app()</code> + FastAPI <code>WebSocket</code></td><td style="text-align:left">Only option here with first-class documented WebSocket support, ~1s container boot, a <code>me</code>/<code>eu</code> region, and $30/mo of free compute that actually covers an always-warm container.</td></tr><tr><td style="text-align:left"><strong>STT</strong></td><td style="text-align:left"><strong>Groq <code>whisper-large-v3-turbo</code></strong> (batch)</td><td style="text-align:left">216x real-time, ~200–400 ms round trip, genuinely free at 20 RPM / 2 000 RPD / 7 200 audio-sec-per-hour.</td></tr><tr><td style="text-align:left"><strong>LLM</strong></td><td style="text-align:left"><strong>Gemini <code>gemini-3.5-flash-lite</code></strong> primary, <strong>Groq <code>openai/gpt-oss-20b</code></strong> as hot fallback</td><td style="text-align:left">Groq's free LLM tier is capped at <strong>8 000 TPM</strong>, which throttles a real conversation (see §4.3). Gemini's free tier is more generous but unpublished. Run both; fail over on 429.</td></tr><tr><td style="text-align:left"><strong>TTS</strong></td><td style="text-align:left"><strong>Gemini <code>gemini-3.1-flash-tts-preview</code></strong> with <code>stream: true</code></td><td style="text-align:left"><strong>Groq's TTS free tier is unusable</strong> — 10 RPM / 100 requests <em>per day</em> / 200 chars per request (§4.2). This is the single biggest finding in this document.</td></tr><tr><td style="text-align:left"><strong>Endpointing</strong></td><td style="text-align:left"><strong><code>@ricky0123/vad-web@0.0.31</code></strong> (Silero v5/v6 via onnxruntime-web) in the browser</td><td style="text-align:left">Batch STT needs client-side turn detection. Ships today, 2.3 MB model + ~14 MB wasm, works in-browser.</td></tr><tr><td style="text-align:left"><strong>Framework</strong></td><td style="text-align:left"><strong>Raw FastAPI <code>WebSocket</code> + <code>asyncio</code>.</strong> No Pipecat, no LiveKit.</td><td style="text-align:left">Pipecat 1.11.0 pulls 110 dependencies; LiveKit Agents 1.8.2 pulls 106 and wants a LiveKit server. For a 3-day build you need code you can explain line-by-line in a review.</td></tr></tbody></table></div>
+<h3 id="02-the-three-risks-that-will-actually-bite-you"><span class="secnum">0.2</span><span class="htext">The three risks that will actually bite you</span></h3>
+<ol>
+<li><strong>Groq TTS free tier cannot run even one conversation.</strong> <code>canopylabs/orpheus-v1-english</code> is capped at <strong>10 RPM, 100 RPD, 1 200 TPM</strong> with a <strong>200-character maximum per request</strong> and WAV-only output. One assistant turn of 400 characters = 2 requests. A 5-minute conversation is 30–50 requests. You get <strong>two or three conversations per day</strong>, and the 10 RPM cap means you will hit 429 <em>mid-sentence</em>. → <strong>Use Gemini TTS. Budget a day to discover this yourself if you ignore it.</strong></li>
+<li><strong>Modal's WebSocket lifetime is bounded by the Function <code>timeout</code>, which defaults to 300 s (5 min).</strong> A 10-minute conversation dies silently at 5 minutes unless you pass <code>timeout=</code> explicitly. Modal documents &quot;a single function call per connection&quot; but publishes <strong>no maximum WebSocket duration</strong> — set <code>timeout=3600</code> and <em>test a real 10-minute call on day one</em>.</li>
+<li><strong>Groq's free LLM tier is 8 000 TPM.</strong> With a 1 500-token system prompt plus growing history, each turn costs ~2 000 input tokens → <strong>~4 turns per minute before throttling</strong>. A brisk voice conversation is 6–8. Mitigate with aggressive history trimming, a short system prompt, and Gemini as the primary.</li>
+</ol>
+<h3 id="03-what-to-verify-yourself-before-writing-code"><span class="secnum">0.3</span><span class="htext">What to verify yourself before writing code</span></h3>
+<p>Google <strong>no longer publishes free-tier per-model rate limits</strong>. Groq does, but per-org limits can differ. Open both, screenshot them, and pin the numbers into your repo:</p>
+<ul>
+<li><strong><code>https://aistudio.google.com/rate-limit</code></strong> — your live Gemini RPM/TPM/RPD</li>
+<li><strong><code>https://console.groq.com/settings/limits</code></strong> — your live Groq limits</li>
+</ul>
+<h3 id="04-ranked-deployment-recommendation"><span class="secnum">0.4</span><span class="htext">Ranked deployment recommendation</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Rank</th><th style="text-align:left">Platform</th><th style="text-align:left">Verdict</th></tr></thead><tbody><tr><td style="text-align:left"><strong>1</strong></td><td style="text-align:left"><strong>Modal</strong></td><td style="text-align:left">Documented WebSocket support (RFC 6455), ~1 s container boot, <code>min_containers=1</code> to eliminate cold start, <code>me</code>/<code>eu</code>/<code>us</code> regions, $30/mo free compute ≈ 1 500 container-hours at 0.25 core / 1 GiB. Modal ships its own WebSocket voice examples. <strong>Use this.</strong></td></tr><tr><td style="text-align:left"><strong>2</strong></td><td style="text-align:left"><strong>Fly.io</strong></td><td style="text-align:left">Real VMs, WebSockets are a non-issue, <code>fra</code>/<code>ams</code>/<code>lhr</code> near Europe. But <strong>the free tier is gone for new accounts</strong> (Oct 2024); ~$2–6/mo for a shared-cpu-1x, and auto-stop means a cold start on the reviewer's first click. Good fallback if Modal's serverless model fights you.</td></tr><tr><td style="text-align:left"><strong>3</strong></td><td style="text-align:left"><strong>Hugging Face Spaces</strong></td><td style="text-align:left">Free 2 vCPU / 16 GB, but there is an <strong>unresolved, reproduced report of the HF proxy returning HTTP 404 to WebSocket upgrades on Docker Spaces</strong>, with no official statement either way. Do not stake a reviewer-facing demo on it.</td></tr><tr><td style="text-align:left"><strong>4</strong></td><td style="text-align:left"><strong>Render</strong></td><td style="text-align:left">Free tier is <strong>0.1 CPU / 512 MB</strong>, spins down after 15 min idle, and takes <strong>~1 minute to spin back up</strong>. A reviewer clicking your link waits a minute for a 0.1-CPU box. Disqualifying for this use case.</td></tr></tbody></table></div>
+<hr />
+<h2 id="1-modal-websockets-timeouts-warmth-cost"><span class="secnum">1</span><span class="htext">Modal — WebSockets, timeouts, warmth, cost</span></h2>
+<h3 id="11-websocket-support-yes-first-class-documented"><span class="secnum">1.1</span><span class="htext">WebSocket support: yes, first-class, documented</span></h3>
+<p>From the <a href="https://modal.com/docs/guide/webhooks">Web Functions guide</a> (accessed 2026-09-18), verbatim:</p>
+<blockquote><p>Functions annotated with <code>@modal.web_server</code>, <code>@modal.asgi_app</code>, or <code>@modal.wsgi_app</code> also support the WebSocket protocol. […] <strong>WebSockets on Modal maintain a single function call per connection</strong>, which can be useful for keeping state around. Most of the time, you will want to set your handler function to allow concurrent inputs […]  We support the full WebSocket protocol as per RFC 6455, but we do not yet have support for RFC 8441 (WebSockets over HTTP/2) or RFC 7692 (<code>permessage-deflate</code> extension). <strong>WebSocket messages can be up to 2 MiB each.</strong></p></blockquote>
+<p>WebSocket support shipped publicly on <a href="https://modal.com/blog/websocket-launch">2024-02-27</a>. The infrastructure post <a href="https://modal.com/blog/serverless-http">*Lambda on hard mode*</a> (2024-03-14) explains the mechanism: the HTTP/1.1 upgrade handshake is terminated at <code>modal-http</code>, then &quot;we transmit messages between <code>modal-http</code> and the serverless function via data channels in the same way as we did for HTTP.&quot;</p>
+<h3 id="12-timeout-semantics-the-part-people-get-wrong"><span class="secnum">1.2</span><span class="htext">Timeout semantics — the part people get wrong</span></h3>
+<p>There are <strong>two</strong> timeouts and they are frequently conflated.</p>
+<p><strong>(a) The 150-second HTTP request timeout — does NOT apply to WebSockets.</strong> The <a href="https://modal.com/docs/guide/webhook-timeouts">Request timeouts</a> page says:</p>
+<blockquote><p>All Web Function types (<code>modal.fastapi_endpoint</code>, <code>modal.asgi_app</code>, <code>modal.wsgi_app</code>, and <code>modal.web_server</code>) have a maximum HTTP request timeout of 150 seconds enforced. However, the underlying Modal Function can have a longer timeout. In case the Function takes more than 150 seconds to complete, an <strong>HTTP status 303 redirect</strong> response is returned pointing at the original URL with a special query parameter linking it that request.</p></blockquote>
+<aside class="callout critical" role="note"><p>⚠️ I fetched this page's full rendered text and <strong>the word &quot;WebSocket&quot; does not appear on it at all</strong>. The escape hatch it describes — a 303 redirect the browser follows — is structurally impossible for a WebSocket. Combined with Modal shipping its own long-lived WebSocket examples (QuiLLMan, streaming Parakeet, streaming Kyutai STT), the strong inference is that the 150 s ceiling is HTTP-request-only. <strong>I could not find an explicit sentence in Modal's docs stating that WebSockets are exempt.</strong> Treat this as high-confidence inference, not documented fact, and validate with a 10-minute connection on day one.</p></aside>
+<p><strong>(b) The Function <code>timeout</code> — this DOES bound your WebSocket.</strong> From <a href="https://modal.com/docs/guide/timeouts">Timeouts</a>:</p>
+<blockquote><p>The default execution timeout is <strong>300 seconds</strong> (5 minutes). […] users may specify timeout durations between 1 second and <strong>24 hours</strong>.</p></blockquote>
+<p>Because a WebSocket is &quot;a single function call per connection,&quot; a 2–10 minute conversation on the default timeout <strong>will be cut off at 5 minutes</strong>. Set it explicitly.</p>
+<p>There is <strong>no documented maximum WebSocket connection duration</strong> on Modal. Also undocumented: whether the call's timeout clock starts at the upgrade or at container entry. Assume the former.</p>
+<h3 id="13-current-parameter-names-the-old-ones-now-hard-error"><span class="secnum">1.3</span><span class="htext">Current parameter names (the old ones now hard-error)</span></h3>
+<p>Modal 1.0 renamed the autoscaling parameters, and <strong>backwards compatibility was removed in client 1.4.0</strong> — the old spellings raise <code>DeprecationError</code>, they do not warn.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Old (dead)</th><th style="text-align:left">Current</th></tr></thead><tbody><tr><td style="text-align:left"><code>keep_warm</code></td><td style="text-align:left"><strong><code>min_containers</code></strong></td></tr><tr><td style="text-align:left"><code>container_idle_timeout</code></td><td style="text-align:left"><strong><code>scaledown_window</code></strong></td></tr><tr><td style="text-align:left"><code>concurrency_limit</code></td><td style="text-align:left"><strong><code>max_containers</code></strong></td></tr><tr><td style="text-align:left"><code>allow_concurrent_inputs</code></td><td style="text-align:left"><strong><code>@modal.concurrent(max_inputs=…)</code></strong></td></tr></tbody></table></div>
+<p>Plus <code>buffer_containers</code> (extra idle containers provisioned while the Function is active).</p>
+<p>From <a href="https://modal.com/docs/guide/cold-start">Cold start performance</a>: <code>scaledown_window</code> <strong>defaults to 60 seconds</strong> and is configurable from <strong>2 seconds to 20 minutes</strong>. <code>min_containers</code> sets a floor so the Function never scales to zero — and the docs are explicit that &quot;you will be billed for any resources used while the container is idle.&quot;</p>
+<p>From <a href="https://modal.com/docs/guide/concurrent-inputs">Input concurrency</a>, verbatim:</p>
+<div class="codewrap"><pre><code class="lang-python">@app.cls()
+@modal.concurrent(max_inputs=100)
+class MyCls:
+    @modal.method()
+    def my_method(self, input: str):
+        ...</code></pre></div>
+<blockquote><p>The decorator must be applied <strong>at the class level, not on individual methods</strong>.</p></blockquote>
+<h3 id="14-the-shape-of-the-thing"><span class="secnum">1.4</span><span class="htext">The shape of the thing</span></h3>
+<div class="codewrap"><pre><code class="lang-python">import modal
+from fastapi import FastAPI, WebSocket
+
+app = modal.App(&quot;sarjy&quot;)
+image = modal.Image.debian_slim(python_version=&quot;3.12&quot;).pip_install(
+    &quot;fastapi[standard]&quot;, &quot;groq&quot;, &quot;google-genai&quot;, &quot;numpy&quot;
+)
+
+@app.cls(
+    image=image,
+    cpu=0.25,               # billed on max(request, actual usage)
+    memory=1024,            # MiB
+    timeout=3600,           # ← THE ONE THAT MATTERS: bounds each WebSocket
+    scaledown_window=300,   # keep container alive 5 min after last connection
+    min_containers=1,       # no cold start for the reviewer; ~$14/mo — see §1.6
+    region=&quot;us-east&quot;,       # or &quot;eu&quot; (1.15x) / &quot;me&quot; (1.75x) — see §1.5
+    secrets=[modal.Secret.from_name(&quot;sarjy-keys&quot;)],
+)
+@modal.concurrent(max_inputs=20)   # class level, many WS per container
+class Sarjy:
+    @modal.enter()
+    def boot(self):
+        ...  # clients, warm HTTP pools, prompt cache — moves latency to warm-up
+
+    @modal.asgi_app()
+    def web(self):
+        api = FastAPI()
+
+        @api.websocket(&quot;/ws&quot;)
+        async def ws(sock: WebSocket):
+            await sock.accept()
+            ...  # your loop
+        return api</code></pre></div>
+<h3 id="15-regions"><span class="secnum">1.5</span><span class="htext">Regions</span></h3>
+<p>From <a href="https://modal.com/docs/guide/region-selection">Region selection</a>, verbatim region list:</p>
+<blockquote><p>Broad regions: <code>us</code>, <code>eu</code>, <code>ap</code>. Narrow regions include <code>us-east</code>, <code>us-central</code>, <code>us-south</code>, <code>us-west</code>, <code>eu-west</code>, <code>eu-north</code>, <code>eu-south</code>, <code>ap-northeast</code>, <code>ap-southeast</code>, <code>ap-south</code>, <code>ap-melbourne</code>, <code>jp</code>, <code>au</code>, <code>uk</code>, <code>ca</code>, <strong><code>me</code></strong>, <code>sa</code>, <code>af</code>, <code>mx</code></p></blockquote>
+<p>Price multipliers: <strong>1.15x</strong> for a broad region (<code>eu</code>, <code>ap</code>), <strong>1.75x</strong> for a narrow one (<code>eu-west</code>, <code>me</code>, …). If multiple regions spanning both categories are given, the lower multiplier applies — so <code>region=[&quot;eu&quot;, &quot;me&quot;]</code> bills at 1.15x.</p>
+<p>There <strong>is</strong> a Middle East region (<code>me</code>), which matters if the reviewer is in the Gulf. At 1.75x it eats your $30 fast; <code>region=[&quot;eu&quot;,&quot;me&quot;]</code> at 1.15x is the pragmatic compromise.</p>
+<h3 id="16-what-30month-actually-buys"><span class="secnum">1.6</span><span class="htext">What $30/month actually buys</span></h3>
+<p>From <a href="https://modal.com/pricing">modal.com/pricing</a> (accessed 2026-09-18):</p>
+<ul>
+<li>CPU: <strong>$0.0000131 / core / sec</strong> = <strong>$0.04716 / core / hour</strong></li>
+<li>Memory: <strong>$0.00000222 / GiB / sec</strong> = <strong>$0.007992 / GiB / hour</strong></li>
+<li>Default container request: <strong>0.125 core, 128 MiB</strong></li>
+<li>Billing: <em>&quot;For CPU and memory, you'll be charged based on whichever is higher: your request or actual usage.&quot;</em></li>
+<li><strong>Starter plan: $30 / month free compute.</strong> (Team: $100/mo free, $250/mo base.)</li>
+<li>Egress: <strong>$0.04 / GiB</strong> beyond <strong>1 TiB included</strong> on Starter. Irrelevant here — a 10-minute Opus call is a few MB.</li>
+</ul>
+<p>CPU-only, always-on, US region:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Container config</th><th style="text-align:left">$/hour</th><th style="text-align:left">Hours for $30</th><th style="text-align:left">Cost for 730 h (24/7)</th></tr></thead><tbody><tr><td style="text-align:left">0.125 core / 128 MiB (default)</td><td style="text-align:left">$0.00689</td><td style="text-align:left"><strong>4 350 h</strong></td><td style="text-align:left">$5.03</td></tr><tr><td style="text-align:left">0.25 core / 512 MiB</td><td style="text-align:left">$0.01579</td><td style="text-align:left"><strong>1 900 h</strong></td><td style="text-align:left">$11.52</td></tr><tr><td style="text-align:left"><strong>0.25 core / 1 GiB</strong></td><td style="text-align:left"><strong>$0.01978</strong></td><td style="text-align:left"><strong>1 517 h</strong></td><td style="text-align:left"><strong>$14.44</strong></td></tr><tr><td style="text-align:left">0.5 core / 1 GiB</td><td style="text-align:left">$0.03157</td><td style="text-align:left">950 h</td><td style="text-align:left">$23.05</td></tr><tr><td style="text-align:left">1 core / 2 GiB</td><td style="text-align:left">$0.06314</td><td style="text-align:left">475 h</td><td style="text-align:left">$46.10 ❌</td></tr><tr><td style="text-align:left">2 core / 4 GiB</td><td style="text-align:left">$0.12629</td><td style="text-align:left">238 h</td><td style="text-align:left">$92.19 ❌</td></tr></tbody></table></div>
+<p><strong>Read this as:</strong> one always-warm 0.25-core / 1 GiB container costs <strong>~$14.44/mo</strong> — half your credit, 24/7, forever. In <code>eu</code> (1.15x) it's $16.61. In <code>me</code> (1.75x) it's $25.27, which leaves no headroom.</p>
+<aside class="callout critical" role="note"><p>⚠️ The floor is not the bill. Because billing is <code>max(request, usage)</code>, any second where your Python actually consumes a full core (audio resampling, WAV muxing, numpy) is billed at a full core for that second. Keep audio work off the server — send Opus from the browser and hand bytes straight to Groq — or budget ~1.5–2x the table above.</p></aside>
+<p><strong>The cheap play:</strong> don't run warm 24/7. <code>min_containers=0</code> normally, and flip <code>min_containers=1</code> only for the demo window — a warm container is ~$0.02/hour, so a three-hour review session costs six cents. Modal supports <code>f.update_autoscaler(min_containers=1)</code> and scheduled adjustment via <code>modal.Cron()</code>.</p>
+<h3 id="17-cold-starts"><span class="secnum">1.7</span><span class="htext">Cold starts</span></h3>
+<p>Modal's own claim: <em>&quot;Containers boot in about one second.&quot;</em> That is infrastructure only — your image pull and Python imports sit on top. Community-measured CPU-only cold starts land in the <strong>2–5 second</strong> range for simple functions. For a reviewer clicking a link, 2–5 seconds of dead air before the socket opens is a failed first impression. <code>min_containers=1</code> during the demo window removes it entirely.</p>
+<p>Advice from the cold-start guide that applies directly: move initialization into <code>@modal.enter()</code> (moves the cost to warm-up), and consider Memory Snapshots.</p>
+<h3 id="18-official-modal-examples-for-realtime-audio-yes-several"><span class="secnum">1.8</span><span class="htext">Official Modal examples for realtime audio — yes, several</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Example</th><th style="text-align:left">What it shows</th></tr></thead><tbody><tr><td style="text-align:left"><a href="https://github.com/modal-labs/quillman"><strong>QuiLLMan</strong></a> (<a href="https://modal.com/docs/examples/llm-voice-chat">docs</a>)</td><td style="text-align:left">Full voice chat over bidirectional WebSocket with Opus, <code>@modal.asgi_app()</code> with <code>@web_app.websocket(&quot;/ws&quot;)</code> on a <code>@app.cls(gpu=&quot;A10G&quot;, scaledown_window=300)</code>. The canonical reference.</td></tr><tr><td style="text-align:left"><a href="https://modal.com/docs/examples/streaming_parakeet"><strong>Streaming Parakeet</strong></a></td><td style="text-align:left">FastAPI <code>/ws</code> endpoint, <code>@modal.concurrent(max_inputs=100)</code>, <code>await ws.receive_bytes()</code> / <code>await ws.send_text()</code>, <code>END_OF_STREAM</code> sentinel, <strong>server-side silence detection via pydub</strong> (1 000 ms silence at −45 dB) rather than VAD.</td></tr><tr><td style="text-align:left"><a href="https://modal.com/docs/examples/streaming_kyutai_stt">Streaming Kyutai STT</a></td><td style="text-align:left">Streaming ASR over WebSocket.</td></tr><tr><td style="text-align:left"><a href="https://modal.com/blog/low-latency-voice-bot"><strong>One-second voice-to-voice latency with Modal, Pipecat, and open models</strong></a> (2025-11-04)</td><td style="text-align:left">Parakeet STT → Qwen3-4B (vLLM) → KokoroTTS. Achieved <em>&quot;a median voice-to-voice latency of one second&quot;</em> when client and container were geographically close. Used <strong>Modal Tunnels</strong> serving FastAPI/uvicorn WebSocket endpoints rather than the standard web-endpoint path.</td></tr></tbody></table></div>
+<p><strong>Gotchas surfaced by those examples:</strong></p>
+<ul>
+<li>The 1-second latency result depended on <strong>region pinning</strong>, and Modal warns pinning &quot;can limit the available GPU pool and increase wait times.&quot;</li>
+<li>The Pipecat post bypassed Modal's input plane via Tunnels, which &quot;comes at the cost of autoscaling.&quot;</li>
+<li>Neither the Parakeet nor the QuiLLMan example sets an explicit <code>timeout=</code> — do not copy that omission.</li>
+<li>Only one open issue matching &quot;websocket timeout&quot; exists in <code>modal-labs/modal-client</code> (<a href="https://github.com/modal-labs/modal-client/issues/3610">#3610</a>, an <code>UnboundLocalError</code> in the WebSocket tunnel proxy path, closed 2025-09-29). There is no pile of WebSocket reliability complaints.</li>
+</ul>
+<p>Workspace rate limit worth knowing: <strong>200 Function calls or HTTP requests per second</strong> for a new account, burst multiplier 5 s, 429 beyond that. Not a constraint here.</p>
+<hr />
+<h2 id="2-hugging-face-spaces-viable-for-a-demo-probably-not"><span class="secnum">2</span><span class="htext">Hugging Face Spaces — viable for a demo? Probably not</span></h2>
+<h3 id="21-free-tier-mechanics"><span class="secnum">2.1</span><span class="htext">Free tier mechanics</span></h3>
+<ul>
+<li><strong>Free CPU Basic: 2 vCPU, 16 GB RAM, 50 GB non-persistent disk, $0/hour.</strong> More RAM than Modal gives you.</li>
+<li><strong>Sleeps after 48 hours of inactivity</strong> on <code>cpu-basic</code>; any visitor restarts it automatically. (Far more forgiving than Render's 15 minutes.)</li>
+<li>Docker Spaces: set <code>sdk: docker</code> and <code>app_port: 7860</code> in <code>README.md</code> frontmatter; container runs as UID 1000; disk is wiped on restart.</li>
+</ul>
+<h3 id="22-the-websocket-problem"><span class="secnum">2.2</span><span class="htext">The WebSocket problem</span></h3>
+<p>There is <strong>no statement about WebSockets, connection duration, or proxy timeouts anywhere in the <a href="https://huggingface.co/docs/hub/en/spaces-sdks-docker">Docker Spaces documentation</a></strong> — I fetched the full page.</p>
+<p>What exists instead is a pattern of unresolved failure reports:</p>
+<ul>
+<li><a href="https://discuss.huggingface.co/t/fastapi-websocket-returns-http-404-on-spaces/159865"><strong>FastAPI WebSocket returns HTTP 404 on Spaces</strong></a> (opened 2025-06-19). WebSocket upgrades return <code>server rejected WebSocket connection: HTTP 404</code> while plain <code>GET</code> to the same Space returns 200. Critically: <strong>the connection attempt never appears in the container logs</strong>, meaning the HF proxy rejects it before it reaches uvicorn. Failed at <code>/</code>, <code>/ws</code>, and <code>/queue/join</code>. Suggested fixes (add <code>websockets</code> to requirements, use <code>wss://</code>) did not work. <strong>Thread is unresolved and has no HF staff reply.</strong></li>
+<li>A cluster of adjacent threads report Docker Space proxy/routing 404s more generally (<a href="https://discuss.huggingface.co/t/persistent-404-on-docker-space-app-port-routing-seems-to-be-ignored-user-josejar/159665">app_port ignored</a>, <a href="https://discuss.huggingface.co/t/docker-space-post-endpoint-404-html-error-routing-never-reaches-fastapi-container/163440">POST never reaches FastAPI</a>, <a href="https://discuss.huggingface.co/t/docker-spaces-returning-data-proxy-not-forwarding-requests-to-container-all-spaces-affected/175500">proxy not forwarding requests</a>).</li>
+<li>An older <a href="https://discuss.huggingface.co/t/websocket-no-longer-allowed/42707">*Websocket no longer allowed?*</a> thread (June 2023) was a <code>wsproto</code> vs <code>websockets</code> library incompatibility, resolved by the reporter — not a platform block.</li>
+</ul>
+<h3 id="23-counter-evidence"><span class="secnum">2.3</span><span class="htext">Counter-evidence</span></h3>
+<p>Gradio Spaces historically used WebSockets for their queue and worked, and HF's own <a href="https://huggingface.co/blog/fastrtc"><strong>FastRTC</strong></a> (announced 2025-02-25) advertises <em>&quot;WebRTC and Websocket support&quot;</em>. But FastRTC's Spaces story is <strong>WebRTC via Cloudflare TURN</strong> (the <a href="https://huggingface.co/blog/fastrtc-cloudflare">HF×Cloudflare partnership</a>, 2025-04-09), explicitly because <em>&quot;when deploying in cloud environments with firewalls like Hugging Face Spaces, WebRTC connections may be blocked from making direct connections, requiring a TURN server.&quot;</em> That is a statement that HF Spaces' network path is awkward, not a reassurance about raw WebSockets. FastRTC on PyPI is at <strong>0.0.34, last published 2025-11-24</strong> — nearly ten months stale.</p>
+<aside class="callout critical" role="note"><p>🚨 <strong>Verdict:</strong> I could not verify that a raw FastAPI WebSocket works through the HF Spaces proxy today, and the only specific evidence I found says it returns 404 at the proxy. It may well work — the failure reports could be misconfiguration — but &quot;may well work&quot; is not a basis for a URL a hiring reviewer opens once. If you want to use HF, <strong>spend 30 minutes deploying a hello-world WebSocket Docker Space and prove it before building on it.</strong></p></aside>
+<hr />
+<h2 id="3-flyio-and-render-compared"><span class="secnum">3</span><span class="htext">Fly.io and Render compared</span></h2>
+<h3 id="31-flyio"><span class="secnum">3.1</span><span class="htext">Fly.io</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left"></th><th style="text-align:left"></th></tr></thead><tbody><tr><td style="text-align:left"><strong>Free tier</strong></td><td style="text-align:left"><strong>Gone for new accounts since October 2024.</strong> Legacy accounts keep 3× shared-cpu-1x 256 MB + 3 GB volume + 160 GB egress. New signups get a trial of <em>2 hours of compute or 7 days, whichever comes first</em>.</td></tr><tr><td style="text-align:left"><strong>Cost</strong></td><td style="text-align:left"><code>shared-cpu-1x</code> 256 MB = <strong>$1.94/mo</strong> on the <a href="https://fly.io/pricing/">official pricing page</a>. Secondary sources put 512 MB at ~$3.32 and 1 GB at ~$5.92. Bandwidth $0.02/GB NA+EU, $0.12/GB Africa &amp; India.</td></tr><tr><td style="text-align:left"><strong>WebSockets</strong></td><td style="text-align:left">Real Firecracker VMs behind a proxy that has handled WebSockets since day one. Non-issue.</td></tr><tr><td style="text-align:left"><strong>Cold start</strong></td><td style="text-align:left">Machines auto-stop when idle (typically 5 min) and cold-start on next request. A stopped machine still bills rootfs storage.</td></tr><tr><td style="text-align:left"><strong>Regions</strong></td><td style="text-align:left"><code>ams arn bom cdg dfw ewr fra gru iad jnb lax lhr nrt ord sin sjc</code> — good European coverage (<code>fra</code>, <code>ams</code>, <code>cdg</code>, <code>lhr</code>, <code>arn</code>). <strong>No Middle East region</strong> in the region list I could retrieve.</td></tr></tbody></table></div>
+<p><strong>Fly is the right answer if Modal's serverless model fights you</strong> — it's a normal Linux box, you control the process, and WebSockets are boring. The cost is ~$2–6/mo out of pocket and losing your $30 Modal credit.</p>
+<h3 id="32-render"><span class="secnum">3.2</span><span class="htext">Render</span></h3>
+<p>From <a href="https://render.com/docs/free">Deploy for Free</a>, verbatim:</p>
+<blockquote><p>Render <strong>spins down</strong> a Free web service that goes 15 minutes without receiving any inbound traffic […] both HTTP requests and WebSocket messages from existing connections. […] A Free web service spins back up whenever it next receives an HTTP request or new WebSocket connection. <strong>This process takes about one minute.</strong> Render grants <strong>750 Free instance hours</strong> to each workspace per calendar month.</p></blockquote>
+<p>Free instances are <strong>512 MB RAM / 0.1 CPU</strong> (this figure is from Render's community forum and secondary sources — it is <strong>not stated on the <code>/docs/free</code> page</strong> I fetched). Free services also get: no persistent disk, no scaling beyond one instance, no SSH, no edge caching.</p>
+<aside class="callout critical" role="note"><p>🚨 <strong>Disqualifying combination:</strong> 0.1 CPU is a tenth of a core — you cannot run audio handling plus three concurrent HTTP client sessions on it — and a reviewer opening a cold link waits <strong>a full minute</strong>. Render's own spin-down rule <em>does</em> treat WebSocket messages as activity, which is thoughtful, but it doesn't save you.</p></aside>
+<h3 id="33-ranking-restated"><span class="secnum">3.3</span><span class="htext">Ranking, restated</span></h3>
+<p><strong>Modal &gt; Fly.io &gt; Hugging Face Spaces &gt; Render</strong>, for <em>this</em> use case (Python, persistent WS, free/cheap, reviewer-facing cold-start sensitivity, Gulf/Europe latency). Modal wins on the combination of free credit that covers a warm container, documented WebSocket support with working first-party voice examples, sub-second boot, and a <code>me</code> region.</p>
+<hr />
+<h2 id="4-groq-free-tier-todays-actual-numbers"><span class="secnum">4</span><span class="htext">Groq free tier — today's actual numbers</span></h2>
+<p>All figures below are the <strong>Free plan</strong> table from <a href="https://console.groq.com/docs/rate-limits">console.groq.com/docs/rate-limits</a>, fetched 2026-09-18. ASH = audio-seconds per hour, ASD = audio-seconds per day.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Model ID</th><th style="text-align:left">RPM</th><th style="text-align:left">RPD</th><th style="text-align:left">TPM</th><th style="text-align:left">TPD</th><th style="text-align:left">ASH</th><th style="text-align:left">ASD</th></tr></thead><tbody><tr><td style="text-align:left"><code>whisper-large-v3-turbo</code></td><td style="text-align:left">20</td><td style="text-align:left">2 K</td><td style="text-align:left">—</td><td style="text-align:left">—</td><td style="text-align:left"><strong>7.2 K</strong></td><td style="text-align:left"><strong>28.8 K</strong></td></tr><tr><td style="text-align:left"><code>whisper-large-v3</code></td><td style="text-align:left">20</td><td style="text-align:left">2 K</td><td style="text-align:left">—</td><td style="text-align:left">—</td><td style="text-align:left">7.2 K</td><td style="text-align:left">28.8 K</td></tr><tr><td style="text-align:left"><code>openai/gpt-oss-120b</code></td><td style="text-align:left">30</td><td style="text-align:left">1 K</td><td style="text-align:left"><strong>8 K</strong></td><td style="text-align:left">200 K</td><td style="text-align:left">—</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><code>openai/gpt-oss-20b</code></td><td style="text-align:left">30</td><td style="text-align:left">1 K</td><td style="text-align:left"><strong>8 K</strong></td><td style="text-align:left">200 K</td><td style="text-align:left">—</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><code>openai/gpt-oss-safeguard-20b</code></td><td style="text-align:left">30</td><td style="text-align:left">1 K</td><td style="text-align:left">8 K</td><td style="text-align:left">200 K</td><td style="text-align:left">—</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><code>qwen/qwen3.8-27b</code></td><td style="text-align:left">30</td><td style="text-align:left">1 K</td><td style="text-align:left">8 K</td><td style="text-align:left">200 K</td><td style="text-align:left">—</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><code>groq/compound</code></td><td style="text-align:left">30</td><td style="text-align:left">250</td><td style="text-align:left">70 K</td><td style="text-align:left">—</td><td style="text-align:left">—</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><code>groq/compound-mini</code></td><td style="text-align:left">30</td><td style="text-align:left">250</td><td style="text-align:left">70 K</td><td style="text-align:left">—</td><td style="text-align:left">—</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><code>meta-llama/llama-prompt-guard-2-22m</code></td><td style="text-align:left">30</td><td style="text-align:left">14.4 K</td><td style="text-align:left">15 K</td><td style="text-align:left">500 K</td><td style="text-align:left">—</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><code>meta-llama/llama-prompt-guard-2-86m</code></td><td style="text-align:left">30</td><td style="text-align:left">14.4 K</td><td style="text-align:left">15 K</td><td style="text-align:left">500 K</td><td style="text-align:left">—</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><strong><code>canopylabs/orpheus-v1-english</code></strong></td><td style="text-align:left"><strong>10</strong></td><td style="text-align:left"><strong>100</strong></td><td style="text-align:left"><strong>1.2 K</strong></td><td style="text-align:left"><strong>3.6 K</strong></td><td style="text-align:left">—</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><strong><code>canopylabs/orpheus-arabic-saudi</code></strong></td><td style="text-align:left"><strong>10</strong></td><td style="text-align:left"><strong>100</strong></td><td style="text-align:left"><strong>1.2 K</strong></td><td style="text-align:left"><strong>3.6 K</strong></td><td style="text-align:left">—</td><td style="text-align:left">—</td></tr></tbody></table></div>
+<p>Groq's docs add: <em>&quot;You can view the current, exact rate limits for your organization on the limits page&quot;</em> — so treat the table as the published default, not a guarantee.</p>
+<h3 id="41-stt-whisper-large-v3-turbo-usable"><span class="secnum">4.1</span><span class="htext">STT — <code>whisper-large-v3-turbo</code> ✅ usable</span></h3>
+<p>From <a href="https://console.groq.com/docs/speech-to-text">console.groq.com/docs/speech-to-text</a>:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Model</th><th style="text-align:left">Cost/hour audio</th><th style="text-align:left">Speed factor</th><th style="text-align:left">WER</th></tr></thead><tbody><tr><td style="text-align:left"><code>whisper-large-v3-turbo</code></td><td style="text-align:left">$0.04</td><td style="text-align:left"><strong>216x real-time</strong></td><td style="text-align:left">12%</td></tr><tr><td style="text-align:left"><code>whisper-large-v3</code></td><td style="text-align:left">$0.111</td><td style="text-align:left">189x real-time</td><td style="text-align:left">10.3%</td></tr></tbody></table></div>
+<ul>
+<li>Max file: <strong>25 MB free tier</strong>, 100 MB dev tier. Formats: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, webm.</li>
+<li><strong>Minimum billed duration: 10 seconds.</strong> Min audio length 0.01 s.</li>
+<li>Optional <code>prompt</code> (≤224 tokens) for spelling/context steering; <code>language</code> as ISO-639-1 improves accuracy.</li>
+<li><code>verbose_json</code> gives segment- and word-level timestamps — useful if your deep-dive is word-highlighted captions.</li>
+<li><strong>No streaming transcription endpoint.</strong> Batch only.</li>
+</ul>
+<p><strong>Latency for a 3–8 s utterance:</strong> the compute is negligible (5 s ÷ 216 ≈ 23 ms). The cost is network. <a href="https://llmlatency.dev/provider/groq">llmlatency.dev/provider/groq</a> measured (as of 2026-09-10) <strong>131 ms p50 edge TTFB from US Central</strong> — Groq's fastest region — and <strong>292 ms p50 from Europe (Germany)</strong>. Add upload of the audio body. <strong>Realistic round trip: 200–450 ms</strong> from a US-region container, 350–600 ms from Europe.</p>
+<p>Groq operates 13 data centres including <strong>Dammam, Saudi Arabia</strong> (announced at LEAP 2025 with Aramco Digital) and <strong>Helsinki</strong> (July 2025). I could <strong>not verify</strong> whether the public <code>api.groq.com</code> endpoint geo-routes free-tier traffic to them.</p>
+<p><strong>Headroom check:</strong> 7 200 ASH = 2 hours of audio per clock hour; 20 RPM = one utterance every 3 seconds. A single-user demo is comfortable. <strong>Two reviewers talking simultaneously can breach 20 RPM.</strong> If the demo is multiplayer, this is your first 429.</p>
+<p><em>(Unverified: whether the ASH counter uses actual audio duration or the 10-second minimum-billed duration. If the latter, 7 200 ASH = 720 requests/hour, still above the 20 RPM ceiling, so RPM binds first either way.)</em></p>
+<h3 id="42-tts-orpheus-not-usable-on-the-free-tier"><span class="secnum">4.2</span><span class="htext">TTS — Orpheus 🚨 NOT usable on the free tier</span></h3>
+<p><code>playai-tts</code> and <code>playai-tts-arabic</code> were <strong>deprecated 2025-12-31</strong> and replaced by Canopy Labs' Orpheus. From <a href="https://console.groq.com/docs/text-to-speech/orpheus">console.groq.com/docs/text-to-speech/orpheus</a>:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left"></th><th style="text-align:left"></th></tr></thead><tbody><tr><td style="text-align:left">Model IDs</td><td style="text-align:left"><code>canopylabs/orpheus-v1-english</code>, <code>canopylabs/orpheus-arabic-saudi</code></td></tr><tr><td style="text-align:left">Voices</td><td style="text-align:left">EN: Autumn, Diana, Hannah, Austin, Daniel, Troy · AR-SA: Abdullah, Fahad, Sultan, Lulwa, Noura, Aisha</td></tr><tr><td style="text-align:left">Endpoint</td><td style="text-align:left"><code>https://api.groq.com/openai/v1/audio/speech</code></td></tr><tr><td style="text-align:left">Price (paid)</td><td style="text-align:left"><strong>$22 / 1 M chars</strong> (EN), <strong>$40 / 1 M chars</strong> (AR)</td></tr><tr><td style="text-align:left"><strong>Max input</strong></td><td style="text-align:left"><strong>200 characters per request</strong></td></tr><tr><td style="text-align:left">Output</td><td style="text-align:left"><strong>WAV only</strong></td></tr><tr><td style="text-align:left">Vocal direction</td><td style="text-align:left">EN only, bracketed: <code>[cheerful]</code>, <code>[whisper]</code></td></tr><tr><td style="text-align:left">Batch</td><td style="text-align:left"><em>&quot;Not supported at this time for Orpheus models&quot;</em></td></tr><tr><td style="text-align:left">Status</td><td style="text-align:left">Listed under <strong>Preview Models</strong>, not Production</td></tr><tr><td style="text-align:left">Streaming</td><td style="text-align:left"><strong>Not documented</strong></td></tr></tbody></table></div>
+<p><strong>Why this kills it.</strong> Do the arithmetic against 10 RPM / 100 RPD:</p>
+<ul>
+<li>One assistant turn of ~400 characters = <strong>2 requests</strong> (200-char cap).</li>
+<li>A 5-minute conversation ≈ 15–25 assistant turns = <strong>30–50 requests</strong>.</li>
+<li><strong>100 RPD ⇒ two to three conversations per day, total, for your whole org.</strong></li>
+<li>Worse, <strong>10 RPM</strong>: at a natural pace of one turn every ~10 s and 2 requests per turn,</li>
+<p>you need ~12 RPM. <strong>You will 429 mid-conversation on the very first call.</strong></p>
+<li>Plus <strong>1 200 TPM / 3 600 TPD</strong> on top.</li>
+</ul>
+<p>Third-party Orpheus deployments report ~130–280 ms TTFB (Baseten, Simplismart, Canopy's own issue tracker) — but those are <em>other people's GPUs</em>. <strong>Groq publishes no TTFB number for Orpheus</strong>, only <em>&quot;low-latency inference&quot;</em>. Even if it were fast, the free quota makes it moot.</p>
+<p><strong>Conclusion: do not build your voice output on Groq's free tier.</strong> Either pay (Orpheus at $22/1M chars is cheap in absolute terms — a 5-min conversation is ~6 000 chars ≈ $0.13) or use Gemini TTS, which is free.</p>
+<h3 id="43-llms-usable-with-discipline"><span class="secnum">4.3</span><span class="htext">LLMs — usable with discipline</span></h3>
+<p><strong>Currently on Groq's free tier:</strong> <code>openai/gpt-oss-120b</code>, <code>openai/gpt-oss-20b</code>, <code>openai/gpt-oss-safeguard-20b</code>, <code>qwen/qwen3.8-27b</code>, <code>groq/compound</code>, <code>groq/compound-mini</code>.</p>
+<aside class="callout critical" role="note"><p>⚠️ <strong>The Llama models are on their way out.</strong> <a href="https://console.groq.com/docs/deprecations">Groq's deprecations page</a> lists <strong>2026-08-16</strong>: <code>llama-3.1-8b-instant</code> → <code>openai/gpt-oss-20b</code>, and <code>llama-3.3-70b-versatile</code> → <code>openai/gpt-oss-120b</code> or <code>qwen/qwen3.6-27b</code>. They still appear under &quot;Production Models&quot; on the models page but <strong>do not appear in the free-tier rate-limit table at all</strong>. Do not write <code>llama-3.3-70b-versatile</code> into new code. Also gone: <code>qwen/qwen3-32b</code> and <code>meta-llama/llama-4-scout-17b-16e-instruct</code> (2026-07-17).</p></aside>
+<p><strong>Tool calling</strong> (<a href="https://console.groq.com/docs/tool-use">console.groq.com/docs/tool-use</a>): <em>&quot;All models on Groq support tool use.&quot;</em> But the capability matrix matters:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Capability</th><th style="text-align:left">Models</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Parallel tool calls</strong></td><td style="text-align:left"><code>qwen/qwen3.6-27b</code>, <code>minimaxai/minimax-m2.7</code>, <code>llama-3.3-70b-versatile</code>, <code>llama-3.1-8b-instant</code></td></tr><tr><td style="text-align:left"><strong>No parallel tool calls</strong></td><td style="text-align:left"><strong><code>openai/gpt-oss-20b</code>, <code>openai/gpt-oss-120b</code></strong>, <code>qwen/qwen3.8-27b</code></td></tr><tr><td style="text-align:left">Built-in tools (web search, code exec)</td><td style="text-align:left">Groq Compound systems, GPT-OSS variants</td></tr><tr><td style="text-align:left">JSON mode</td><td style="text-align:left">Most models</td></tr></tbody></table></div>
+<p>So the models you can actually use for free (<code>gpt-oss-*</code>) <strong>do not do parallel tool calls</strong>. For a single-API-call assistant that's fine; for anything fan-out, you serialise.</p>
+<p><strong>The real constraint is 8 000 TPM.</strong> Worked example:</p>
+<ul>
+<li>System prompt with guardrails + tool schemas: ~1 200–1 800 tokens</li>
+<li>Rolling history after 6 turns: ~600 tokens</li>
+<li>Tool result injected: ~200 tokens</li>
+<li>Output: ~120 tokens</li>
+<li><strong>≈ 2 200 tokens per turn</strong> → <strong>8 000 ÷ 2 200 ≈ 3.6 turns per minute</strong></li>
+</ul>
+<p>A brisk voice conversation runs 6–8 turns/minute. <strong>You will be throttled.</strong> Mitigations: cut the system prompt hard, summarise history beyond 4 turns, prefer <code>gpt-oss-20b</code>, and keep Gemini as the primary with Groq as failover (not the reverse).</p>
+<p><strong>1 000 RPD</strong> is the other ceiling: with tool round-trips costing 2 calls per turn, that's ~500 turns/day ≈ 25–30 full conversations. Adequate for a take-home, tight for a week of iteration plus a live review.</p>
+<hr />
+<h2 id="5-google-gemini-free-tier-todays-reality"><span class="secnum">5</span><span class="htext">Google Gemini free tier — today's reality</span></h2>
+<h3 id="51-what-google-will-and-will-not-tell-you"><span class="secnum">5.1</span><span class="htext">What Google will and will not tell you</span></h3>
+<aside class="callout critical" role="note"><p>🚨 <strong>Google no longer publishes free-tier per-model rate limits.</strong> The <a href="https://ai.google.dev/gemini-api/docs/rate-limits">rate limits page</a> states verbatim: <em>&quot;Rate limits depend on a variety of factors (such as your usage tier) and can be viewed in Google AI Studio. As your tier and account status change over time, your rate limits will automatically update.&quot;</em> It contains numeric tables for <strong>Tier 1, 2 and 3</strong> (paid), and describes the Free tier only qualitatively (<em>&quot;Active project or free trial, no billing tier cap&quot;</em>). <strong>There is no published Free-tier RPM/TPM/RPD table.</strong> The page also warns that specified limits are not guaranteed.</p></aside>
+<p>Tier qualification, for reference: <strong>Tier 1</strong> = billing account linked ($250 cap); <strong>Tier 2</strong> = $100+ paid and 3 days since first payment ($2 000 cap); <strong>Tier 3</strong> = $1 000+ paid and 30 days ($20 000+).</p>
+<p><strong>What secondary sources report</strong> for the free tier, consistently but unofficially: <strong>~15 RPM and ~1 000–1 500 RPD</strong> for Flash-class models, with Flash-Lite sometimes at 30 RPM; <strong>Pro models were removed from the free tier in April 2026</strong>. Treat these as folklore. <strong>Go read <code>aistudio.google.com/rate-limit</code> for your project.</strong></p>
+<h3 id="52-which-models-are-free"><span class="secnum">5.2</span><span class="htext">Which models are free</span></h3>
+<p>From <a href="https://ai.google.dev/gemini-api/docs/pricing">ai.google.dev/gemini-api/docs/pricing</a>, &quot;Free of charge&quot; on the Standard tier for input and output:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Model</th><th style="text-align:left">Free?</th><th style="text-align:left">Paid (per 1M tokens)</th></tr></thead><tbody><tr><td style="text-align:left"><code>gemini-3.8-flash</code></td><td style="text-align:left">✅</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><code>gemini-3.5-flash-lite</code></td><td style="text-align:left">✅</td><td style="text-align:left">$0.30 in / $2.50 out</td></tr><tr><td style="text-align:left"><code>gemini-3.1-flash-lite</code></td><td style="text-align:left">✅</td><td style="text-align:left">$0.25 in / $1.50 out</td></tr><tr><td style="text-align:left"><code>gemini-2.5-flash</code></td><td style="text-align:left">✅</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><code>gemini-2.5-flash-lite</code></td><td style="text-align:left">✅</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><strong><code>gemini-3.1-flash-tts-preview</code></strong></td><td style="text-align:left">✅</td><td style="text-align:left">$1.00 in / <strong>$20.00 out (audio)</strong></td></tr><tr><td style="text-align:left"><code>gemini-2.5-flash-preview-tts</code></td><td style="text-align:left">✅</td><td style="text-align:left">$0.50 in / $10.00 out</td></tr><tr><td style="text-align:left"><strong><code>gemini-3.8-live</code></strong></td><td style="text-align:left">✅</td><td style="text-align:left">—</td></tr></tbody></table></div>
+<p><strong>Recommended fast tool-calling model: <code>gemini-3.5-flash-lite</code></strong> (or <code>gemini-3.1-flash-lite</code> if your project's limits favour it). <code>gemini-3.8-flash</code> is the most capable Flash but is tuned for &quot;long-horizon software engineering&quot; — overkill and slower for turn-level dialogue. Also now shipping: <code>gemini-3.5-transcribe</code> / <code>gemini-3.5-transcribe-live</code> (STT with diarization) if you ever want to drop Groq.</p>
+<h3 id="53-gemini-tts-this-is-your-voice"><span class="secnum">5.3</span><span class="htext">Gemini TTS ✅ — this is your voice</span></h3>
+<p>From <a href="https://ai.google.dev/gemini-api/docs/speech-generation">ai.google.dev/gemini-api/docs/speech-generation</a>:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left"></th><th style="text-align:left"></th></tr></thead><tbody><tr><td style="text-align:left">Models</td><td style="text-align:left"><code>gemini-3.1-flash-tts-preview</code>, <code>gemini-2.5-flash-preview-tts</code>, <code>gemini-2.5-pro-preview-tts</code></td></tr><tr><td style="text-align:left"><strong>Streaming</strong></td><td style="text-align:left">✅ <em>&quot;Streaming is supported for Text-to-Speech (TTS) models starting with version 3.1&quot;</em> — set <code>stream: true</code></td></tr><tr><td style="text-align:left">Output</td><td style="text-align:left"><strong>PCM, 24 000 Hz, mono</strong>, base64</td></tr><tr><td style="text-align:left">Voices</td><td style="text-align:left"><strong>30</strong> (Kore, Puck, Zephyr, Enceladus, Sulafat, …)</td></tr><tr><td style="text-align:left">Languages</td><td style="text-align:left">90+ BCP-47 codes, <strong>including Arabic (<code>ar</code>)</strong>, auto-detected from input</td></tr><tr><td style="text-align:left">Context</td><td style="text-align:left">32 k tokens per session; quality drifts past &quot;a few minutes&quot; of generated output — segment long transcripts</td></tr><tr><td style="text-align:left">Status</td><td style="text-align:left"><strong>Preview</strong></td></tr></tbody></table></div>
+<p><strong>This beats Groq Orpheus on every axis that matters here:</strong> it streams (Orpheus doesn't document streaming), it has no 200-character cap, it outputs raw PCM you can push straight down the WebSocket without WAV demuxing, it's free, and it does Arabic.</p>
+<p><strong>Unverified: Gemini TTS time-to-first-byte.</strong> Google publishes no latency figure. This is the single number you should measure on day one, because it sits directly on your time-to-first-audio critical path. Budget 300–600 ms and be pleasantly surprised or not.</p>
+<h3 id="54-function-calling-and-structured-output-strong"><span class="secnum">5.4</span><span class="htext">Function calling and structured output — strong</span></h3>
+<p>Gemini's function calling and structured output are in good shape for a grounding-critical application:</p>
+<ul>
+<li><strong>Schema-constrained decoding.</strong> As of 2026 all three major labs enforce JSON Schema</li>
+<p>at the sampling level rather than by prompting. Google <a href="https://blog.google/innovation-and-ai/technology/developers-tools/gemini-api-structured-outputs/">announced JSON Schema support and implicit property ordering</a>, and JSON Schema support has been added to <strong>all actively supported Gemini models</strong>, so Pydantic / Zod models work out of the box.</p>
+<li><strong>The strict-mode gotcha:</strong> you must set <strong>both</strong> <code>response_schema</code> <strong>and</strong></li>
+<p><code>response_mime_type: &quot;application/json&quot;</code>. Setting the mime type alone is <em>&quot;only a strong hint&quot;</em> and does <strong>not</strong> guarantee valid JSON.</p>
+<li><strong>Caveats:</strong> not all JSON Schema features are supported, and very large or deeply</li>
+<p>nested schemas may be rejected — and Gemini's exact limits are undisclosed. Keep tool schemas flat and small (which you want anyway for TPM reasons).</p>
+</ul>
+<p>For a guardrails/grounding deep dive, the pattern that works: constrain the model to a schema with an explicit <code>&quot;source&quot;</code> or <code>&quot;grounded_in&quot;</code> field per claim, and refuse to speak any field the tool response didn't supply. Schema-level enforcement makes that mechanical rather than prompt-hopeful.</p>
+<h3 id="55-the-live-api-the-road-not-taken-but-look-at-it"><span class="secnum">5.5</span><span class="htext">The Live API — the road not taken (but look at it)</span></h3>
+<p><strong><code>gemini-3.8-live</code> launched 2026-09-15</strong>, three days before this document. It is a <strong>stateful WebSocket speech-to-speech API</strong> that would collapse your entire STT → LLM → TTS pipeline into one connection.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left"></th><th style="text-align:left"></th></tr></thead><tbody><tr><td style="text-align:left">Protocol</td><td style="text-align:left"><em>&quot;Stateful WebSocket connection (WSS)&quot;</em></td></tr><tr><td style="text-align:left">Audio in</td><td style="text-align:left">raw 16-bit PCM, <strong>16 kHz</strong>, little-endian</td></tr><tr><td style="text-align:left">Audio out</td><td style="text-align:left">raw 16-bit PCM, <strong>24 kHz</strong>, little-endian</td></tr><tr><td style="text-align:left">Models</td><td style="text-align:left"><code>gemini-3.8-live</code>, <code>gemini-3.8-live-extended-thinking</code>; older <code>gemini-2.5-flash-native-audio-preview-12-2025</code></td></tr><tr><td style="text-align:left">Context</td><td style="text-align:left">131 072 in / 65 536 out</td></tr><tr><td style="text-align:left">Tools</td><td style="text-align:left">Function calling <strong>with <code>behavior: NON_BLOCKING</code> async execution as the default</strong> — tools run in the background without halting speech</td></tr><tr><td style="text-align:left"><strong>Session limits</strong></td><td style="text-align:left"><em>&quot;Without compression, <strong>audio-only sessions are limited to 15 minutes</strong>, and audio-video sessions are limited to 2 minutes.&quot;</em></td></tr><tr><td style="text-align:left"><strong>Connection resets</strong></td><td style="text-align:left">The underlying WebSocket <strong>resets roughly every 10 minutes</strong>; <code>SessionResumptionUpdate</code> tokens let you reconnect into the same session (valid up to 2 hours). Server sends <code>GoAway</code> with a <code>timeLeft</code> field before terminating.</td></tr><tr><td style="text-align:left">Free tier</td><td style="text-align:left">Listed as &quot;Free of charge&quot; on the pricing page; per-tier concurrent-session limits <strong>not published for the Developer API free tier</strong>.</td></tr></tbody></table></div>
+<p><strong>Why I am not recommending it as the primary:</strong> your 2–10 minute target sits right on top of the ~10-minute WebSocket reset, so you'd be implementing session resumption during a 3-day build; it's a black box you cannot decompose in a latency deep-dive; and &quot;I called Google's realtime API&quot; is exactly the one-shot baseline a reviewer is comparing against.</p>
+<p><strong>Why you should still spike it for an hour:</strong> if your time-to-first-audio with the pipeline stack lands above ~1.5 s and won't come down, Live is the escape hatch, and having measured both is itself a strong answer to &quot;what did you try?&quot;</p>
+<hr />
+<h2 id="6-the-batch-stt-latency-problem"><span class="secnum">6</span><span class="htext">The batch-STT latency problem</span></h2>
+<h3 id="61-how-much-does-batch-whisper-actually-cost-you"><span class="secnum">6.1</span><span class="htext">How much does batch Whisper actually cost you?</span></h3>
+<p>Two numbers, and they disagree — so here is both, with the arithmetic.</p>
+<p><strong>The industry figure:</strong> voice-agent vendor writeups put batch transcription at <strong>600–1 200 ms</strong> of added latency before the LLM call even starts, and argue it makes sub-300 ms voice-to-voice unreachable. Streaming STT with interim results is quoted at ~80 ms first-word latency over WebSocket.</p>
+<p><strong>My arithmetic for Groq specifically</strong>, which is a better model of your case:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Stage</th><th style="text-align:left">Streaming STT</th><th style="text-align:left">Groq batch Whisper</th></tr></thead><tbody><tr><td style="text-align:left">Transcription of speech <em>while user talks</em></td><td style="text-align:left">overlapped, free</td><td style="text-align:left"><strong>not possible</strong> — nothing is sent yet</td></tr><tr><td style="text-align:left">Detect end of turn</td><td style="text-align:left">250–700 ms silence (same either way)</td><td style="text-align:left">250–700 ms silence (same)</td></tr><tr><td style="text-align:left">Upload utterance</td><td style="text-align:left">already uploaded</td><td style="text-align:left">5 s Opus ≈ 10 KB, 5 s PCM16 mono ≈ 160 KB → <strong>30–150 ms</strong></td></tr><tr><td style="text-align:left">Inference</td><td style="text-align:left">~50–100 ms to finalise</td><td style="text-align:left">5 s ÷ 216x = <strong>~23 ms</strong></td></tr><tr><td style="text-align:left">Network RTT + queue</td><td style="text-align:left">—</td><td style="text-align:left"><strong>130–290 ms p50</strong> (US Central / Europe)</td></tr><tr><td style="text-align:left"><strong>Delta</strong></td><td style="text-align:left">baseline</td><td style="text-align:left"><strong>+200 to +450 ms</strong></td></tr></tbody></table></div>
+<p><strong>So: batch Groq Whisper costs you roughly 200–450 ms versus a streaming STT, not 600–1 200 ms.</strong> Groq's 216x speed factor is doing a lot of work here — the whole point is that the inference is nearly free and you're paying network, once.</p>
+<p><strong>Full realistic time-to-first-audio for the recommended stack:</strong></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Stage</th><th style="text-align:left">ms</th></tr></thead><tbody><tr><td style="text-align:left">VAD redemption silence (client)</td><td style="text-align:left">250–500</td></tr><tr><td style="text-align:left">Utterance upload + Groq Whisper round trip</td><td style="text-align:left">200–450</td></tr><tr><td style="text-align:left">LLM time-to-first-token (Gemini Flash-Lite / Groq gpt-oss-20b)</td><td style="text-align:left">150–600</td></tr><tr><td style="text-align:left">TTS time-to-first-byte (Gemini streaming — <strong>unmeasured</strong>)</td><td style="text-align:left">300–600</td></tr><tr><td style="text-align:left">Browser decode + playback start</td><td style="text-align:left">30–80</td></tr><tr><td style="text-align:left"><strong>Total</strong></td><td style="text-align:left"><strong>≈ 930 ms – 2.2 s</strong></td></tr></tbody></table></div>
+<p>Modal's own Pipecat post achieved a <strong>median 1 s voice-to-voice</strong> with everything co-located on their GPUs. <strong>1.2–1.5 s is a good, honest target for this stack</strong> — and being able to show that table, measured, <em>is</em> the latency deep dive.</p>
+<h3 id="62-the-biggest-lever-is-your-vad-not-your-stt"><span class="secnum">6.2</span><span class="htext">The biggest lever is your VAD, not your STT</span></h3>
+<aside class="callout critical" role="note"><p>⚠️ <em>&quot;A misconfigured VAD is the single easiest way to add 500 ms of latency without touching any model. If you wait for, say, 700 ms of silence before declaring the turn over, you have added 700 ms to every turn.&quot;</em></p></aside>
+<p>Practical guidance from the turn-detection literature: model-based turn detection (reading intonation and rhythm rather than pure silence) cuts <strong>300–500 ms</strong> off the average turn. Pure VAD always waits for a pause; semantic endpointing doesn't have to. For a 3-day build, tune the silence window down to <strong>250–350 ms</strong> and accept occasional early cut-offs — it is the cheapest 300 ms you will ever find.</p>
+<h3 id="63-browser-vad-options-what-works-today"><span class="secnum">6.3</span><span class="htext">Browser VAD options — what works today</span></h3>
+<p><strong>Recommendation: <code>@ricky0123/vad-web</code>.</strong> Verified live against the npm registry and jsDelivr on 2026-09-18:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Package</th><th style="text-align:left">Latest</th><th style="text-align:left">Published</th><th style="text-align:left">Notes</th></tr></thead><tbody><tr><td style="text-align:left"><strong><code>@ricky0123/vad-web</code></strong></td><td style="text-align:left"><strong>0.0.31</strong></td><td style="text-align:left"><strong>2026-09-12</strong> (6 days ago)</td><td style="text-align:left">6.76 MB unpacked. Peer dep <code>onnxruntime-web ^1.17.0</code>.</td></tr><tr><td style="text-align:left"><code>@ricky0123/vad-react</code></td><td style="text-align:left">0.0.37</td><td style="text-align:left">2026-09-12</td><td style="text-align:left">15 KB, pins <code>vad-web@0.0.31</code>.</td></tr><tr><td style="text-align:left"><code>onnxruntime-web</code></td><td style="text-align:left">1.30.0</td><td style="text-align:left">2026-09-14</td><td style="text-align:left">144 MB unpacked (you serve a fraction).</td></tr></tbody></table></div>
+<p><strong>Actual bytes the browser downloads</strong> (measured from jsDelivr):</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Asset</th><th style="text-align:left">Size</th></tr></thead><tbody><tr><td style="text-align:left"><code>silero_vad_v6.onnx</code></td><td style="text-align:left"><strong>2 327 524 B</strong> (2.33 MB)</td></tr><tr><td style="text-align:left"><code>silero_vad_v5.onnx</code></td><td style="text-align:left">2 327 524 B (different checksum — genuinely a different model)</td></tr><tr><td style="text-align:left"><code>silero_vad_legacy.onnx</code></td><td style="text-align:left">1 807 522 B</td></tr><tr><td style="text-align:left"><code>vad.worklet.bundle.min.js</code></td><td style="text-align:left">2 480 B</td></tr><tr><td style="text-align:left"><code>bundle.min.js</code> (vad-web)</td><td style="text-align:left">69 345 B</td></tr><tr><td style="text-align:left"><code>ort-wasm-simd-threaded.wasm</code></td><td style="text-align:left"><strong>14 239 897 B</strong> (14.2 MB)</td></tr><tr><td style="text-align:left"><code>ort-wasm-simd-threaded.jsep.wasm</code> (WebGPU)</td><td style="text-align:left">28 312 028 B (28.3 MB)</td></tr><tr><td style="text-align:left"><code>ort.wasm.min.js</code></td><td style="text-align:left">50 196 B</td></tr></tbody></table></div>
+<p><strong>Realistic first-load cost: ~16.6 MB</strong> (v6 model + non-JSEP wasm + JS), gzipped substantially less over the wire. Serve the CPU wasm, not the JSEP/WebGPU build, unless you need it. Cache aggressively; it's static.</p>
+<p><strong>API and configuration:</strong></p>
+<div class="codewrap"><pre><code class="lang-js">const vad = await MicVAD.new({
+  onSpeechEnd: (audio) =&gt; { /* Float32Array @ 16 000 Hz */ },
+  baseAssetPath: &quot;/vad/&quot;,        // where the .onnx + worklet live
+  onnxWASMBasePath: &quot;/ort/&quot;,     // where the ort wasm/.mjs live
+});
+vad.start();</code></pre></div>
+<p>Three model versions ship: <code>legacy</code>, <code>v5</code>, <code>v6</code>. <strong>Silero VAD v6.0 released 2025-08-25</strong>; <strong>v6.2 on 2025-12-10</strong>. Output is a <code>Float32Array</code> at <strong>16 000 Hz</strong> — exactly what you send to Groq Whisper, no resampling on either side. Default <code>getUserMedia</code> constraints are <code>channelCount: 1, echoCancellation: true, autoGainControl: true, noiseSuppression: true</code> (keep echo cancellation on — you're playing TTS into the same room). Docs cover Webpack 5 and Vite config; assets load from CDN by default. <code>NonRealTimeVAD</code> exists for offline use.</p>
+<p><strong>Alternatives, briefly:</strong></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Option</th><th style="text-align:left">Verdict</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Energy/RMS threshold in an <code>AudioWorklet</code></strong></td><td style="text-align:left">~30 lines, zero bytes, zero dependencies. Works in a quiet room; falls apart with background noise or a fan. <strong>Worth writing as a fallback path</strong> so a 16 MB download failure doesn't kill the demo.</td></tr><tr><td style="text-align:left"><strong>WebRTC VAD (Google, via wasm)</strong></td><td style="text-align:left">Tiny and battle-tested, but noticeably worse than Silero on noisy input and the JS wrappers are unmaintained.</td></tr><tr><td style="text-align:left"><strong>Server-side silence detection (pydub)</strong></td><td style="text-align:left">What Modal's own Parakeet example does: 1 000 ms silence at −45 dB. Simple, but you pay to stream all audio up <em>and</em> you inherit a 1 s endpointing delay. Worse on both latency and bandwidth than client-side VAD.</td></tr><tr><td style="text-align:left"><strong>Picovoice Cobra</strong></td><td style="text-align:left">Pure C, small, good — but commercial licensing.</td></tr><tr><td style="text-align:left">Model-based semantic turn detection</td><td style="text-align:left">The real win (300–500 ms), but out of scope for 3 days. Name it as &quot;what I'd do with another week.&quot;</td></tr></tbody></table></div>
+<hr />
+<h2 id="7-python-realtime-audio-what-people-actually-use"><span class="secnum">7</span><span class="htext">Python realtime audio: what people actually use</span></h2>
+<h3 id="71-verified-current-versions-pypi-2026-09-18"><span class="secnum">7.1</span><span class="htext">Verified current versions (PyPI, 2026-09-18)</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Package</th><th style="text-align:left">Version</th><th style="text-align:left">Published</th><th style="text-align:left">Python</th><th style="text-align:left">Core deps</th></tr></thead><tbody><tr><td style="text-align:left"><code>fastapi</code></td><td style="text-align:left"><strong>0.141.1</strong></td><td style="text-align:left">2026-07-29</td><td style="text-align:left">≥3.10</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><code>uvicorn</code></td><td style="text-align:left"><strong>0.53.0</strong></td><td style="text-align:left">2026-09-14</td><td style="text-align:left">≥3.10</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><code>websockets</code></td><td style="text-align:left"><strong>17.1</strong></td><td style="text-align:left">2026-08-26</td><td style="text-align:left"><strong>≥3.11</strong></td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><code>groq</code></td><td style="text-align:left">1.7.0</td><td style="text-align:left">2026-08-26</td><td style="text-align:left">≥3.10</td><td style="text-align:left">6</td></tr><tr><td style="text-align:left"><code>google-genai</code></td><td style="text-align:left">2.24.0</td><td style="text-align:left">2026-09-16</td><td style="text-align:left">≥3.10</td><td style="text-align:left">18 (incl. <code>websockets</code>)</td></tr><tr><td style="text-align:left"><strong><code>pipecat-ai</code></strong></td><td style="text-align:left"><strong>1.11.0</strong></td><td style="text-align:left"><strong>2026-09-18</strong> (today)</td><td style="text-align:left"><strong>≥3.11</strong></td><td style="text-align:left"><strong>110</strong></td></tr><tr><td style="text-align:left"><strong><code>livekit-agents</code></strong></td><td style="text-align:left"><strong>1.8.2</strong></td><td style="text-align:left">2026-09-15</td><td style="text-align:left">≥3.10, &lt;3.15</td><td style="text-align:left"><strong>106</strong></td></tr><tr><td style="text-align:left"><code>fastrtc</code></td><td style="text-align:left">0.0.34</td><td style="text-align:left"><strong>2025-11-24</strong> (10 months stale)</td><td style="text-align:left">≥3.10</td><td style="text-align:left">20 (incl. <code>gradio</code>, <code>aiortc</code>, <code>librosa</code>, <code>numba</code>)</td></tr></tbody></table></div>
+<h3 id="72-recommendation-raw-fastapi-websocket"><span class="secnum">7.2</span><span class="htext">Recommendation: raw FastAPI WebSocket</span></h3>
+<p><strong>Use <code>FastAPI</code> + <code>WebSocket</code> + <code>asyncio</code> directly.</strong> Reasons, in priority order for a take-home:</p>
+<ol>
+<li><strong>You have to explain it live.</strong> 300 lines of your own asyncio is defensible in a</li>
+<p>code walkthrough. A Pipecat pipeline is 110 transitive dependencies of someone else's frame abstractions, and every question becomes &quot;I'd have to check.&quot;</p>
+<li><strong>Deployment footprint.</strong> <code>fastapi[standard] + groq + google-genai + numpy</code> is a</li>
+<p>small image and a fast Modal cold start. <code>pipecat-ai</code> drags in <code>numba</code>, <code>onnxruntime</code>, <code>resampy</code>, <code>soundfile</code>, <code>soxr</code>, <code>nltk</code>, <code>Pillow</code>, <code>protobuf</code>, <code>openai</code> — that is a multi-hundred-MB image and seconds of import time on every cold start. On a 0.25-core container, <code>numba</code> alone is painful.</p>
+<li><strong>Your stack is already three HTTP calls.</strong> With client-side VAD you receive one</li>
+<p>complete utterance per turn. That's <code>receive_bytes()</code> → Groq → Gemini → stream PCM back with <code>send_bytes()</code>. A pipeline framework earns its keep when you're managing continuous frame flow, interruption, and ten transports. You are not.</p>
+<li><strong>FastAPI's async model scales fine here.</strong> One worker handles thousands of</li>
+<p>concurrent WebSockets provided you never block the event loop — so keep every provider call on <code>httpx</code>/<code>aiohttp</code> async clients and never call <code>time.sleep</code>, <code>pydub</code>, or synchronous <code>soundfile</code> in the handler.</p>
+</ol>
+<p>Production patterns to actually implement (these are what a reviewer probes for): a <code>ConnectionManager</code> with a connection cap, heartbeat ping/pong (Modal supports RFC 6455 ping/pong; use it to keep intermediaries from dropping the socket), graceful disconnect handling, per-connection state, and reconnection with session ID on the client.</p>
+<h3 id="73-if-you-did-want-a-framework"><span class="secnum">7.3</span><span class="htext">If you did want a framework</span></h3>
+<p><strong>Pipecat</strong> (<a href="https://docs.pipecat.ai/api-reference/server/services/transport/fastapi-websocket"><code>FastAPIWebsocketTransport</code></a>) serves Pipecat sessions over a WebSocket inside your own FastAPI app, with configurable serializers, session timeouts, WAV header generation, and built-in VAD/turn-taking/ interruption handling. It is the more lightweight path of the two — Pipecat's own docs note <em>&quot;by default, in order to minimize dependencies, only the basic framework functionality is available&quot;</em>, and extras are opt-in. Modal's own 1-second voice-bot demo used Pipecat. If you want interruption handling for free and are willing to pay the image size, this is the one.</p>
+<p><strong>LiveKit Agents</strong> is the heavier choice: it wants a LiveKit server (self-hosted or LiveKit Cloud), and its room model — your agent joins as a participant — is genuine value <em>if</em> multiplayer is your deep dive, since multi-participant is native rather than bolted on. For single-user voice on Modal it is architecture you don't need.</p>
+<p><strong>FastRTC</strong> is HF's option and is genuinely one line to mount (<code>stream.mount(app)</code>) — but it pulls <code>gradio</code>, <code>aiortc</code>, <code>librosa</code> and <code>numba</code>, and it's been stale on PyPI since November 2025.</p>
+<hr />
+<h2 id="8-explicit-list-of-what-i-could-not-verify"><span class="secnum">8</span><span class="htext">Explicit list of what I could NOT verify</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Claim</th><th style="text-align:left">Status</th></tr></thead><tbody><tr><td style="text-align:left">1</td><td style="text-align:left">WebSockets are exempt from Modal's 150 s HTTP request timeout</td><td style="text-align:left"><strong>Inferred, not documented.</strong> The timeouts page never mentions WebSockets, and its 303-redirect workaround cannot apply to a WS. Modal ships long-lived WS examples. <strong>Test a 10-min connection before relying on it.</strong></td></tr><tr><td style="text-align:left">2</td><td style="text-align:left">Maximum WebSocket connection duration on Modal</td><td style="text-align:left"><strong>Not documented anywhere.</strong> Only the Function <code>timeout</code> (1 s – 24 h) is documented as bounding a call.</td></tr><tr><td style="text-align:left">3</td><td style="text-align:left">Whether the WS call's timeout clock starts at upgrade or container entry</td><td style="text-align:left"><strong>Not documented.</strong></td></tr><tr><td style="text-align:left">4</td><td style="text-align:left">Gemini free-tier per-model RPM / TPM / RPD</td><td style="text-align:left"><strong>Not published by Google.</strong> The docs explicitly defer to <code>aistudio.google.com/rate-limit</code>. Third-party figures (~15 RPM / ~1 000–1 500 RPD) are unofficial.</td></tr><tr><td style="text-align:left">5</td><td style="text-align:left">Gemini Live API free-tier concurrent session limit</td><td style="text-align:left"><strong>Not published for the Developer API.</strong> (Vertex/Firebase quotes 1 000 concurrent per project — a different product.)</td></tr><tr><td style="text-align:left">6</td><td style="text-align:left">Gemini TTS time-to-first-byte</td><td style="text-align:left"><strong>No published number.</strong> Measure it — it's on your critical path.</td></tr><tr><td style="text-align:left">7</td><td style="text-align:left">Groq Orpheus TTFB on Groq hardware</td><td style="text-align:left"><strong>No published number.</strong> The 130–280 ms figures circulating are from Baseten / Simplismart / Canopy on their own GPUs.</td></tr><tr><td style="text-align:left">8</td><td style="text-align:left">Whether Groq Orpheus supports streaming output</td><td style="text-align:left"><strong>Not documented</strong> on Groq's TTS pages. WAV-only output implies no.</td></tr><tr><td style="text-align:left">9</td><td style="text-align:left">Whether Groq's ASH counter uses actual duration or the 10 s minimum-billed duration</td><td style="text-align:left"><strong>Not documented.</strong> RPM binds first either way.</td></tr><tr><td style="text-align:left">10</td><td style="text-align:left">Whether <code>api.groq.com</code> geo-routes free-tier traffic to Dammam / Helsinki</td><td style="text-align:left"><strong>Could not verify.</strong> The DCs exist; routing policy is unstated.</td></tr><tr><td style="text-align:left">11</td><td style="text-align:left">Whether raw FastAPI WebSockets work through the HF Spaces proxy today</td><td style="text-align:left"><strong>Could not verify either way.</strong> No documentation; one unresolved 2025 report of HTTP 404 at the proxy with no staff reply.</td></tr><tr><td style="text-align:left">12</td><td style="text-align:left">Render free instance CPU/RAM (0.1 CPU / 512 MB)</td><td style="text-align:left"><strong>Not on Render's <code>/docs/free</code> page.</strong> Figure comes from Render's community forum and secondary sources.</td></tr><tr><td style="text-align:left">13</td><td style="text-align:left">Fly.io Middle East region</td><td style="text-align:left"><strong>None found</strong> in the region list I could retrieve. Absence of evidence.</td></tr><tr><td style="text-align:left">14</td><td style="text-align:left">Current status of <code>llama-3.3-70b-versatile</code> / <code>llama-3.1-8b-instant</code> on Groq</td><td style="text-align:left"><strong>Contradictory.</strong> Listed under &quot;Production Models&quot; but flagged deprecated 2026-08-16 <em>and</em> absent from the free-tier rate-limit table. Assume unavailable on free tier.</td></tr><tr><td style="text-align:left">15</td><td style="text-align:left">Modal's exact billing behaviour for a container idling on an open WebSocket</td><td style="text-align:left"><strong>Inferred.</strong> The container is running, so it bills. Not stated explicitly for the WS case.</td></tr></tbody></table></div>
+<hr />
+<h2 id="9-sources"><span class="secnum">9</span><span class="htext">Sources</span></h2>
+<p><strong>Modal</strong></p>
+<ul>
+<li><a href="https://modal.com/docs/guide/webhooks">Web Functions</a> · <a href="https://modal.com/docs/guide/webhook-timeouts">Request timeouts</a> · <a href="https://modal.com/docs/guide/timeouts">Timeouts</a> · <a href="https://modal.com/docs/guide/cold-start">Cold start performance</a> · <a href="https://modal.com/docs/guide/scale">Scaling out</a> · <a href="https://modal.com/docs/guide/concurrent-inputs">Input concurrency</a> · <a href="https://modal.com/docs/guide/resources">Configuring CPU, memory, and disk</a> · <a href="https://modal.com/docs/guide/region-selection">Region selection</a> · <a href="https://modal.com/docs/guide/network-egress-billing">Network egress billing</a> · <a href="https://modal.com/docs/guide/servers">Servers</a> — all accessed 2026-09-18</li>
+<li><a href="https://modal.com/pricing">Pricing</a> — accessed 2026-09-18</li>
+<li><a href="https://modal.com/blog/websocket-launch">Introducing: WebSockets on Modal</a> — 2024-02-27</li>
+<li><a href="https://modal.com/blog/serverless-http">Lambda on hard mode: Inside Modal's web infrastructure</a> — 2024-03-14</li>
+<li><a href="https://modal.com/blog/low-latency-voice-bot">One-second voice-to-voice latency with Modal, Pipecat, and open models</a> — 2025-11-04</li>
+<li><a href="https://modal.com/docs/examples/llm-voice-chat">QuiLLMan: Voice Chat with Moshi</a> · <a href="https://github.com/modal-labs/quillman">repo</a> · <a href="https://github.com/modal-labs/quillman/blob/main/README_DOCS.md">README_DOCS</a></li>
+<li><a href="https://modal.com/docs/examples/streaming_parakeet">Streaming audio transcription using Parakeet</a> · <a href="https://modal.com/docs/examples/streaming_kyutai_stt">Stream transcriptions with Kyutai STT</a></li>
+<li><a href="https://github.com/modal-labs/modal-client/issues/3610">modal-client issue #3610</a> — closed 2025-09-29</li>
+</ul>
+<p><strong>Hugging Face</strong></p>
+<ul>
+<li><a href="https://huggingface.co/docs/hub/en/spaces-sdks-docker">Docker Spaces</a> · <a href="https://huggingface.co/docs/hub/en/spaces-overview">Spaces Overview</a> — accessed 2026-09-18</li>
+<li><a href="https://discuss.huggingface.co/t/fastapi-websocket-returns-http-404-on-spaces/159865">FastAPI WebSocket returns HTTP 404 on Spaces</a> — opened 2025-06-19, unresolved</li>
+<li><a href="https://discuss.huggingface.co/t/websocket-no-longer-allowed/42707">Websocket no longer allowed?</a> — June 2023</li>
+<li><a href="https://discuss.huggingface.co/t/persistent-404-on-docker-space-app-port-routing-seems-to-be-ignored-user-josejar/159665">Persistent 404 on Docker Space</a> · <a href="https://discuss.huggingface.co/t/docker-space-post-endpoint-404-html-error-routing-never-reaches-fastapi-container/163440">POST endpoint 404</a> · <a href="https://discuss.huggingface.co/t/docker-spaces-returning-data-proxy-not-forwarding-requests-to-container-all-spaces-affected/175500">proxy not forwarding</a></li>
+<li><a href="https://huggingface.co/blog/fastrtc">FastRTC: The Real-Time Communication Library for Python</a> — 2025-02-25 · <a href="https://huggingface.co/blog/fastrtc-cloudflare">HF × Cloudflare</a> — 2025-04-09</li>
+</ul>
+<p><strong>Fly.io / Render</strong></p>
+<ul>
+<li><a href="https://fly.io/pricing/">Fly.io Pricing</a> · <a href="https://fly.io/docs/reference/regions/">Fly Regions</a> — accessed 2026-09-18</li>
+<li><a href="https://render.com/docs/free">Render — Deploy for Free</a> — accessed 2026-09-18 · <a href="https://community.render.com/t/the-free-instance-type-e-g-512mb-ram-0-1-cpu/39044">Render community: free instance type</a></li>
+</ul>
+<p><strong>Groq</strong></p>
+<ul>
+<li><a href="https://console.groq.com/docs/rate-limits">Rate Limits</a> · <a href="https://console.groq.com/docs/models">Supported Models</a> · <a href="https://console.groq.com/docs/deprecations">Model Deprecations</a> · <a href="https://console.groq.com/docs/speech-to-text">Speech to Text</a> · <a href="https://console.groq.com/docs/text-to-speech">Text to Speech</a> · <a href="https://console.groq.com/docs/text-to-speech/orpheus">Orpheus</a> · <a href="https://console.groq.com/docs/tool-use">Tool Use</a> — all accessed 2026-09-18</li>
+<li><a href="https://llmlatency.dev/provider/groq">llmlatency.dev — Groq</a> — data as of 2026-09-10</li>
+<li><a href="https://www.middleeastainews.com/p/groq-emea-largest-ai-compute-centre">Groq opens EMEA's largest AI compute centre in Saudi Arabia</a> · <a href="https://rcrwireless.com/20250714/ai-infrastructure/groq-data-center">Groq establishes first European data center in Helsinki</a> — 2025-07-14</li>
+</ul>
+<p><strong>Google Gemini</strong></p>
+<ul>
+<li><a href="https://ai.google.dev/gemini-api/docs/rate-limits">Rate limits</a> · <a href="https://ai.google.dev/gemini-api/docs/models">Models</a> · <a href="https://ai.google.dev/gemini-api/docs/pricing">Pricing</a> · <a href="https://ai.google.dev/gemini-api/docs/speech-generation">Speech generation</a> · <a href="https://ai.google.dev/gemini-api/docs/live">Live API</a> · <a href="https://ai.google.dev/gemini-api/docs/live-session">Session management</a> · <a href="https://ai.google.dev/gemini-api/docs/models/gemini-3.8-live">Gemini 3.8 Live</a> · <a href="https://ai.google.dev/gemini-api/docs/structured-output">Structured outputs</a> — all accessed 2026-09-18</li>
+<li><a href="https://blog.google/innovation-and-ai/technology/developers-tools/gemini-api-structured-outputs/">Google announces support for JSON Schema and implicit property ordering in Gemini API</a></li>
+<li><a href="https://www.unite.ai/google-launches-gemini-3-8-live-and-extended-thinking-voice-models/">Google Launches Gemini 3.8 Live and Extended Thinking Voice Models</a> — 2026-09-15 · <a href="https://simonwillison.net/2026/Sep/15/gemini-live/">Simon Willison: Gemini Live audio</a> — 2026-09-15</li>
+</ul>
+<p><strong>VAD / turn detection</strong></p>
+<ul>
+<li><a href="https://www.npmjs.com/package/@ricky0123/vad-web">@ricky0123/vad-web on npm</a> — 0.0.31, 2026-09-12 (verified via registry API) · <a href="https://docs.vad.ricky0123.com/user-guide/browser/">Browser user guide</a></li>
+<li><a href="https://github.com/snakers4/silero-vad/releases">silero-vad releases</a> — v6.0 2025-08-25, v6.2 2025-12-10</li>
+<li><a href="https://livekit.com/blog/turn-detection-voice-agents-vad-endpointing-model-based-detection">LiveKit: Turn detection for voice agents</a> · <a href="https://livekit.com/blog/voice-agent-architecture-stt-llm-tts-pipelines-explained">LiveKit: Voice agent architecture</a> · <a href="https://hackernoon.com/the-voice-agent-latency-playbook-stt-turn-detection-and-the-tradeoffs-nobody-talks-about">The Voice Agent Latency Playbook</a></li>
+</ul>
+<p><strong>Python frameworks</strong></p>
+<ul>
+<li>PyPI JSON API for <code>fastapi</code>, <code>uvicorn</code>, <code>websockets</code>, <code>groq</code>, <code>google-genai</code>, <code>pipecat-ai</code>, <code>livekit-agents</code>, <code>fastrtc</code> — queried 2026-09-18</li>
+<li><a href="https://docs.pipecat.ai/api-reference/server/services/transport/fastapi-websocket">Pipecat FastAPI WebSocket Transport</a> · <a href="https://fastapi.tiangolo.com/advanced/websockets/">FastAPI WebSockets</a></li>
+</ul>
+  </main>
+</div>

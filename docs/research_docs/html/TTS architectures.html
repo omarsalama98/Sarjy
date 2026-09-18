@@ -1,0 +1,385 @@
+<title>Document</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --ink:       #14171c;
+    --ink-2:     #474e5a;
+    --ink-3:     #767e8b;
+    --line:      #e2e5ea;
+    --line-2:    #eef0f4;
+    --accent:    #2d4a7c;
+    --accent-bg: #edf1f8;
+    --warn:      #a6421f;
+    --warn-bg:   #fbf0eb;
+    --code-bg:   #f0f2f6;
+    --shadow:    0 1px 2px rgba(20,23,28,.05), 0 8px 24px -12px rgba(20,23,28,.15);
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #101317;
+      --surface:   #171b21;
+      --ink:       #e7eaef;
+      --ink-2:     #a8b0bc;
+      --ink-3:     #7b838f;
+      --line:      #2a2f38;
+      --line-2:    #22262d;
+      --accent:    #8fb0e6;
+      --accent-bg: #1a2130;
+      --warn:      #e2916d;
+      --warn-bg:   #2a1d17;
+      --code-bg:   #1d222a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #101317;
+    --surface:   #171b21;
+    --ink:       #e7eaef;
+    --ink-2:     #a8b0bc;
+    --ink-3:     #7b838f;
+    --line:      #2a2f38;
+    --line-2:    #22262d;
+    --accent:    #8fb0e6;
+    --accent-bg: #1a2130;
+    --warn:      #e2916d;
+    --warn-bg:   #2a1d17;
+    --code-bg:   #1d222a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .5rem 2.25rem; margin: 0; }
+  dl.meta div { display: flex; flex-direction: column; gap: .1rem; }
+  dl.meta dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  dl.meta dd { margin: 0; font-size: .9rem; color: var(--ink-2); }
+
+  /* ---- toc ---- */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 3rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--ink-3);
+    margin: 0 0 .75rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: flex;
+    gap: .7rem;
+    font-size: .92rem;
+    border-radius: 2px;
+  }
+  .toc a:hover { color: var(--accent); }
+  .tocnum, .secnum {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: .8em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- headings ---- */
+  h2, h3, h4 { font-family: var(--serif); letter-spacing: -.01em; text-wrap: balance; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    font-weight: 600;
+    margin: 3.5rem 0 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .75rem;
+    align-items: baseline;
+  }
+  h3 { font-size: 1.14rem; font-weight: 600; margin: 2.25rem 0 .7rem; display: flex; gap: .6rem; align-items: baseline; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; color: var(--ink-2); }
+  h2 .secnum, h3 .secnum { flex: none; }
+
+  p { margin: 0 0 1.05rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line-2); margin: 2.5rem 0; }
+
+  ul, ol { margin: 0 0 1.15rem; padding-left: 1.35rem; max-width: 68ch; }
+  li { margin-bottom: .38rem; }
+  li::marker { color: var(--ink-3); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+  .codewrap { overflow-x: auto; margin: 0 0 1.4rem; }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 0;
+    min-width: min-content;
+  }
+  pre code { background: none; padding: 0; font-size: .845rem; line-height: 1.6; }
+
+  blockquote {
+    margin: 0 0 1.4rem;
+    padding: .1rem 0 .1rem 1.15rem;
+    border-left: 3px solid var(--line);
+    color: var(--ink-2);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+  }
+  .callout p { margin-bottom: .6rem; color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--warn); }
+
+  .tablewrap { overflow-x: auto; margin: 0 0 1.6rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  th, td { padding: .6rem .85rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <h1>Document</h1>
+    
+  </header>
+  <nav class="toc" aria-label="Contents"><p class="eyebrow">Contents</p><ol><li><a href="#autoregressive-token-based-tts">Autoregressive Token-Based TTS</a></li><li><a href="#non-autoregressive-tts-diffusion-and-flow-matching">Non-Autoregressive TTS: Diffusion and Flow Matching</a></li><li><a href="#neural-vocoders">Neural Vocoders</a></li><li><a href="#zero-shot-voice-cloning-from-short-reference-audio">Zero-Shot Voice Cloning from Short Reference Audio</a></li><li><a href="#streaming-tts-low-time-to-first-byte-and-quality-trade-offs">Streaming TTS: Low Time-to-First-Byte and Quality Trade-Offs</a></li><li><a href="#multilingual-text-and-embedded-foreign-words">Multilingual Text and Embedded Foreign Words</a></li><li><a href="#architecture-comparison-summary">Architecture Comparison Summary</a></li></ol></nav>
+  <main>
+<h2 id="autoregressive-token-based-tts"><span class="htext">Autoregressive Token-Based TTS</span></h2>
+<h3 id="mechanism"><span class="htext">Mechanism</span></h3>
+<p>Autoregressive (AR) TTS models treat speech synthesis as a language modeling problem: predict the next token conditioned on all previous tokens. Tokens can be:</p>
+<ul>
+<li><strong>Discrete codec tokens</strong> (e.g., EnCodec, DAC): 1,024-vocabulary indices from residual vector quantization <a href="https://praveentn.live/learn/concepts/the-tts-problem-and-pipeline">praveentn</a></li>
+<li><strong>Continuous acoustic features</strong>: mel-spectrogram frames or latent vectors <a href="https://www.alphaxiv.org/abs/2606.07080">alphaxiv</a></li>
+</ul>
+<p><strong>Key architectures:</strong></p>
+<ul>
+<li><strong>VALL-E</strong> (Microsoft, 2023): AR transformer predicts first RVQ codebook (coarse prosody + speaker identity), then non-autoregressive model fills in remaining codebooks in parallel <a href="https://praveentn.live/learn/concepts/the-tts-problem-and-pipeline">praveentn</a></li>
+<li><strong>Voicebox</strong> (Meta, 2024): AR codec LM trained on 60K hours of multilingual speech; supports zero-shot voice cloning from 3-second reference <a href="https://localaimaster.com/blog/f5-tts-setup-guide">localaimaster</a></li>
+<li><strong>dots.tts</strong> (2026): 2B-parameter continuous AR model with flow-matching head for high-fidelity synthesis <a href="https://www.alphaxiv.org/abs/2606.07080">alphaxiv</a></li>
+</ul>
+<h3 id="streaming-capability"><span class="htext">Streaming Capability</span></h3>
+<p><strong>Native streaming</strong>: AR models emit tokens sequentially, allowing TTS to begin playback as soon as first tokens are generated. This enables low time-to-first-byte (TTFB) for conversational agents. <a href="https://praveentn.live/learn/concepts/the-tts-problem-and-pipeline">praveentn</a></p>
+<p><strong>Latency characteristics:</strong></p>
+<ul>
+<li><strong>Sequential decoding</strong>: Each token depends on previous tokens, limiting parallelization <a href="https://voicemodeler.com/posts/neural-codec-language-models-as-a-speech-generation-paradigm">voicemodeler</a></li>
+<li><strong>Exposure bias</strong>: Training uses teacher forcing (ground-truth previous tokens), but inference uses model predictions, causing error accumulation over long sequences <a href="https://www.alphaxiv.org/abs/2509.09631v5">alphaxiv</a></li>
+<li><strong>Typical RTF</strong>: 0.5–2.0× real-time (slower than real-time without optimization) <a href="https://arxiv.org/html/2604.01760v1">arxiv</a></li>
+</ul>
+<h3 id="typical-quality"><span class="htext">Typical Quality</span></h3>
+<p>AR models achieve <strong>high naturalness</strong> but struggle with:</p>
+<ul>
+<li><strong>Long-form coherence</strong>: Errors compound over 10+ second utterances, causing word repetitions or skipped phonemes <a href="https://voicemodeler.com/posts/neural-codec-language-models-as-a-speech-generation-paradigm">voicemodeler</a></li>
+<li><strong>Prosody control</strong>: Implicit duration modeling via token sequence length; hard to explicitly control speaking rate <a href="https://localaimaster.com/blog/f5-tts-setup-guide">localaimaster</a></li>
+</ul>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Property</th><th style="text-align:left">Autoregressive TTS</th></tr></thead><tbody><tr><td style="text-align:left">Streaming output</td><td style="text-align:left">Yes (native)  <a href="https://praveentn.live/learn/concepts/the-tts-problem-and-pipeline">praveentn</a></td></tr><tr><td style="text-align:left">Zero-shot voice cloning</td><td style="text-align:left">Yes (3-sec reference)  <a href="https://arxiv.org/html/2604.01760v1">arxiv</a></td></tr><tr><td style="text-align:left">Inference speed</td><td style="text-align:left">Slow (sequential)  <a href="https://www.alphaxiv.org/abs/2509.09631v5">alphaxiv</a></td></tr><tr><td style="text-align:left">Prosody naturalness</td><td style="text-align:left">High (implicit duration)  <a href="https://www.studocu.vn/vn/document/dai-hoc-thuy-loi/tri-tue-nhan-tao/flow-matching-for-fluent-speech-synthesis-a-novel-tts-approach-2410/164906803">studocu</a></td></tr><tr><td style="text-align:left">Long-form stability</td><td style="text-align:left">Moderate (error accumulation)  <a href="https://www.alphaxiv.org/abs/2509.09631v5">alphaxiv</a></td></tr></tbody></table></div>
+<h2 id="non-autoregressive-tts-diffusion-and-flow-matching"><span class="htext">Non-Autoregressive TTS: Diffusion and Flow Matching</span></h2>
+<h3 id="diffusion-based-tts"><span class="htext">Diffusion-Based TTS</span></h3>
+<p><strong>Diffusion models</strong> (e.g., Grad-TTS, NaturalSpeech, Voicebox) generate speech by iteratively denoising a Gaussian noise signal conditioned on text. The model learns to reverse a forward noising process over 50–200 steps. <a href="https://localaimaster.com/blog/f5-tts-setup-guide">localaimaster</a></p>
+<p><strong>Key architectures:</strong></p>
+<ul>
+<li><strong>NaturalSpeech 3</strong> (2024): Latent diffusion on mel-spectrograms with factorized codec for zero-shot TTS <a href="https://arxiv.org/html/2604.01760v1">arxiv</a></li>
+<li><strong>Voicebox</strong> (Meta, 2024): Diffusion transformer (DiT) with text-guided speech infilling; supports multilingual synthesis <a href="https://localaimaster.com/blog/f5-tts-setup-guide">localaimaster</a></li>
+</ul>
+<h3 id="flow-matching-tts"><span class="htext">Flow Matching TTS</span></h3>
+<p><strong>Flow matching</strong> (FM) reframes diffusion as learning a velocity field that transforms noise into data along an optimal transport path. This enables faster convergence and fewer inference steps (10–20 vs. 50–200 for diffusion). <a href="https://localaimaster.com/blog/f5-tts-setup-guide">localaimaster</a></p>
+<p><strong>Key architectures:</strong></p>
+<ul>
+<li><strong>F5-TTS</strong> (2025): Fully non-autoregressive flow-matching model with Diffusion Transformer (DiT) backbone; achieves RTF of 0.016 (60× faster than real-time) <a href="https://localaimaster.com/blog/f5-tts-setup-guide">localaimaster</a></li>
+<li><strong>ARCHI-TTS</strong> (2025): Flow-matching aligner-encoder-decoder with semantic aligner for text-speech alignment <a href="https://arxiv.org/html/2602.05207v1">arxiv</a></li>
+<li><strong>DiFlow-TTS</strong> (2026): Discrete flow matching on factorized codec tokens; combines AR quality with NAR speed <a href="https://www.alphaxiv.org/abs/2509.09631v5">alphaxiv</a></li>
+</ul>
+<h3 id="how-flow-matching-works"><span class="htext">How Flow Matching Works</span></h3>
+<p>Flow matching learns a conditional velocity field \( u_\theta(X_t, t, z) \) that transforms noise \( X_0 \sim \mathcal{N}(0, I) \) into target speech \( X_1 \) along a path \( X_t = tX_1 + (1-t)X_0 \). The loss is: <a href="https://www.studocu.vn/vn/document/dai-hoc-thuy-loi/tri-tue-nhan-tao/flow-matching-for-fluent-speech-synthesis-a-novel-tts-approach-2410/164906803">studocu</a></p>
+<p>\[ \mathcal{L}_{\text{CFM}}(\theta) = \mathbb{E}_{t, X_0, X_1} \left[ \| u_\theta(X_t, t, z) - (X_1 - X_0) \|^2 \right] \]</p>
+<p>At inference, an ODE solver integrates from \( t=0 \) to \( t=1 \) to generate speech. <a href="https://www.studocu.vn/vn/document/dai-hoc-thuy-loi/tri-tue-nhan-tao/flow-matching-for-fluent-speech-synthesis-a-novel-tts-approach-2410/164906803">studocu</a></p>
+<p><strong>Advantages over diffusion:</strong></p>
+<ul>
+<li><strong>Faster training</strong>: Converges in fewer steps due to straighter ODE paths <a href="https://localaimaster.com/blog/f5-tts-setup-guide">localaimaster</a></li>
+<li><strong>Fewer inference steps</strong>: 10–20 ODE steps vs. 50–200 diffusion steps <a href="https://localaimaster.com/blog/f5-tts-setup-guide">localaimaster</a></li>
+<li><strong>Better alignment</strong>: Flow matching with optimal transport (FM-OT) learns text-speech alignment implicitly <a href="https://localaimaster.com/blog/f5-tts-setup-guide">localaimaster</a></li>
+</ul>
+<h3 id="streaming-capability"><span class="htext">Streaming Capability</span></h3>
+<p><strong>Non-streaming by default</strong>: NAR models generate entire utterance in parallel, requiring full text input before synthesis begins. This creates a latency bottleneck for conversational TTS. <a href="https://www.alphaxiv.org/abs/2509.09631v5">alphaxiv</a></p>
+<p><strong>Workarounds:</strong></p>
+<ul>
+<li><strong>Chunked generation</strong>: Split text into sentences/clauses; run flow matching on each chunk independently <a href="https://localaimaster.com/blog/f5-tts-setup-guide">localaimaster</a></li>
+<li><strong>Sway Sampling</strong> (F5-TTS): Inference-time sampling strategy that prioritizes early flow steps, enabling faster startup with fewer ODE steps <a href="https://localaimaster.com/blog/f5-tts-setup-guide">localaimaster</a></li>
+</ul>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Property</th><th style="text-align:left">Non-Autoregressive (Flow Matching)</th></tr></thead><tbody><tr><td style="text-align:left">Streaming output</td><td style="text-align:left">No (parallel generation)  <a href="https://www.studocu.vn/vn/document/dai-hoc-thuy-loi/tri-tue-nhan-tao/flow-matching-for-fluent-speech-synthesis-a-novel-tts-approach-2410/164906803">studocu</a></td></tr><tr><td style="text-align:left">Zero-shot voice cloning</td><td style="text-align:left">Yes (audio prompt + text)  <a href="https://arxiv.org/html/2604.01760v1">arxiv</a></td></tr><tr><td style="text-align:left">Inference speed</td><td style="text-align:left">Fast (10–20 ODE steps)  <a href="https://www.studocu.vn/vn/document/dai-hoc-thuy-loi/tri-tue-nhan-tao/flow-matching-for-fluent-speech-synthesis-a-novel-tts-approach-2410/164906803">studocu</a></td></tr><tr><td style="text-align:left">Prosody naturalness</td><td style="text-align:left">High (implicit duration via padding)  <a href="https://arxiv.org/html/2604.01760v1">arxiv</a></td></tr><tr><td style="text-align:left">Long-form stability</td><td style="text-align:left">High (no error accumulation)  <a href="https://www.alphaxiv.org/abs/2509.09631v5">alphaxiv</a></td></tr></tbody></table></div>
+<h2 id="neural-vocoders"><span class="htext">Neural Vocoders</span></h2>
+<h3 id="role-in-tts-pipeline"><span class="htext">Role in TTS Pipeline</span></h3>
+<p>Neural vocoders convert acoustic features (mel-spectrograms or codec latents) into raw waveforms. They are the final stage in most TTS pipelines, determining audio fidelity and artifact levels. <a href="https://praveentn.live/learn/concepts/the-tts-problem-and-pipeline">praveentn</a></p>
+<p><strong>Two families:</strong></p>
+<ol>
+<li><strong>Waveform-domain vocoders</strong>:</li>
+<ul>
+<li><strong>WaveNet</strong> (DeepMind, 2016): Autoregressive dilated causal convolutions; high quality but slow (RTF &lt; 1× on CPU) <a href="https://praveentn.live/learn/concepts/the-tts-problem-and-pipeline">praveentn</a></li>
+<li><strong>HiFi-GAN</strong> (2020): Non-autoregressive GAN with transposed convolutions; real-time or faster on GPU; near-WaveNet quality <a href="https://praveentn.live/learn/concepts/the-tts-problem-and-pipeline">praveentn</a></li>
+<li><strong>BigVGAN</strong> (2022): Universal neural vocoder trained on 200K hours; supports multiple sampling rates <a href="https://www.themoonlight.io/en/review/univoice-unifying-autoregressive-asr-and-flow-matching-based-tts-with-large-language-models">themoonlight</a></li>
+</ul>
+</ol>
+<ol>
+<li><strong>Codec-based vocoders</strong>:</li>
+<ul>
+<li><strong>SoundStream</strong> (Google, 2021): RVQ-based neural audio codec; 3 kbps speech compression with better quality than Opus at 12 kbps <a href="https://praveentn.live/learn/concepts/the-tts-problem-and-pipeline">praveentn</a></li>
+<li><strong>EnCodec</strong> (Meta, 2022): Multiscale spectrogram discriminator + loss balancer; supports 24 kHz mono and 48 kHz stereo <a href="https://praveentn.live/learn/concepts/the-tts-problem-and-pipeline">praveentn</a></li>
+</ul>
+</ol>
+<h3 id="codec-language-models"><span class="htext">Codec Language Models</span></h3>
+<p>Codec LMs (e.g., VALL-E, Voicebox) collapse the acoustic model and vocoder into a single conditional language model trained on quantized audio tokens. This enables: <a href="https://praveentn.live/learn/concepts/the-tts-problem-and-pipeline">praveentn</a></p>
+<ul>
+<li><strong>Zero-shot voice cloning</strong>: Given 3-second reference audio, model generates codec tokens in that speaker's voice <a href="https://voicemodeler.com/posts/neural-codec-language-models-as-a-speech-generation-paradigm">voicemodeler</a></li>
+<li><strong>End-to-end training</strong>: No separate mel-spectrogram prediction + vocoder stages; model learns alignment implicitly <a href="https://voicemodeler.com/posts/neural-codec-language-models-as-a-speech-generation-paradigm">voicemodeler</a></li>
+</ul>
+<div class="codewrap"><pre><code>Classical pipeline: text → phonemes → mel spectrogram → waveform
+Codec LM pipeline: text + speaker tokens → codec tokens → waveform</code></pre></div>
+<h2 id="zero-shot-voice-cloning-from-short-reference-audio"><span class="htext">Zero-Shot Voice Cloning from Short Reference Audio</span></h2>
+<h3 id="how-it-works"><span class="htext">How It Works</span></h3>
+<p>Zero-shot voice cloning requires only a short reference clip (3–10 seconds) from an unseen speaker. The model:</p>
+<ol>
+<li><strong>Encodes speaker identity</strong>: Extracts speaker embedding from reference audio (e.g., d-vector, x-vector, or codec latents) <a href="https://praveentn.live/learn/concepts/the-tts-problem-and-pipeline">praveentn</a></li>
+<li><strong>Conditions generation</strong>: Uses speaker embedding as additional input to TTS model, guiding synthesis to match reference timbre and prosody <a href="https://voicemodeler.com/posts/neural-codec-language-models-as-a-speech-generation-paradigm">voicemodeler</a></li>
+<li><strong>Generates speech</strong>: Synthesizes target text in cloned voice without fine-tuning <a href="https://praveentn.live/learn/concepts/the-tts-problem-and-pipeline">praveentn</a></li>
+</ol>
+<h3 id="key-systems"><span class="htext">Key Systems</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">System</th><th style="text-align:left">Reference Length</th><th style="text-align:left">Architecture</th><th style="text-align:left">Zero-Shot Quality</th></tr></thead><tbody><tr><td style="text-align:left"><strong>VALL-E</strong> (Microsoft, 2023)</td><td style="text-align:left">3 seconds</td><td style="text-align:left">AR codec LM (first codebook) + NAR (remaining codebooks)  <a href="https://praveentn.live/learn/concepts/the-tts-problem-and-pipeline">praveentn</a></td><td style="text-align:left">Human parity on LibriSpeech/VCTK  <a href="https://voicemodeler.com/posts/neural-codec-language-models-as-a-speech-generation-paradigm">voicemodeler</a></td></tr><tr><td style="text-align:left"><strong>Voicebox</strong> (Meta, 2024)</td><td style="text-align:left">3 seconds</td><td style="text-align:left">Flow-matching DiT with speech infilling  <a href="https://arxiv.org/html/2604.01760v1">arxiv</a></td><td style="text-align:left">Multilingual zero-shot (100K hours training)  <a href="https://www.studocu.vn/vn/document/dai-hoc-thuy-loi/tri-tue-nhan-tao/flow-matching-for-fluent-speech-synthesis-a-novel-tts-approach-2410/164906803">studocu</a></td></tr><tr><td style="text-align:left"><strong>F5-TTS</strong> (2025)</td><td style="text-align:left">5–10 seconds</td><td style="text-align:left">Flow matching + DiT + ConvNeXt text refinement  <a href="https://www.studocu.vn/vn/document/dai-hoc-thuy-loi/tri-tue-nhan-tao/flow-matching-for-fluent-speech-synthesis-a-novel-tts-approach-2410/164906803">studocu</a></td><td style="text-align:left">Seamless code-switching; RTF 0.016  <a href="https://www.studocu.vn/vn/document/dai-hoc-thuy-loi/tri-tue-nhan-tao/flow-matching-for-fluent-speech-synthesis-a-novel-tts-approach-2410/164906803">studocu</a></td></tr><tr><td style="text-align:left"><strong>CosyVoice 2</strong> (2025)</td><td style="text-align:left">5 seconds</td><td style="text-align:left">Semantic tokens + Qwen LLM + CFM  <a href="https://arxiv.org/html/2604.01760v1">arxiv</a></td><td style="text-align:left">High-fidelity multilingual synthesis  <a href="https://arxiv.org/html/2604.01760v1">arxiv</a></td></tr></tbody></table></div>
+<h3 id="quality-trade-offs"><span class="htext">Quality Trade-Offs</span></h3>
+<ul>
+<li><strong>Instant cloning (1–5 min audio)</strong>: Fast setup, but may miss subtle voice characteristics (regional accent, laryngeal quality) <a href="https://praveentn.live/learn/concepts/the-tts-problem-and-pipeline">praveentn</a></li>
+<li><strong>Professional cloning (30+ min audio)</strong>: Fine-tuned model captures idiosyncrasies; requires dedicated training run <a href="https://praveentn.live/learn/concepts/the-tts-problem-and-pipeline">praveentn</a></li>
+</ul>
+<h2 id="streaming-tts-low-time-to-first-byte-and-quality-trade-offs"><span class="htext">Streaming TTS: Low Time-to-First-Byte and Quality Trade-Offs</span></h2>
+<h3 id="how-streaming-tts-achieves-low-ttfb"><span class="htext">How Streaming TTS Achieves Low TTFB</span></h3>
+<p><strong>Streaming TTS</strong> begins audio playback before the full response text is available. Key techniques:</p>
+<ol>
+<li><strong>Sentence/clause chunking</strong>: Split LLM output at sentence boundaries (periods, question marks); flush each sentence to TTS immediately </li>
+<li><strong>Predict-ahead synthesis</strong>: TTS model starts phoneme generation from first few tokens using lookahead (e.g., 120 chars = ~75 ms on Flash v2.5) </li>
+<li><strong>WebSocket streaming</strong>: Persistent bi-directional connection delivers audio chunks incrementally; playback starts before synthesis completes </li>
+</ol>
+<h3 id="quality-trade-offs"><span class="htext">Quality Trade-Offs</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Strategy</th><th style="text-align:left">Chunk Size</th><th style="text-align:left">First-Byte Latency</th><th style="text-align:left">Prosody Quality</th><th style="text-align:left">Use Case</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Sentence boundary</strong></td><td style="text-align:left">10–50 words</td><td style="text-align:left">100–200 ms</td><td style="text-align:left">Natural (complete intonation)</td><td style="text-align:left">Default for most agents</td></tr><tr><td style="text-align:left"><strong>Clause boundary</strong></td><td style="text-align:left">5–15 words</td><td style="text-align:left">75–150 ms</td><td style="text-align:left">Slightly choppy</td><td style="text-align:left">Low-latency agents</td></tr><tr><td style="text-align:left"><strong>Fixed token count</strong></td><td style="text-align:left">24–96 tokens</td><td style="text-align:left">50–100 ms</td><td style="text-align:left">Robotic (mid-clause breaks)</td><td style="text-align:left">Experimental</td></tr></tbody></table></div>
+<p><strong>Trade-off</strong>: Smaller chunks reduce TTFB but risk choppy prosody (mid-sentence breaks, unnatural pauses). Larger chunks sound more natural but delay first audio.</p>
+<p><strong>Production tuning</strong>: Bias toward smaller chunks early in utterance (user is waiting) and larger chunks later (audio already playing).</p>
+<h2 id="multilingual-text-and-embedded-foreign-words"><span class="htext">Multilingual Text and Embedded Foreign Words</span></h2>
+<h3 id="the-challenge"><span class="htext">The Challenge</span></h3>
+<p>Multilingual TTS must handle:</p>
+<ul>
+<li><strong>Code-switching</strong>: Alternating languages within a single utterance (e.g., &quot;I need to book a flight *بكره*&quot; mixing English and Arabic) </li>
+<li><strong>Foreign proper nouns</strong>: English drug names inside Arabic sentences (e.g., &quot;الجرعة الموصى بها هي *ibuprofen*&quot;) <a href="https://praveentn.live/learn/concepts/the-tts-problem-and-pipeline">praveentn</a></li>
+<li><strong>Language detection</strong>: Identifying which language each word belongs to for correct phoneme lookup <a href="https://praveentn.live/learn/concepts/the-tts-problem-and-pipeline">praveentn</a></li>
+</ul>
+<h3 id="why-language-detection-on-code-mixed-text-is-unreliable"><span class="htext">Why Language Detection on Code-Mixed Text Is Unreliable</span></h3>
+<ol>
+<li><strong>Orthographic ambiguity</strong>: Many languages share scripts (e.g., English and Arabic both use Latin/Arabic scripts, but loanwords may be written in either) </li>
+<li><strong>Phonetic borrowing</strong>: Foreign words are often pronounced with native phonology (e.g., &quot;ibuprofen&quot; → Arabic phonemes /ibruːfen/) </li>
+<li><strong>Context-dependent pronunciation</strong>: Same word may be pronounced differently based on surrounding language (e.g., French &quot;restaurant&quot; in English vs. French context) <a href="https://praveentn.live/learn/concepts/the-tts-problem-and-pipeline">praveentn</a></li>
+<li><strong>Sparse training data</strong>: Most TTS corpora are monolingual; code-switched data is rare and expensive to collect </li>
+</ol>
+<h3 id="modern-approaches"><span class="htext">Modern Approaches</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Approach</th><th style="text-align:left">Description</th><th style="text-align:left">Limitations</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Multilingual training</strong></td><td style="text-align:left">Train on mixed-language corpora (e.g., Emilia 95K hours, LEMAS 150K hours)  <a href="https://arxiv.org/html/2601.04233v1">arxiv</a></td><td style="text-align:left">Requires massive CSW datasets; most public datasets are monolingual</td></tr><tr><td style="text-align:left"><strong>Language-adaptive layers</strong></td><td style="text-align:left">Add language-specific adapter modules to shared encoder</td><td style="text-align:left">Increases model complexity; requires language tags at inference</td></tr><tr><td style="text-align:left"><strong>CSW-aware LMs</strong></td><td style="text-align:left">Train external LMs on code-switched text; use shallow fusion</td><td style="text-align:left">Limited CSW text corpora; most web text is monolingual</td></tr><tr><td style="text-align:left"><strong>Token-level language ID</strong></td><td style="text-align:left">Predict language ID per token alongside transcription</td><td style="text-align:left">Adds output dimension; requires token-level language annotations</td></tr></tbody></table></div>
+<p><strong>State-of-the-art</strong>: F5-TTS and Voicebox support seamless code-switching via flow matching on multilingual datasets (100K+ hours), but WER degrades 20–50% on mixed-language utterances vs. monolingual. <a href="https://www.studocu.vn/vn/document/dai-hoc-thuy-loi/tri-tue-nhan-tao/flow-matching-for-fluent-speech-synthesis-a-novel-tts-approach-2410/164906803">studocu</a></p>
+<h3 id="example-english-drug-name-in-arabic-sentence"><span class="htext">Example: English Drug Name in Arabic Sentence</span></h3>
+<p>Input: &quot;الجرعة الموصى بها هي <em>ibuprofen</em> مرتين يوميًا&quot; (The recommended dose is <em>ibuprofen</em> twice daily)</p>
+<p><strong>Failure modes:</strong></p>
+<ul>
+<li><strong>Mispronunciation</strong>: TTS reads &quot;ibuprofen&quot; with Arabic phonology (/ibruːfen/) instead of English (/ˌaɪbjuːˈproʊfɛn/) <a href="https://praveentn.live/learn/concepts/the-tts-problem-and-pipeline">praveentn</a></li>
+<li><strong>Language ID error</strong>: Model assumes entire sentence is Arabic; applies Arabic G2P rules to English word <a href="https://praveentn.live/learn/concepts/the-tts-problem-and-pipeline">praveentn</a></li>
+<li><strong>Prosody mismatch</strong>: English word inserted with Arabic intonation contour, sounding unnatural </li>
+</ul>
+<p><strong>Workarounds:</strong></p>
+<ul>
+<li><strong>Explicit language tagging</strong>: Use SSML <code>&lt;lang xml:lang=&quot;en-US&quot;&gt;ibuprofen&lt;/lang&gt;</code> to force English pronunciation <a href="https://praveentn.live/learn/concepts/the-tts-problem-and-pipeline">praveentn</a></li>
+<li><strong>Phonetic transcription</strong>: Provide IPA or ARPABET for foreign words (e.g., &quot;ibuprofen&quot; → /ˌaɪbjuːˈproʊfɛn/) <a href="https://praveentn.live/learn/concepts/the-tts-problem-and-pipeline">praveentn</a></li>
+<li><strong>Multilingual G2P</strong>: Train grapheme-to-phoneme model on code-switched data to learn context-dependent pronunciation </li>
+</ul>
+<h2 id="architecture-comparison-summary"><span class="htext">Architecture Comparison Summary</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Property</th><th style="text-align:left">Autoregressive (VALL-E, Voicebox)</th><th style="text-align:left">Non-Autoregressive (F5-TTS, Flow Matching)</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Streaming output</strong></td><td style="text-align:left">Yes (native)  <a href="https://praveentn.live/learn/concepts/the-tts-problem-and-pipeline">praveentn</a></td><td style="text-align:left">No (parallel generation)  <a href="https://www.studocu.vn/vn/document/dai-hoc-thuy-loi/tri-tue-nhan-tao/flow-matching-for-fluent-speech-synthesis-a-novel-tts-approach-2410/164906803">studocu</a></td></tr><tr><td style="text-align:left"><strong>Zero-shot voice cloning</strong></td><td style="text-align:left">Yes (3-sec reference)  <a href="https://arxiv.org/html/2604.01760v1">arxiv</a></td><td style="text-align:left">Yes (audio prompt + text)  <a href="https://arxiv.org/html/2604.01760v1">arxiv</a></td></tr><tr><td style="text-align:left"><strong>Inference speed</strong></td><td style="text-align:left">Slow (sequential decoding)  <a href="https://www.alphaxiv.org/abs/2509.09631v5">alphaxiv</a></td><td style="text-align:left">Fast (10–20 ODE steps)  <a href="https://www.studocu.vn/vn/document/dai-hoc-thuy-loi/tri-tue-nhan-tao/flow-matching-for-fluent-speech-synthesis-a-novel-tts-approach-2410/164906803">studocu</a></td></tr><tr><td style="text-align:left"><strong>Prosody naturalness</strong></td><td style="text-align:left">High (implicit duration)  <a href="https://www.studocu.vn/vn/document/dai-hoc-thuy-loi/tri-tue-nhan-tao/flow-matching-for-fluent-speech-synthesis-a-novel-tts-approach-2410/164906803">studocu</a></td><td style="text-align:left">High (implicit via padding)  <a href="https://arxiv.org/html/2604.01760v1">arxiv</a></td></tr><tr><td style="text-align:left"><strong>Long-form stability</strong></td><td style="text-align:left">Moderate (error accumulation)  <a href="https://www.alphaxiv.org/abs/2509.09631v5">alphaxiv</a></td><td style="text-align:left">High (no error accumulation)  <a href="https://www.alphaxiv.org/abs/2509.09631v5">alphaxiv</a></td></tr><tr><td style="text-align:left"><strong>Multilingual support</strong></td><td style="text-align:left">Moderate (requires multilingual training)</td><td style="text-align:left">High (flow matching generalizes better)  <a href="https://arxiv.org/html/2604.01760v1">arxiv</a></td></tr><tr><td style="text-align:left"><strong>Code-switching</strong></td><td style="text-align:left">Poor (language ID ambiguity)</td><td style="text-align:left">Moderate (F5-TTS supports seamless CSW)  <a href="https://www.studocu.vn/vn/document/dai-hoc-thuy-loi/tri-tue-nhan-tao/flow-matching-for-fluent-speech-synthesis-a-novel-tts-approach-2410/164906803">studocu</a></td></tr></tbody></table></div>
+<p><strong>Key papers:</strong></p>
+<ul>
+<li><strong>VALL-E</strong>: Wang et al. (2023), &quot;Neural Codec Language Models are Zero-Shot Text to Speech Synthesizers&quot; <a href="https://praveentn.live/learn/concepts/the-tts-problem-and-pipeline">praveentn</a></li>
+<li><strong>Voicebox</strong>: Le et al. (2024), &quot;Voicebox: Text-guided multilingual universal speech generation at scale&quot; <a href="https://localaimaster.com/blog/f5-tts-setup-guide">localaimaster</a></li>
+<li><strong>F5-TTS</strong>: Chen et al. (2025), &quot;F5-TTS: A Fairytaler that Fakes Fluent and Faithful Speech with Flow Matching&quot; <a href="https://localaimaster.com/blog/f5-tts-setup-guide">localaimaster</a></li>
+<li><strong>Flow matching</strong>: Lipman et al. (2022), &quot;Flow Matching for Generative Modeling&quot; <a href="https://www.studocu.vn/vn/document/dai-hoc-thuy-loi/tri-tue-nhan-tao/flow-matching-for-fluent-speech-synthesis-a-novel-tts-approach-2410/164906803">studocu</a></li>
+</ul>
+<p>Production systems in 2026 increasingly use <strong>hybrid architectures</strong>: AR for streaming partials + NAR flow matching for high-fidelity final synthesis, or multilingual flow-matching models with language-adaptive layers for code-switching. <a href="https://arxiv.org/html/2604.01760v1">arxiv</a></p>
+  </main>
+</div>

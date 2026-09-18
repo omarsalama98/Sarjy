@@ -1,0 +1,285 @@
+<title>Document</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --ink:       #14171c;
+    --ink-2:     #474e5a;
+    --ink-3:     #767e8b;
+    --line:      #e2e5ea;
+    --line-2:    #eef0f4;
+    --accent:    #2d4a7c;
+    --accent-bg: #edf1f8;
+    --warn:      #a6421f;
+    --warn-bg:   #fbf0eb;
+    --code-bg:   #f0f2f6;
+    --shadow:    0 1px 2px rgba(20,23,28,.05), 0 8px 24px -12px rgba(20,23,28,.15);
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #101317;
+      --surface:   #171b21;
+      --ink:       #e7eaef;
+      --ink-2:     #a8b0bc;
+      --ink-3:     #7b838f;
+      --line:      #2a2f38;
+      --line-2:    #22262d;
+      --accent:    #8fb0e6;
+      --accent-bg: #1a2130;
+      --warn:      #e2916d;
+      --warn-bg:   #2a1d17;
+      --code-bg:   #1d222a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #101317;
+    --surface:   #171b21;
+    --ink:       #e7eaef;
+    --ink-2:     #a8b0bc;
+    --ink-3:     #7b838f;
+    --line:      #2a2f38;
+    --line-2:    #22262d;
+    --accent:    #8fb0e6;
+    --accent-bg: #1a2130;
+    --warn:      #e2916d;
+    --warn-bg:   #2a1d17;
+    --code-bg:   #1d222a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .5rem 2.25rem; margin: 0; }
+  dl.meta div { display: flex; flex-direction: column; gap: .1rem; }
+  dl.meta dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  dl.meta dd { margin: 0; font-size: .9rem; color: var(--ink-2); }
+
+  /* ---- toc ---- */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 3rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--ink-3);
+    margin: 0 0 .75rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: flex;
+    gap: .7rem;
+    font-size: .92rem;
+    border-radius: 2px;
+  }
+  .toc a:hover { color: var(--accent); }
+  .tocnum, .secnum {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: .8em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- headings ---- */
+  h2, h3, h4 { font-family: var(--serif); letter-spacing: -.01em; text-wrap: balance; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    font-weight: 600;
+    margin: 3.5rem 0 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .75rem;
+    align-items: baseline;
+  }
+  h3 { font-size: 1.14rem; font-weight: 600; margin: 2.25rem 0 .7rem; display: flex; gap: .6rem; align-items: baseline; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; color: var(--ink-2); }
+  h2 .secnum, h3 .secnum { flex: none; }
+
+  p { margin: 0 0 1.05rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line-2); margin: 2.5rem 0; }
+
+  ul, ol { margin: 0 0 1.15rem; padding-left: 1.35rem; max-width: 68ch; }
+  li { margin-bottom: .38rem; }
+  li::marker { color: var(--ink-3); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+  .codewrap { overflow-x: auto; margin: 0 0 1.4rem; }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 0;
+    min-width: min-content;
+  }
+  pre code { background: none; padding: 0; font-size: .845rem; line-height: 1.6; }
+
+  blockquote {
+    margin: 0 0 1.4rem;
+    padding: .1rem 0 .1rem 1.15rem;
+    border-left: 3px solid var(--line);
+    color: var(--ink-2);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+  }
+  .callout p { margin-bottom: .6rem; color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--warn); }
+
+  .tablewrap { overflow-x: auto; margin: 0 0 1.6rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  th, td { padding: .6rem .85rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <h1>Document</h1>
+    
+  </header>
+  <nav class="toc" aria-label="Contents"><p class="eyebrow">Contents</p><ol><li><a href="#waveform-vs-mel-spectrogram-representations">Waveform vs. Mel-Spectrogram Representations</a></li><li><a href="#neural-audio-codecs-and-residual-vector-quantization">Neural Audio Codecs and Residual Vector Quantization</a></li><li><a href="#semantic-tokens-vs-acoustic-tokens">Semantic Tokens vs. Acoustic Tokens</a></li><li><a href="#frame-rates-and-token-rates">Frame Rates and Token Rates</a></li><li><a href="#why-audio-token-rate-constrains-latency-and-context">Why Audio Token Rate Constrains Latency and Context</a></li></ol></nav>
+  <main>
+<h2 id="waveform-vs-mel-spectrogram-representations"><span class="htext">Waveform vs. Mel-Spectrogram Representations</span></h2>
+<p><strong>Waveform</strong> is the rawest representation: a 1D sequence of amplitude samples at a fixed sampling rate (typically 16 kHz or 24 kHz for speech). One second of 16 kHz audio contains 16,000 samples. While waveforms preserve all information, they are computationally prohibitive for transformer-based models due to the quadratic cost of self-attention over sequence length. <a href="https://mbrenndoerfer.com/writing/speech-representations-mel-spectrograms">mbrenndoerfer</a></p>
+<p><strong>Mel-spectrogram</strong> compresses the waveform into a 2D time-frequency representation:</p>
+<ul>
+<li>Apply Short-Time Fourier Transform (STFT) with overlapping windows (e.g., 25 ms window, 10 ms hop) to get a spectrogram</li>
+<li>Aggregate linear-frequency bins into ~80 triangular filters spaced uniformly on the <strong>mel scale</strong> (perceptually uniform pitch scale)</li>
+<li>Apply log compression to match human loudness perception</li>
+</ul>
+<p>This reduces dimensionality from 16,000 samples/sec to ~100 frames/sec × 80 mel bins = 8,000 values/sec, a ~2× compression, but more importantly concentrates phonetically relevant information. <a href="https://mbrenndoerfer.com/writing/speech-representations-mel-spectrograms">mbrenndoerfer</a></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Aspect</th><th style="text-align:left">Waveform</th><th style="text-align:left">Mel-Spectrogram</th></tr></thead><tbody><tr><td style="text-align:left">Dimensionality</td><td style="text-align:left">16,000 values/sec (16 kHz)</td><td style="text-align:left">~8,000 values/sec (100 fps × 80 bins)</td></tr><tr><td style="text-align:left">Structure</td><td style="text-align:left">1D time series</td><td style="text-align:left">2D time-frequency heatmap</td></tr><tr><td style="text-align:left">Phonetic info</td><td style="text-align:left">Implicit, entangled with pitch/timbre</td><td style="text-align:left">Explicit spectral envelope</td></tr><tr><td style="text-align:left">Transformer-friendly</td><td style="text-align:left">No (sequence too long)</td><td style="text-align:left">Partially (still high frame rate)</td></tr><tr><td style="text-align:left">Used in</td><td style="text-align:left">Raw end-to-end models (e.g., Wave2Vec 2.0 encoder)</td><td style="text-align:left">Traditional ASR, Whisper encoder input</td></tr></tbody></table></div>
+<h2 id="neural-audio-codecs-and-residual-vector-quantization"><span class="htext">Neural Audio Codecs and Residual Vector Quantization</span></h2>
+<p>Neural audio codecs (EnCodec, SoundStream, DAC) compress audio into <strong>discrete tokens</strong> suitable for language modeling. They share a common architecture: <strong>RVQ-VAE</strong> (Residual Vector Quantized Variational Autoencoder). <a href="https://www.forasoft.com/learn/audio-for-video/articles-audio/neural-audio-codecs-lyra-encodec-soundstream">forasoft</a></p>
+<h3 id="rvq-vae-architecture"><span class="htext">RVQ-VAE Architecture</span></h3>
+<ol>
+<li><strong>Encoder</strong>: CNN downsamples waveform 2× per layer to 50–75 Hz frame rate</li>
+<li><strong>RVQ Bottleneck</strong>: Multiple codebooks quantize residuals hierarchically</li>
+<li><strong>Decoder</strong>: Symmetric CNN upsamples back to waveform</li>
+</ol>
+<p><strong>Residual Vector Quantization (RVQ)</strong> works like making change with coins: the first codebook captures coarse structure, the second quantizes the residual error from the first, the third quantizes the residual from the second, and so on. Each added codebook roughly halves reconstruction error. <a href="https://www.forasoft.com/learn/audio-for-video/articles-audio/neural-audio-codecs-lyra-encodec-soundstream">forasoft</a></p>
+<div class="codewrap"><pre><code>Waveform → Encoder → Latent vectors
+                    ↓
+              Codebook 1: quantize → residual 1
+                    ↓
+              Codebook 2: quantize residual 1 → residual 2
+                    ↓
+              Codebook 3: quantize residual 2 → ...</code></pre></div>
+<p>This hierarchical quantization lets you trade bitrate for quality by using more or fewer codebooks. EnCodec and SoundStream achieve high fidelity at 1–6 kbps using 4–8 codebooks with vocabulary size 1,024 each. <a href="https://theorempath.com/topics/audio-language-models">theorempath</a></p>
+<h2 id="semantic-tokens-vs-acoustic-tokens"><span class="htext">Semantic Tokens vs. Acoustic Tokens</span></h2>
+<p>Modern speech models distinguish two token types with complementary roles: <a href="https://www.computer.org/csdl/journal/tp/2026/04/11298521/2cojfroKS0U">computer</a></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Property</th><th style="text-align:left">Semantic Tokens</th><th style="text-align:left">Acoustic Tokens</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Source</strong></td><td style="text-align:left">SSL models (HuBERT, w2v-BERT, Whisper encoder) + k-means clustering</td><td style="text-align:left">Neural codecs (EnCodec, SoundStream, DAC) with RVQ</td></tr><tr><td style="text-align:left"><strong>Content</strong></td><td style="text-align:left">Linguistic meaning (phonemes, words)</td><td style="text-align:left">Full audio: timbre, pitch, prosody, speaker identity, background noise</td></tr><tr><td style="text-align:left"><strong>Token rate</strong></td><td style="text-align:left">25–50 tokens/sec</td><td style="text-align:left">50–75 tokens/sec <strong>per codebook</strong> (×4–8 codebooks = 200–600 tokens/sec total)</td></tr><tr><td style="text-align:left"><strong>Vocabulary</strong></td><td style="text-align:left">500–2,000 clusters</td><td style="text-align:left">1,024 per codebook</td></tr><tr><td style="text-align:left"><strong>Use case</strong></td><td style="text-align:left">Understanding, transcription, planning</td><td style="text-align:left">Generation, voice cloning, high-fidelity synthesis</td></tr><tr><td style="text-align:left"><strong>Information loss</strong></td><td style="text-align:left">Discards paralinguistic details</td><td style="text-align:left">Near-lossless reconstruction at sufficient bitrate</td></tr></tbody></table></div>
+<p><strong>Why both?</strong> Separating semantics from acoustics lets models plan content at low token rate (efficient reasoning) then render acoustic detail at high rate (high fidelity). AudioLM pioneered this two-stage design: coarse semantic tokens guide fine acoustic token generation. <a href="https://theorempath.com/topics/audio-language-models">theorempath</a></p>
+<p>Hybrid tokenizers (e.g., SpeechTokenizer, MimI in Moshi) decouple semantic and acoustic layers within a single RVQ stack, distilling semantic information into early codebooks while later codebooks carry acoustic residuals. <a href="https://theorempath.com/topics/audio-language-models">theorempath</a></p>
+<h2 id="frame-rates-and-token-rates"><span class="htext">Frame Rates and Token Rates</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Representation</th><th style="text-align:left">Frame Rate</th><th style="text-align:left">Token Rate</th><th style="text-align:left">Tokens per 30-sec clip</th></tr></thead><tbody><tr><td style="text-align:left">Raw waveform (16 kHz)</td><td style="text-align:left">16,000 samples/sec</td><td style="text-align:left">N/A (continuous)</td><td style="text-align:left">480,000 samples</td></tr><tr><td style="text-align:left">Mel-spectrogram</td><td style="text-align:left">~100 frames/sec</td><td style="text-align:left">N/A (continuous features)</td><td style="text-align:left">3,000 frames × 80 dims</td></tr><tr><td style="text-align:left">Semantic tokens</td><td style="text-align:left">25–50 tokens/sec</td><td style="text-align:left">25–50 tokens/sec</td><td style="text-align:left">750–1,500 tokens</td></tr><tr><td style="text-align:left">Acoustic tokens (4 codebooks)</td><td style="text-align:left">50 tokens/sec</td><td style="text-align:left">200 tokens/sec (4 × 50)</td><td style="text-align:left">6,000 tokens</td></tr><tr><td style="text-align:left">Acoustic tokens (8 codebooks)</td><td style="text-align:left">75 tokens/sec</td><td style="text-align:left">600 tokens/sec (8 × 75)</td><td style="text-align:left">18,000 tokens</td></tr><tr><td style="text-align:left">Text (English)</td><td style="text-align:left">N/A</td><td style="text-align:left">~4–6 tokens/sec (avg word ~1.3 tokens, ~3 words/sec)</td><td style="text-align:left">~120–180 tokens</td></tr></tbody></table></div>
+<p>Audio token rates are <strong>10–100× higher</strong> than text token rates. A 30-second utterance produces 750–1,500 semantic tokens or 6,000–18,000 acoustic tokens, versus ~150 text tokens for the same content. <a href="https://theorempath.com/topics/audio-language-models">theorempath</a></p>
+<h2 id="why-audio-token-rate-constrains-latency-and-context"><span class="htext">Why Audio Token Rate Constrains Latency and Context</span></h2>
+<p>Audio token rate is the <strong>central bottleneck</strong> for speech-to-speech models because:</p>
+<ol>
+<li><strong>Sequence length scales linearly with token rate</strong>: A 1-minute audio clip at 50 tokens/sec = 3,000 tokens; at 400 tokens/sec (8-codebook acoustic) = 24,000 tokens. Transformer attention cost scales quadratically with sequence length, making long contexts computationally prohibitive. <a href="https://theorempath.com/topics/audio-language-models">theorempath</a></li>
+</ol>
+<ol>
+<li><strong>Context window limits</strong>: Most LLMs support 4K–128K tokens. At 400 tokens/sec, a 128K context covers only ~5 minutes of audio. At 50 tokens/sec (semantic), the same window covers ~40 minutes. This forces architectural tradeoffs: use semantic tokens for long-context understanding, acoustic tokens for short high-fidelity generation. <a href="https://theorempath.com/topics/audio-language-models">theorempath</a></li>
+</ol>
+<ol>
+<li><strong>Latency = tokens to first output × token generation time</strong>: End-to-end speech models must generate acoustic tokens autoregressively. At 50 tokens/sec output rate, generating 1 second of audio requires 200–600 tokens (4–8 codebooks), taking 4–12 seconds at 50 tokens/sec generation speed unless parallelized. Pipeline architectures (ASR → LLM → TTS) add serialization overhead: LASR + LLLM + LTTS ≈ 1–3 seconds total. <a href="https://theorempath.com/topics/audio-language-models">theorempath</a></li>
+</ol>
+<ol>
+<li><strong>Streaming constraints</strong>: Real-time conversation requires &lt;200 ms turn-taking gaps. High token rates force models to buffer more audio before generating, increasing latency. MimI codec (Moshi) addresses this by distilling semantics into the first RVQ codebook, enabling a single token stream at ~50 tokens/sec that carries both linguistic and acoustic content. <a href="https://theorempath.com/topics/audio-language-models">theorempath</a></li>
+</ol>
+<h3 id="key-papers"><span class="htext">Key Papers</span></h3>
+<ul>
+<li><strong>SoundStream</strong> (Zeghidour et al., 2021, arXiv:2107.03312): Introduced RVQ to neural audio codecs <a href="https://theorempath.com/topics/audio-language-models">theorempath</a></li>
+<li><strong>EnCodec</strong> (Defossez et al., 2022, arXiv:2210.13438): High-fidelity neural audio compression with RVQ <a href="https://theorempath.com/topics/audio-language-models">theorempath</a></li>
+<li><strong>AudioLM</strong> (Borsos et al., 2022, arXiv:2209.03143): Two-stage semantic + acoustic token generation <a href="https://theorempath.com/topics/audio-language-models">theorempath</a></li>
+<li><strong>Recent Advances in Discrete Speech Tokens</strong> (Guo et al., 2026, IEEE TPAMI): Comprehensive survey of semantic vs. acoustic tokenizers <a href="https://www.computer.org/csdl/journal/tp/2026/04/11298521/2cojfroKS0U">computer</a></li>
+<li><strong>Moshi</strong> (Kyutai, 2024, arXiv:2410.00037): Full-duplex speech model with MimI codec for low-latency dialogue <a href="https://theorempath.com/topics/audio-language-models">theorempath</a></li>
+</ul>
+<p>The field is converging on hybrid tokenizers that compress semantic information into early RVQ layers while preserving acoustic detail in later layers, enabling single-stream models that balance latency, context, and fidelity. <a href="https://yudonglee.me/codec-explained/">yudonglee</a></p>
+  </main>
+</div>

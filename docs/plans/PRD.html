@@ -1,0 +1,283 @@
+<title>Sarjy — PRD</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --ink:       #14171c;
+    --ink-2:     #474e5a;
+    --ink-3:     #767e8b;
+    --line:      #e2e5ea;
+    --line-2:    #eef0f4;
+    --accent:    #2d4a7c;
+    --accent-bg: #edf1f8;
+    --warn:      #a6421f;
+    --warn-bg:   #fbf0eb;
+    --code-bg:   #f0f2f6;
+    --shadow:    0 1px 2px rgba(20,23,28,.05), 0 8px 24px -12px rgba(20,23,28,.15);
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #101317;
+      --surface:   #171b21;
+      --ink:       #e7eaef;
+      --ink-2:     #a8b0bc;
+      --ink-3:     #7b838f;
+      --line:      #2a2f38;
+      --line-2:    #22262d;
+      --accent:    #8fb0e6;
+      --accent-bg: #1a2130;
+      --warn:      #e2916d;
+      --warn-bg:   #2a1d17;
+      --code-bg:   #1d222a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #101317;
+    --surface:   #171b21;
+    --ink:       #e7eaef;
+    --ink-2:     #a8b0bc;
+    --ink-3:     #7b838f;
+    --line:      #2a2f38;
+    --line-2:    #22262d;
+    --accent:    #8fb0e6;
+    --accent-bg: #1a2130;
+    --warn:      #e2916d;
+    --warn-bg:   #2a1d17;
+    --code-bg:   #1d222a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .5rem 2.25rem; margin: 0; }
+  dl.meta div { display: flex; flex-direction: column; gap: .1rem; }
+  dl.meta dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  dl.meta dd { margin: 0; font-size: .9rem; color: var(--ink-2); }
+
+  /* ---- toc ---- */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 3rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--ink-3);
+    margin: 0 0 .75rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: flex;
+    gap: .7rem;
+    font-size: .92rem;
+    border-radius: 2px;
+  }
+  .toc a:hover { color: var(--accent); }
+  .tocnum, .secnum {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: .8em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- headings ---- */
+  h2, h3, h4 { font-family: var(--serif); letter-spacing: -.01em; text-wrap: balance; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    font-weight: 600;
+    margin: 3.5rem 0 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .75rem;
+    align-items: baseline;
+  }
+  h3 { font-size: 1.14rem; font-weight: 600; margin: 2.25rem 0 .7rem; display: flex; gap: .6rem; align-items: baseline; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; color: var(--ink-2); }
+  h2 .secnum, h3 .secnum { flex: none; }
+
+  p { margin: 0 0 1.05rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line-2); margin: 2.5rem 0; }
+
+  ul, ol { margin: 0 0 1.15rem; padding-left: 1.35rem; max-width: 68ch; }
+  li { margin-bottom: .38rem; }
+  li::marker { color: var(--ink-3); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+  .codewrap { overflow-x: auto; margin: 0 0 1.4rem; }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 0;
+    min-width: min-content;
+  }
+  pre code { background: none; padding: 0; font-size: .845rem; line-height: 1.6; }
+
+  blockquote {
+    margin: 0 0 1.4rem;
+    padding: .1rem 0 .1rem 1.15rem;
+    border-left: 3px solid var(--line);
+    color: var(--ink-2);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+  }
+  .callout p { margin-bottom: .6rem; color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--warn); }
+
+  .tablewrap { overflow-x: auto; margin: 0 0 1.6rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  th, td { padding: .6rem .85rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <h1>Sarjy — PRD</h1>
+    <dl class="meta"><div><dt>Date</dt><dd>2026-09-18 · <strong>Owner:</strong> Omar · <strong>Deadline:</strong> 4 calendar days from Thu EOD (~Mon)</dd></div><div><dt>note</dt><dd>Technical design: <code>TDD.md</code>. Decisions and their reasoning: <code>../decisions/deep-dive-track.md</code> (gitignored).</dd></div></dl>
+  </header>
+  <nav class="toc" aria-label="Contents"><p class="eyebrow">Contents</p><ol><li><a href="#summary">Summary</a></li><li><a href="#the-problem">The problem</a></li><li><a href="#the-deep-dive-guardrails-and-reliability">The deep dive — guardrails and reliability</a></li><li><a href="#requirements">Requirements</a></li><li><a href="#the-external-api-and-why-this-one">The external API, and why this one</a></li><li><a href="#priority-ladder">Priority ladder</a></li><li><a href="#explicitly-not-building">Explicitly not building</a></li><li><a href="#demo-script">Demo script</a></li><li><a href="#open-product">Open — product</a></li></ol></nav>
+  <main>
+<h2 id="summary"><span class="htext">Summary</span></h2>
+<p><strong>Sarjy is a voice travel assistant that never states a travel fact it cannot source.</strong></p>
+<p>Ask it &quot;I'm going to Japan next month on a Saudi passport&quot; and it tells you: eVisa, 90 days, passport valid on arrival, a customs declaration is required — each answer carrying the source it came from and the date that source was generated. When something falls outside what its sources cover, it says so and routes you to the embassy rather than guessing.</p>
+<p>It also helps you plan: where to go, what to see, whether November is the right month — clearly marked as its judgement rather than as sourced fact.</p>
+<h2 id="the-problem"><span class="htext">The problem</span></h2>
+<p>General assistants confidently invent visa requirements. The answer depends on a passport-and-destination pair that changes without notice, it is not the kind of fact a model can hold reliably, and people miss flights because of it.</p>
+<p>So the interesting problem is not &quot;can a voice assistant answer travel questions.&quot; It is <strong>can it be trusted about facts it got from a tool.</strong></p>
+<h2 id="the-deep-dive-guardrails-and-reliability"><span class="htext">The deep dive — guardrails and reliability</span></h2>
+<p>Sarjy answers from a live, dated, citable source; falls back to a vendored dataset when that source fails, saying which one answered and how fresh it is; and refuses with a route to the authority when neither covers the question.</p>
+<p>The demo is not that it never errs. It is that <strong>you can always see where an answer came from.</strong></p>
+<p>**The bar is <em>grounded and still useful</em>.** An assistant that hedges everything has failed this deep dive, not passed it. A refusal is correct only when the sources genuinely do not cover the question — never as a way of avoiding risk.</p>
+<h3 id="two-registers-never-blurred"><span class="htext">Two registers, never blurred</span></h3>
+<p><em>&quot;Never state a fact it cannot source&quot;</em> does not mean <em>&quot;never have an opinion.&quot;</em> It means the two are never mixed.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Register</th><th style="text-align:left">Covers</th><th style="text-align:left">Rule</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Sourced</strong></td><td style="text-align:left">Visa rules, entry requirements, prayer times, currency, place descriptions</td><td style="text-align:left">Cited, dated, traceable. Never invented.</td></tr><tr><td style="text-align:left"><strong>Judgement</strong></td><td style="text-align:left">Where to go, what to see, when to travel, how to spend three days</td><td style="text-align:left">Marked as Sarjy's own view. Never dressed as a looked-up fact.</td></tr></tbody></table></div>
+<p>The user always knows which one they are hearing, in the voice line and in the UI. <strong>A visible register switch is a better demo beat than a refusal</strong> — it shows the discipline is real without the assistant being useless.</p>
+<p>Getting this wrong in either direction is a failure: a sourced claim presented as opinion is evasive; an opinion presented as sourced is the exact harm this project exists to prevent.</p>
+<h2 id="requirements"><span class="htext">Requirements</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Requirement</th><th style="text-align:left">Done means</th></tr></thead><tbody><tr><td style="text-align:left">1</td><td style="text-align:left">Voice in, voice out</td><td style="text-align:left">Reviewer speaks, Sarjy speaks back. Barge-in works.</td></tr><tr><td style="text-align:left">2</td><td style="text-align:left">Memory across sessions</td><td style="text-align:left"><strong>Two stores.</strong> A typed travel profile (passport, home city, preferences, past destinations) that drives lookups, and an open key/value store for anything else the user says about themselves — because the brief's own example is <em>&quot;what's my favorite color?&quot;</em> and a reviewer will try that exact sentence. Per-person via an anonymous session id, not shared across visitors. Visible in a &quot;what Sarjy remembers&quot; panel. Survives a full reload.</td></tr><tr><td style="text-align:left">3</td><td style="text-align:left">External API</td><td style="text-align:left">Live visa lookup, with citation and timestamp surfaced to the user.</td></tr><tr><td style="text-align:left">4</td><td style="text-align:left">Deployed URL</td><td style="text-align:left">Opens cold in a fresh browser. No key, no login, no README.</td></tr><tr><td style="text-align:left">5</td><td style="text-align:left">Deep dive</td><td style="text-align:left">Cite-or-refuse, visible fallback, injection resistance, vendor-failure degradation, an adversarial eval with numbers.</td></tr><tr><td style="text-align:left">6</td><td style="text-align:left">Presentation</td><td style="text-align:left">Loom or PDF before the meeting; live demo; codebase walkthrough.</td></tr><tr><td style="text-align:left">7</td><td style="text-align:left">GitHub repo</td><td style="text-align:left">Private, reviewer granted access before submission.</td></tr></tbody></table></div>
+<h2 id="the-external-api-and-why-this-one"><span class="htext">The external API, and why this one</span></h2>
+<p><strong><a href="https://rapidapi.com/TravelBuddyAI/api/visa-requirement">Travel Buddy Visa Requirements</a></strong> — 200 passports × 211 destinations, updated daily.</p>
+<blockquote><p>Visa requirements are the highest-stakes factual question in travel: wrong information means being denied boarding. They're also exactly what general-purpose assistants hallucinate, because the answer depends on a passport/destination pair that changes without notice. This API returns a dated, per-nationality answer with an embassy link, which lets every claim Sarjy makes carry its own provenance instead of resting on model memory.</p></blockquote>
+<p>That is the requirement-#3 justification. It holds because the API was chosen <em>for</em> the deep dive rather than bolted on to satisfy a checkbox.</p>
+<p>Supporting sources: passport-index (MIT) as an offline fallback · GOV.UK Content API for destination safety and local-law guidance · <strong>Wikipedia REST API</strong> for place descriptions, photographs and coordinates — each carrying its own revision date and page URL · Aladhan for prayer times, using the coordinates Wikipedia supplies.</p>
+<p><strong>Images arrive with attribution and a revision date.</strong> That is the same provenance discipline applied to a different medium, not decoration bolted on.</p>
+<h2 id="priority-ladder"><span class="htext">Priority ladder</span></h2>
+<p>Cut from the bottom. <strong>P1 is cut in scope, never in kind</strong> — it is the submission's identity.</p>
+<ol>
+<li><strong>P0 — the deliverable floor.</strong> Voice in/out, cross-session memory, live external API, deployed URL.</li>
+<li><strong>P1 — guardrails and reliability.</strong> The deep dive.</li>
+<li><strong>P2 — Arabic.</strong> At minimum Arabic input, honestly demoed. Code-switching if it holds up.</li>
+<li><strong>P3 — presence.</strong> Place imagery with attribution, a calm and attractive UI.</li>
+</ol>
+<p><strong>Arabic sits above imagery, deliberately, and this was reversed once.</strong> The first ordering reasoned that images improve every turn while Arabic only makes some turns possible — true in general, and wrong for this audience. Sarj is a ten-person Saudi company whose entire product is Arabic-dialect-native voice. One honest Arabic turn speaks to them more than every photograph combined. <strong>And they have already been told in writing that this is &quot;a bilingual English/Arabic voice assistant&quot;</strong> — shipping with none is a promise walked back.</p>
+<p><strong>Demo it honestly, including the failure.</strong> Our own research puts Gulf dialect word-error rate at ~68 on open models versus ~35 for Egyptian. Script the demo in Egyptian, then <em>say the Gulf number out loud</em> and explain that it is precisely why a company like Sarj trains its own models. Naming the cliff is worth more than pretending it isn't there — it is technical honesty aimed directly at their domain.</p>
+<p><strong>Travel suggestions are not in this trade.</strong> They come with the sourced/judgement register split, which is P1 — the deep dive itself. What P3 risks is the photographs and the polish, not the usefulness.</p>
+<p>If Arabic still gets cut, say so in the writeup and describe the architecture that would have carried it. <em>&quot;What I'd do with another week&quot;</em> is explicitly invited by the brief.</p>
+<h2 id="explicitly-not-building"><span class="htext">Explicitly not building</span></h2>
+<p>Flight search or fares · booking of any kind · user accounts or auth · hotel and restaurant reservations · itinerary generation beyond what the grounded sources support · any abstraction for a future this project does not have.</p>
+<p><strong>Flights are excluded on principle, not by accident.</strong> Every free flight API is decommissioned, sandboxed with fictional data, or stale. Showing invented fares in a project about not hallucinating would undermine the whole thesis. This is stated in the writeup, not hidden.</p>
+<h2 id="demo-script"><span class="htext">Demo script</span></h2>
+<ol>
+<li><strong>It answers.</strong> <em>&quot;I'm going to Japan next month on a Saudi passport&quot;</em> → eVisa, 90 days, passport validity, customs declaration — each sourced and dated.</li>
+<li><strong>It remembers.</strong> Reload the page. <em>&quot;What about Thailand?&quot;</em> → answered without re-asking the passport.</li>
+<li><strong>It refuses well.</strong> A pair outside coverage → names the gap, routes to the embassy, does not guess.</li>
+<li><strong>It survives the vendor.</strong> Kill the API mid-demo → the fallback answers, and says it is falling back and how old that data is.</li>
+<li><strong>It resists attack.</strong> A real in-the-wild injection payload → treated as data, flagged, not obeyed.</li>
+<li><strong>It switches register.</strong> <em>&quot;Is November a good time?&quot;</em> → a real recommendation, visibly marked as judgement rather than sourced fact, with a photo of the place and its source.</li>
+</ol>
+<p><strong>Beat 4 is the one most submissions cannot show.</strong></p>
+<p>Then a normal successful turn, so it doesn't only look like a machine that says no.</p>
+<h2 id="open-product"><span class="htext">Open — product</span></h2>
+<ul>
+<li><strong>Sarjy's voice and persona.</strong> Which prebuilt voice, and how it talks. Spoken answers are much shorter than written ones; a model's default paragraph is unlistenable. <em>&quot;Is the voice experience delightful&quot;</em> is a scored line.</li>
+<li><strong>What the reviewer sees in the first fifteen seconds.</strong> The UI should feel calm and attractive rather than elaborate — a place photo, a clear transcript, visible state.</li>
+<li>Reviewer's GitHub username, and API keys from Sarj — both asked 2026-09-18.</li>
+</ul>
+  </main>
+</div>

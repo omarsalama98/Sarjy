@@ -1,0 +1,392 @@
+<title>Low-Latency Browser Voice Assistant — State of the Art, September 2026</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --ink:       #14171c;
+    --ink-2:     #474e5a;
+    --ink-3:     #767e8b;
+    --line:      #e2e5ea;
+    --line-2:    #eef0f4;
+    --accent:    #2d4a7c;
+    --accent-bg: #edf1f8;
+    --warn:      #a6421f;
+    --warn-bg:   #fbf0eb;
+    --code-bg:   #f0f2f6;
+    --shadow:    0 1px 2px rgba(20,23,28,.05), 0 8px 24px -12px rgba(20,23,28,.15);
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #101317;
+      --surface:   #171b21;
+      --ink:       #e7eaef;
+      --ink-2:     #a8b0bc;
+      --ink-3:     #7b838f;
+      --line:      #2a2f38;
+      --line-2:    #22262d;
+      --accent:    #8fb0e6;
+      --accent-bg: #1a2130;
+      --warn:      #e2916d;
+      --warn-bg:   #2a1d17;
+      --code-bg:   #1d222a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #101317;
+    --surface:   #171b21;
+    --ink:       #e7eaef;
+    --ink-2:     #a8b0bc;
+    --ink-3:     #7b838f;
+    --line:      #2a2f38;
+    --line-2:    #22262d;
+    --accent:    #8fb0e6;
+    --accent-bg: #1a2130;
+    --warn:      #e2916d;
+    --warn-bg:   #2a1d17;
+    --code-bg:   #1d222a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .5rem 2.25rem; margin: 0; }
+  dl.meta div { display: flex; flex-direction: column; gap: .1rem; }
+  dl.meta dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  dl.meta dd { margin: 0; font-size: .9rem; color: var(--ink-2); }
+
+  /* ---- toc ---- */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 3rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--ink-3);
+    margin: 0 0 .75rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: flex;
+    gap: .7rem;
+    font-size: .92rem;
+    border-radius: 2px;
+  }
+  .toc a:hover { color: var(--accent); }
+  .tocnum, .secnum {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: .8em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- headings ---- */
+  h2, h3, h4 { font-family: var(--serif); letter-spacing: -.01em; text-wrap: balance; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    font-weight: 600;
+    margin: 3.5rem 0 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .75rem;
+    align-items: baseline;
+  }
+  h3 { font-size: 1.14rem; font-weight: 600; margin: 2.25rem 0 .7rem; display: flex; gap: .6rem; align-items: baseline; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; color: var(--ink-2); }
+  h2 .secnum, h3 .secnum { flex: none; }
+
+  p { margin: 0 0 1.05rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line-2); margin: 2.5rem 0; }
+
+  ul, ol { margin: 0 0 1.15rem; padding-left: 1.35rem; max-width: 68ch; }
+  li { margin-bottom: .38rem; }
+  li::marker { color: var(--ink-3); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+  .codewrap { overflow-x: auto; margin: 0 0 1.4rem; }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 0;
+    min-width: min-content;
+  }
+  pre code { background: none; padding: 0; font-size: .845rem; line-height: 1.6; }
+
+  blockquote {
+    margin: 0 0 1.4rem;
+    padding: .1rem 0 .1rem 1.15rem;
+    border-left: 3px solid var(--line);
+    color: var(--ink-2);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+  }
+  .callout p { margin-bottom: .6rem; color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--warn); }
+
+  .tablewrap { overflow-x: auto; margin: 0 0 1.6rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  th, td { padding: .6rem .85rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <h1>Low-Latency Browser Voice Assistant — State of the Art, September 2026</h1>
+    <dl class="meta"><div><dt>note</dt><dd>Research for a 3-day take-home. Every latency and pricing claim below carries a source</dd></div><div><dt>note</dt><dd>URL; where sources disagree I say so rather than picking a number.</dd></div></dl>
+  </header>
+  <nav class="toc" aria-label="Contents"><p class="eyebrow">Contents</p><ol><li><a href="#summary-read-this-page-only">Summary — read this page only</a></li><li><a href="#1-realtime-speech-to-speech-apis"><span class="tocnum">1</span>Realtime speech-to-speech APIs</a></li><li><a href="#2-cascaded-components-with-generous-free-tiers"><span class="tocnum">2</span>Cascaded components with generous free tiers</a></li><li><a href="#3-tts-sub-300-ms-time-to-first-audio"><span class="tocnum">3</span>TTS — sub-300 ms time-to-first-audio</a></li><li><a href="#4-orchestration-frameworks"><span class="tocnum">4</span>Orchestration frameworks</a></li><li><a href="#5-latency-budget"><span class="tocnum">5</span>Latency budget</a></li><li><a href="#6-deployment-targets"><span class="tocnum">6</span>Deployment targets</a></li><li><a href="#7-memory-across-sessions"><span class="tocnum">7</span>Memory across sessions</a></li><li><a href="#recommended-build">Recommended build</a></li></ol></nav>
+  <main>
+<h2 id="summary-read-this-page-only"><span class="htext">Summary — read this page only</span></h2>
+<p><strong>Build this.</strong> Pipecat (open source, Python) + <code>SmallWebRTCTransport</code> in the browser → Groq <code>whisper-large-v3-turbo</code> STT → Cerebras <code>gpt-oss-120b</code> LLM → Cartesia Sonic TTS, with Pipecat's local <strong>Smart Turn v3</strong> turn detector (12 ms CPU inference) doing endpointing. Deploy the agent on <strong>Fly.io</strong> or <strong>Modal</strong> (never Vercel — see below), frontend on Vercel. Memory = structured extraction into Supabase Postgres, written asynchronously after each turn.</p>
+<p><strong>Why:</strong> every component is free or near-free, Pipecat gives you per-stage TTFB metrics out of the box (<code>enable_metrics=True</code>) which is the single most demo-impressive thing you can put on screen, and the cascade is what the assignment asked for.</p>
+<p><strong>The three rankings:</strong></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Goal</th><th style="text-align:left">Pick</th></tr></thead><tbody><tr><td style="text-align:left"><strong>(a) Lowest latency</strong></td><td style="text-align:left">OpenAI <code>gpt-realtime</code> over <strong>WebRTC</strong> (~300 ms voice-to-voice, single hop). A well-tuned cascade can match it, but only if you fix endpointing — use Deepgram Flux (integrated end-of-turn) or Smart Turn v3, not a fixed VAD silence threshold.</td></tr><tr><td style="text-align:left"><strong>(b) Fastest to build in 3 days</strong></td><td style="text-align:left">Pipecat + <code>SmallWebRTCTransport</code>, or LiveKit Agents on the LiveKit Cloud free tier (1,000 agent minutes/mo). Both are ~100 lines to a working voice loop.</td></tr><tr><td style="text-align:left"><strong>(c) Most impressive demo</strong></td><td style="text-align:left">A live latency HUD driven by Pipecat's <code>TTFBMetricsData</code> / OTel turn spans, showing VAD → STT → LLM TTFT → TTS TTFB per turn; plus barge-in, plus a toggle that swaps the cascade for Gemini Live speech-to-speech in the same UI, plus cross-session memory recall (&quot;last time you said you're allergic to shellfish&quot;).</td></tr></tbody></table></div>
+<p><strong>The five facts that should shape your architecture:</strong></p>
+<ol>
+<li><strong>Endpointing, not inference, is your latency budget.</strong> A naive 500 ms VAD silence</li>
+<p>threshold is 500 ms of pure dead air added to every turn — larger than your entire STT + LLM + TTS budget on a fast stack. Semantic turn detection adds ~100 ms of compute but lets you cut the silence wait. (<a href="https://livekit.com/blog/turn-detection-voice-agents-vad-endpointing-model-based-detection">LiveKit</a>, <a href="https://deepgram.com/learn/introducing-flux-conversational-speech-recognition">Deepgram</a>)</p>
+<li><strong>WebRTC, not WebSocket, for the browser leg.</strong> WebRTC hits 150–250 ms first-token in</li>
+<p>browsers; WebSocket-over-TCP adds 100 ms+ spikes on lossy Wi-Fi from head-of-line blocking. OpenAI explicitly recommends WebRTC for browser clients and WebSocket only for server-to-server. (<a href="https://developers.openai.com/api/docs/guides/realtime">OpenAI</a>, <a href="https://callsphere.ai/blog/vw1c-openai-realtime-websocket-vs-webrtc-tradeoffs-2026">callsphere</a>)</p>
+<li><strong>Vercel cannot host your voice agent.</strong> Native WebSocket support shipped in public</li>
+<p>beta on 22 June 2026, but it runs inside a Vercel Function and inherits the 300 s max duration — the socket dies mid-conversation. (<a href="https://ably.com/vercel/websockets-on-vercel">Ably</a>)</p>
+<li><strong>Gemini Live is ~10× cheaper than OpenAI Realtime on audio</strong> ($3/M vs $32/M audio in;</li>
+<p>$12/M vs $64/M audio out) and has a free tier. OpenAI has WebRTC; Gemini Live is WebSocket-only. (<a href="https://ai.google.dev/gemini-api/docs/pricing">Google</a>, <a href="https://developers.openai.com/api/docs/pricing">OpenAI</a>)</p>
+<li><strong>Vendor TTS latency numbers are not comparable to each other.</strong> Coval redefined TTFA</li>
+<p>on 3 June 2026 to include leading silence inside the stream; one vendor's number went from 172 ms to 430 ms on the methodology change alone. Use the independent Coval leaderboard, not vendor pages. (<a href="https://gradium.ai/content/tts-latency-benchmark-2026">Coval methodology</a>)</p>
+</ol>
+<hr />
+<h2 id="1-realtime-speech-to-speech-apis"><span class="secnum">1</span><span class="htext">Realtime speech-to-speech APIs</span></h2>
+<h3 id="openai-realtime-api"><span class="htext">OpenAI Realtime API</span></h3>
+<p>Model IDs currently listed on the pricing page: <code>gpt-realtime-2.1</code>, <code>gpt-realtime-2.1-mini</code>, <code>gpt-realtime-2</code>, <code>gpt-realtime-1.5</code>, <code>gpt-realtime</code>, <code>gpt-realtime-mini</code>. The <code>gpt-realtime</code> model card gives snapshot <code>gpt-realtime-2025-08-28</code>, a <strong>32,000 token context window</strong>, 4,096 max output tokens, input modalities text/audio/image, output text/audio, and connectivity over <strong>&quot;WebRTC, WebSocket, or SIP&quot;</strong> at the <code>v1/realtime</code> endpoint. (<a href="https://developers.openai.com/api/docs/models/gpt-realtime">model card</a>, retrieved 18 Sep 2026)</p>
+<p>Pricing per 1M tokens (<a href="https://developers.openai.com/api/docs/pricing">OpenAI pricing</a>, retrieved 18 Sep 2026):</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Model</th><th style="text-align:left">Audio in</th><th style="text-align:left">Audio cached</th><th style="text-align:left">Audio out</th><th style="text-align:left">Text in</th><th style="text-align:left">Text out</th></tr></thead><tbody><tr><td style="text-align:left"><code>gpt-realtime-2.1</code></td><td style="text-align:left">$32</td><td style="text-align:left">$0.40</td><td style="text-align:left">$64</td><td style="text-align:left">$4</td><td style="text-align:left">$24</td></tr><tr><td style="text-align:left"><code>gpt-realtime-2.1-mini</code></td><td style="text-align:left">$10</td><td style="text-align:left">$0.30</td><td style="text-align:left">$20</td><td style="text-align:left">$0.60</td><td style="text-align:left">$2.40</td></tr><tr><td style="text-align:left"><code>gpt-realtime</code> / <code>-2</code> / <code>-1.5</code></td><td style="text-align:left">$32</td><td style="text-align:left">$0.40</td><td style="text-align:left">$64</td><td style="text-align:left">$4</td><td style="text-align:left">$16–24</td></tr><tr><td style="text-align:left"><code>gpt-realtime-mini</code></td><td style="text-align:left">$10</td><td style="text-align:left">$0.30</td><td style="text-align:left">$20</td><td style="text-align:left">$0.60</td><td style="text-align:left">$2.40</td></tr></tbody></table></div>
+<p>Real-world per-minute cost: roughly <strong>$0.05/min</strong> on <code>gpt-realtime-2.1</code> base math and <strong>~$0.016/min</strong> on mini (<a href="https://www.layer3labs.io/guides/openai-realtime-api-pricing">Layer3Labs</a>), but a study of 4,000 measured production sessions puts <code>gpt-realtime-mini</code> at <strong>$0.063–$0.146/min</strong> in practice, because every turn resubmits the full context and input tokens grow linearly with turn count unless you prune (<a href="https://hackernoon.com/openai-realtime-api-pricing-in-2026-real-world-data-from-4000-measured-sessions">HackerNoon</a>). With a 32k context window and no pruning you will hit the ceiling on a long demo call.</p>
+<p><strong>Browser flow:</strong> your server mints an ephemeral key from <code>POST /v1/realtime/client_secrets</code>; the browser does SDP exchange against <code>https://api.openai.com/v1/realtime/calls</code> with that key. Never ship the real API key. (<a href="https://developers.openai.com/api/docs/guides/realtime">OpenAI realtime guide</a>)</p>
+<p><strong>Related audio model pricing</strong> (same page): transcription <code>gpt-realtime-whisper</code> $0.017/min, <code>gpt-transcribe</code> $0.0045/min, <code>gpt-4o-transcribe</code> $0.006/min, <code>gpt-4o-mini-transcribe</code> $0.003/min, <code>whisper</code> $0.006/min. TTS <code>tts-1</code> $15.00/1M chars, <code>tts-1-hd</code> $30.00/1M chars.</p>
+<h3 id="google-gemini-live-api"><span class="htext">Google Gemini Live API</span></h3>
+<p>Model IDs (<a href="https://ai.google.dev/gemini-api/docs/pricing">Gemini pricing</a> and <a href="https://ai.google.dev/gemini-api/docs/live-api/capabilities">Live API capabilities</a>, retrieved 18 Sep 2026):</p>
+<ul>
+<li><code>gemini-3.8-live</code> — recommended default for low-latency voice dialogue</li>
+<li><code>gemini-3.8-live-extended-thinking</code> — background reasoning + async tool work</li>
+<li><code>gemini-3.1-flash-live-preview</code> — legacy</li>
+<li><code>gemini-3.5-live-translate-preview</code>, <code>gemini-3.5-transcribe-live</code></li>
+<li><code>gemini-live-2.5-flash-native-audio</code> — launched 12 Dec 2025, **scheduled for</li>
+<p>discontinuation 13 Dec 2026**; do not build on it (<a href="https://rywalker.com/research/gemini-live-api">release dates</a>)</p>
+</ul>
+<p>Both 3.8 Live models released <strong>15 September 2026</strong> — three days before this research.</p>
+<p>Pricing per 1M tokens for <code>gemini-3.8-live</code>: text in $0.75, audio in <strong>$3.00</strong> (or $0.005/min), text out (including thinking tokens) $4.50, audio out <strong>$12.00</strong> (or $0.018/min). <code>gemini-3.5-transcribe-live</code>: audio in $3.50/M ($0.005/min), text out $21.00/M ($0.004/min).</p>
+<p><strong>Free tier is available on <code>gemini-3.8-live</code></strong> per the pricing page. Google no longer publishes static per-model RPM/TPM/RPD numbers — the <a href="https://ai.google.dev/gemini-api/docs/rate-limits">rate limits doc</a> defers to the AI Studio dashboard at <code>aistudio.google.com/rate-limit</code>. Third-party figures for Gemini 3.8 Flash free tier range from ~20 RPD (<a href="https://pecollective.com/tools/gemini-free-tier-guide/">pecollective</a>) to ~15 RPM / 1,500 RPD for the general Flash free tier (<a href="https://standardcompute.com/rate-limits/gemini">Standard Compute, verified 17 Jul 2026</a>). <strong>Check AI Studio before you depend on it</strong> — this is the single least-trustworthy number in this report.</p>
+<p>Hard constraints that matter for a demo:</p>
+<ul>
+<li><strong>Audio-only sessions cap at 15 minutes</strong> (audio+video at 2 minutes). Session</li>
+<p>resumption / context compression extends this, but you must implement it.</p>
+<li>Context: 128k for native-audio models, 32k for other Live models.</li>
+<li>Turn detection: automatic VAD (default, configurable sensitivity), hybrid VAD</li>
+<p>(server start-detection + client end-detection), or manual <code>activityStart</code>/<code>activityEnd</code>.</p>
+<li><strong>Transport is WebSocket. WebRTC is not offered.</strong> Server-to-server auth by default;</li>
+<p>browser clients require <strong>ephemeral tokens</strong>.</p>
+</ul>
+<h3 id="speech-to-speech-vs-cascaded-the-actual-trade"><span class="htext">Speech-to-speech vs cascaded — the actual trade</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left"></th><th style="text-align:left">Speech-to-speech</th><th style="text-align:left">Cascaded STT→LLM→TTS</th></tr></thead><tbody><tr><td style="text-align:left">Typical voice-to-voice</td><td style="text-align:left">400–800 ms; ~300 ms achievable on OpenAI WebRTC</td><td style="text-align:left">800–1,500 ms typical; 500–700 ms tuned</td></tr><tr><td style="text-align:left">Prosody / emotion</td><td style="text-align:left">Preserved end to end (this is the real win)</td><td style="text-align:left">Lost at STT; TTS re-synthesises flat</td></tr><tr><td style="text-align:left">Interruption handling</td><td style="text-align:left">Native, model-level</td><td style="text-align:left">You build it (VAD + pipeline cancellation)</td></tr><tr><td style="text-align:left">Model choice</td><td style="text-align:left">Locked to one vendor's voice model</td><td style="text-align:left">Swap any STT/LLM/TTS independently</td></tr><tr><td style="text-align:left">Observability</td><td style="text-align:left">Black box — one latency number</td><td style="text-align:left">Per-stage TTFB you can actually optimise</td></tr><tr><td style="text-align:left">Text transcript</td><td style="text-align:left">Side-channel, sometimes lossy</td><td style="text-align:left">First-class, exact</td></tr><tr><td style="text-align:left">Cost</td><td style="text-align:left">$0.016–$0.146/min (OpenAI); Gemini much cheaper</td><td style="text-align:left">Free tier feasible end to end</td></tr><tr><td style="text-align:left">Free tier</td><td style="text-align:left">Gemini only</td><td style="text-align:left">Groq + Cerebras + Cartesia = genuinely free</td></tr></tbody></table></div>
+<p>Sources: <a href="https://www.coval.ai/blog/voice-ai-models-2026/">Coval voice AI models, 4 May 2026</a>; <a href="https://www.reactify-solutions.com/articles/voice-ai-agents-production-2026">Reactify 2026 production comparison</a>; <a href="https://futureagi.com/blog/sub-500ms-voice-ai-guide-2026/">futureagi sub-500ms guide</a>.</p>
+<p><strong>For a take-home, the cascade is the stronger submission</strong> — it demonstrates systems thinking, it's what the assignment names, and it lets you show a latency waterfall. Adding an S2S toggle as a second mode is the cheap way to also show you know the alternative.</p>
+<hr />
+<h2 id="2-cascaded-components-with-generous-free-tiers"><span class="secnum">2</span><span class="htext">Cascaded components with generous free tiers</span></h2>
+<h3 id="groq"><span class="htext">Groq</span></h3>
+<p>Free-plan rate limits, straight from <a href="https://console.groq.com/docs/rate-limits">console.groq.com/docs/rate-limits</a> (retrieved 18 Sep 2026):</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Model ID</th><th style="text-align:left">RPM</th><th style="text-align:left">RPD</th><th style="text-align:left">TPM</th><th style="text-align:left">TPD</th><th style="text-align:left">Audio sec/hr</th><th style="text-align:left">Audio sec/day</th></tr></thead><tbody><tr><td style="text-align:left"><code>whisper-large-v3-turbo</code></td><td style="text-align:left">20</td><td style="text-align:left">2,000</td><td style="text-align:left">—</td><td style="text-align:left">—</td><td style="text-align:left">7,200</td><td style="text-align:left">28,800</td></tr><tr><td style="text-align:left"><code>whisper-large-v3</code></td><td style="text-align:left">20</td><td style="text-align:left">2,000</td><td style="text-align:left">—</td><td style="text-align:left">—</td><td style="text-align:left">7,200</td><td style="text-align:left">28,800</td></tr><tr><td style="text-align:left"><code>openai/gpt-oss-120b</code></td><td style="text-align:left">30</td><td style="text-align:left">1,000</td><td style="text-align:left">8,000</td><td style="text-align:left">200,000</td><td style="text-align:left">—</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><code>openai/gpt-oss-20b</code></td><td style="text-align:left">30</td><td style="text-align:left">1,000</td><td style="text-align:left">8,000</td><td style="text-align:left">200,000</td><td style="text-align:left">—</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><code>qwen/qwen3.8-27b</code></td><td style="text-align:left">30</td><td style="text-align:left">1,000</td><td style="text-align:left">8,000</td><td style="text-align:left">200,000</td><td style="text-align:left">—</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><code>groq/compound</code></td><td style="text-align:left">30</td><td style="text-align:left">250</td><td style="text-align:left">70,000</td><td style="text-align:left">—</td><td style="text-align:left">—</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><code>groq/compound-mini</code></td><td style="text-align:left">30</td><td style="text-align:left">250</td><td style="text-align:left">70,000</td><td style="text-align:left">—</td><td style="text-align:left">—</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><code>canopylabs/orpheus-v1-english</code></td><td style="text-align:left">10</td><td style="text-align:left">100</td><td style="text-align:left">1,200</td><td style="text-align:left">3,600</td><td style="text-align:left">—</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><code>canopylabs/orpheus-arabic-saudi</code></td><td style="text-align:left">10</td><td style="text-align:left">100</td><td style="text-align:left">1,200</td><td style="text-align:left">3,600</td><td style="text-align:left">—</td><td style="text-align:left">—</td></tr></tbody></table></div>
+<aside class="callout critical" role="note"><p>⚠️ <strong>Two traps in that table.</strong> (1) <strong>8,000 TPM</strong> on the <code>gpt-oss</code> models is tight — a voice turn with a 2k-token system prompt and growing history can burn that in a handful of turns. Keep the system prompt short and window the history hard, or put the LLM on Cerebras instead. (2) <strong>Groq's Orpheus TTS free tier is 10 RPM / 100 RPD</strong> — enough for one demo conversation, not enough to develop against. Use Cartesia or Rime for TTS and keep Groq for STT.</p></aside>
+<p><strong>STT: <code>whisper-large-v3-turbo</code>.</strong> Groq's model page states a <strong>216× speed factor</strong> at <strong>$0.04 per hour</strong> of audio (<a href="https://console.groq.com/docs/model/whisper-large-v3-turbo">GroqDocs</a>). Other write-ups report 217–228×, i.e. an hour of audio in ~15 s (<a href="https://www.eesel.ai/blog/groq-pricing">eesel</a>). The free tier's <strong>28,800 audio seconds/day = 8 hours of audio per day, free</strong> — far more than a take-home needs. Note this is a <em>batch</em> transcription endpoint: you send utterance chunks, you do not get partial hypotheses streaming back the way you do from Deepgram. Budget ~150–300 ms per chunk round-trip and design your endpointing around that.</p>
+<p><strong>LLM speeds</strong> from <a href="https://artificialanalysis.ai/providers/groq">Artificial Analysis</a>: <code>gpt-oss-20b</code> (high) <strong>943 t/s</strong>, <code>gpt-oss-20b</code> (low) 919 t/s, Llama 3.1 8B 636 t/s, <code>gpt-oss-120b</code> (high) 472 t/s, Llama 3.3 70B 286 t/s. AA's time-to-first-token figures sit at <strong>0.75–0.85 s</strong>, lowest being <code>gpt-oss-120b</code> (low) at 0.75 s.</p>
+<aside class="callout critical" role="note"><p>⚠️ <strong>TTFT numbers conflict badly.</strong> Artificial Analysis reports ~0.8 s TTFT for Groq; other benchmarks claim ~120 ms (<a href="https://tokenmix.ai/blog/ai-api-latency-benchmark">tokenmix</a>). The gap is almost certainly reasoning tokens and prompt length — AA runs long prompts and counts reasoning output before the first <em>answer</em> token. <strong>Measure it yourself with your own prompt on day 1.</strong> This is exactly the kind of thing that makes a take-home look rigorous.</p></aside>
+<p><strong>TTS:</strong> Groq ships Canopy Labs Orpheus (<code>canopylabs/orpheus-v1-english</code>, <code>canopylabs/orpheus-arabic-saudi</code>), English + Arabic only, expressive with vocal direction controls, still <strong>Preview</strong> (<a href="https://console.groq.com/docs/text-to-speech">GroqDocs</a>). Pricing $22.00/1M chars English, $40.00/1M chars Arabic as of 14 Jul 2026; generates at ~100 chars/sec, with one source reporting 95 ms P50 latency (<a href="https://www.eesel.ai/blog/groq-pricing">eesel</a>). PlayAI Dialog v1.0 is $50/1M chars.</p>
+<h3 id="cerebras"><span class="htext">Cerebras</span></h3>
+<p>Model catalogue (<a href="https://inference-docs.cerebras.ai/models/overview">inference-docs.cerebras.ai</a>, retrieved 18 Sep 2026):</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Model ID</th><th style="text-align:left">Speed</th><th style="text-align:left">Context (free / paid)</th><th style="text-align:left">Free tier</th></tr></thead><tbody><tr><td style="text-align:left"><code>gpt-oss-120b</code></td><td style="text-align:left">~3,000 tokens/s</td><td style="text-align:left">65k / 131k</td><td style="text-align:left">Yes</td></tr><tr><td style="text-align:left"><code>qwen-3.8-27b</code></td><td style="text-align:left">~1,850 tokens/s</td><td style="text-align:left">64k / 128k</td><td style="text-align:left">Yes</td></tr></tbody></table></div>
+<p>Free tier: <strong>1,000,000 tokens/day, no credit card</strong>, resetting daily (not a one-time credit) (<a href="https://www.getaiperks.com/en/ai/cerebras-free-tier-guide">Get AI Perks</a>, <a href="https://adam.holter.com/cerebras-opens-a-free-1m-tokens-per-day-inference-tier-and-ccerebras-now-offers-free-inference-with-1m-tokens-per-day-real-speed-benchmarks-show-2600-tokens-sec-on-llama4scout-here-are-the-actual-n/">Adam Holter</a>). Reported per-minute caps: 5 RPM, 30,000 uncached TPM / 90,000 total TPM.</p>
+<aside class="callout critical" role="note"><p>⚠️ Third-party sources claim the free tier caps context at 8,192 tokens, while the official model catalogue says 65k free for <code>gpt-oss-120b</code>. <strong>Verify on signup.</strong> 5 RPM is also low — fine for a single demo conversation, painful if two people test at once.</p></aside>
+<p><strong>Cerebras at ~3,000 t/s is the fastest token generation available to you for free</strong>, and at voice-length responses (60–120 tokens) generation time is effectively zero — your latency is entirely TTFT plus network. That makes it the right LLM for the cascade, with Groq <code>gpt-oss-20b</code> as the fallback when you hit the 5 RPM wall.</p>
+<h3 id="sambanova"><span class="htext">SambaNova</span></h3>
+<p>Free tier is the tightest of the three: reported 20 RPM and ~200K tokens/day (<a href="https://costbench.com/software/llm-api-providers/sambanova-cloud/free-plan/">costbench</a>), while the Developer Tier allows <strong>20M tokens/day across all models</strong> (<a href="https://sambanova.ai/blog/sambanova-cloud-developer-tier-is-live">SambaNova blog</a>). Model line-up runs on SambaNova RDU chips: Llama 3.3 70B, DeepSeek V3.1 and V3.2, MiniMax M2.7 and M3, Gemma 4 31B, GPT-OSS 120B. Published throughput: Llama 3.1 70B at <strong>461 t/s</strong>, 405B at 132 t/s at full precision (<a href="https://www.businesswire.com/news/home/20240910319006/en">BusinessWire</a>).</p>
+<p><strong>Verdict: skip it for a 3-day build.</strong> Slower than Cerebras, tighter free tier than Groq, and the extra integration buys you nothing. Mention it in your write-up as evaluated-and-rejected — that reads better than not having looked.</p>
+<h3 id="google-gemini-as-the-cascade-llm"><span class="htext">Google Gemini (as the cascade LLM)</span></h3>
+<p><code>gemini-3.8-flash</code> is GA, free tier available, 1,048,576 input / 65,536 output tokens, $0.75/M in and $3.75/M out on paid (<a href="https://pecollective.com/tools/gemini-free-tier-guide/">pecollective</a>, <a href="https://ai.google.dev/gemini-api/docs/pricing">Gemini pricing</a>). Free-tier RPD numbers are unreliable (see §1). Gemini Flash is a reasonable cascade LLM but it is <em>not</em> faster than Cerebras or Groq, so use it only if you want Google-native tool calling or you're already using Gemini Live for the S2S comparison mode.</p>
+<hr />
+<h2 id="3-tts-sub-300-ms-time-to-first-audio"><span class="secnum">3</span><span class="htext">TTS — sub-300 ms time-to-first-audio</span></h2>
+<h3 id="the-independent-benchmark"><span class="htext">The independent benchmark</span></h3>
+<p><a href="https://benchmarks.coval.ai/tts">Coval</a> runs continuous measurement across 26–28 providers, 480 samples/model, English-only. Mirror with the full table at <a href="https://openbenchmarks.com/text-to-speech-benchmark-by-coval">openbenchmarks.com</a> (rolling 7-day aggregate, <strong>last synced 17 September 2026</strong>):</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Rank</th><th style="text-align:left">Model</th><th style="text-align:left">Provider</th><th style="text-align:left">TTFA median</th><th style="text-align:left">TTFA p95</th><th style="text-align:left">WER</th></tr></thead><tbody><tr><td style="text-align:left">1</td><td style="text-align:left"><code>vui</code></td><td style="text-align:left">Fluxions</td><td style="text-align:left"><strong>50 ms</strong></td><td style="text-align:left">96 ms</td><td style="text-align:left">5.6%</td></tr><tr><td style="text-align:left">2</td><td style="text-align:left"><code>qwen3-tts-fast</code></td><td style="text-align:left">Nari</td><td style="text-align:left">63 ms</td><td style="text-align:left">104 ms</td><td style="text-align:left"><strong>4.2%</strong></td></tr><tr><td style="text-align:left">3</td><td style="text-align:left"><code>inworld-tts-2-flash</code></td><td style="text-align:left">Inworld AI</td><td style="text-align:left">69 ms</td><td style="text-align:left">107 ms</td><td style="text-align:left">5.8%</td></tr><tr><td style="text-align:left">4</td><td style="text-align:left"><code>qwen3-tts-1.7b</code></td><td style="text-align:left">Baseten</td><td style="text-align:left">100 ms</td><td style="text-align:left">134 ms</td><td style="text-align:left">6.1%</td></tr><tr><td style="text-align:left">5</td><td style="text-align:left"><code>palabra-tts-v1</code></td><td style="text-align:left">Palabra</td><td style="text-align:left">103 ms</td><td style="text-align:left">145 ms</td><td style="text-align:left">6.0%</td></tr><tr><td style="text-align:left">28</td><td style="text-align:left"><code>gpt-4o-mini-tts</code></td><td style="text-align:left">OpenAI</td><td style="text-align:left">560 ms</td><td style="text-align:left">4,341 ms</td><td style="text-align:left">5.1%</td></tr></tbody></table></div>
+<p>An earlier Coval capture (<strong>4 May 2026</strong>) covers the names you asked about, with IQR — which matters more than the median:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Model</th><th style="text-align:left">TTFA P50</th><th style="text-align:left">IQR</th></tr></thead><tbody><tr><td style="text-align:left">Gradium TTS</td><td style="text-align:left">155 ms</td><td style="text-align:left"><strong>2 ms</strong></td></tr><tr><td style="text-align:left">Cartesia Sonic-3</td><td style="text-align:left">188 ms</td><td style="text-align:left">100 ms</td></tr><tr><td style="text-align:left">ElevenLabs Turbo v2.5</td><td style="text-align:left">264 ms</td><td style="text-align:left">28 ms</td></tr><tr><td style="text-align:left">ElevenLabs Flash v2.5</td><td style="text-align:left">288 ms</td><td style="text-align:left">28 ms</td></tr><tr><td style="text-align:left">Deepgram Aura-2</td><td style="text-align:left">313 ms</td><td style="text-align:left">68 ms</td></tr></tbody></table></div>
+<p>(<a href="https://gradium.ai/content/tts-latency-benchmark-2026">Gradium's write-up of the Coval data</a> — vendor-published but the underlying numbers are Coval's.)</p>
+<aside class="callout critical" role="note"><p>🚨 <strong>Do not mix these with vendor-published numbers.</strong> On <strong>3 June 2026</strong> Coval redefined TTFA as <em>(first audio chunk arrival − synthesis start) + leading silence inside the stream before the first audible sample</em>. One provider's figure moved from 171.9 ms to 429.6 ms on the definition change alone, with no model change. Vendor pages quote round-trip-only TTFB: Cartesia Sonic Turbo ~40 ms, ElevenLabs Flash v2.5 ~75 ms, Deepgram Aura-2 ~200 ms streaming, Rime Coda sub-100 ms, PlayAI Play 3.0 Mini ~150 ms, LMNT Aurora ~140 ms, Hume Octave 2 ~150–200 ms (<a href="https://www.coval.ai/blog/best-text-to-speech-providers-in-2026-how-to-choose-(and-why-vendor-benchmarks-lie">Coval's own vendor-number roundup</a>/)). Those are real but measure a different thing. Also note Coval excludes TLS/WebSocket handshake (~50–200 ms), which you <em>will</em> pay unless you hold a warm connection.</p></aside>
+<h3 id="free-tiers-and-credits"><span class="htext">Free tiers and credits</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Provider</th><th style="text-align:left">Free tier</th><th style="text-align:left">Paid entry</th><th style="text-align:left">Notes</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Cartesia</strong></td><td style="text-align:left">20K credits/mo ≈ <strong>27 min</strong>, 2 concurrent</td><td style="text-align:left">Pro $5/mo → 100K credits ≈133 min, 3 concurrent</td><td style="text-align:left"><a href="https://cartesia.ai/pricing">cartesia.ai/pricing</a>. Startup $49/mo (1.25M), Scale $299/mo (8M). ~750 credits/min of audio.</td></tr><tr><td style="text-align:left"><strong>ElevenLabs</strong></td><td style="text-align:left">10,000 credits/mo ≈ <strong>10 min</strong> v2 (Flash is 0.5 credits/char → ~20 min); 2,500 char/generation cap</td><td style="text-align:left">—</td><td style="text-align:left"><a href="https://elevenlabs.io/pricing">elevenlabs.io/pricing</a></td></tr><tr><td style="text-align:left"><strong>Deepgram</strong></td><td style="text-align:left"><strong>$200 free credit</strong></td><td style="text-align:left">Aura-2 $0.030/1K chars</td><td style="text-align:left"><a href="https://deepgram.com/pricing">deepgram.com/pricing</a>. $200 is by far the largest free allowance here.</td></tr><tr><td style="text-align:left"><strong>Rime</strong></td><td style="text-align:left">10K chars/mo, 200+ voices</td><td style="text-align:left">$0.03/1K chars (Mist), $0.05 (Coda)</td><td style="text-align:left"><a href="https://www.rime.ai/pricing">rime.ai/pricing</a>. Mist v2 ~225 ms P50 on Together AI dedicated; sub-150 ms self-hosted.</td></tr><tr><td style="text-align:left"><strong>Groq (Orpheus)</strong></td><td style="text-align:left">10 RPM / 100 RPD</td><td style="text-align:left">$22/1M chars EN</td><td style="text-align:left">Preview status. Too tight to develop against.</td></tr><tr><td style="text-align:left"><strong>OpenAI</strong></td><td style="text-align:left">none</td><td style="text-align:left">tts-1 $15/1M chars</td><td style="text-align:left">Slowest in the Coval table.</td></tr></tbody></table></div>
+<p><strong>Recommendation: Cartesia free tier for development, Deepgram's $200 credit as your safety net.</strong> Cartesia Sonic is the best-known name with genuinely competitive latency and the free tier is enough for three days of iteration; if you burn it, Deepgram's $200 covers Aura-2 TTS <em>and</em> Nova-3/Flux STT on the same credit. Its 100 ms IQR is the one weakness — mention it in your write-up as a known tail-latency risk.</p>
+<hr />
+<h2 id="4-orchestration-frameworks"><span class="secnum">4</span><span class="htext">Orchestration frameworks</span></h2>
+<h3 id="the-open-source-two"><span class="htext">The open-source two</span></h3>
+<p><strong>Pipecat</strong> (Daily) — Python, composable pipeline, you assemble STT/LLM/TTS yourself. Transports include Daily WebRTC and <code>SmallWebRTCTransport</code> (no Daily account needed), plus WebSocket and telephony.</p>
+<p>Its killer feature for a take-home is <strong>built-in metrics</strong> (<a href="https://docs.pipecat.ai/pipecat/fundamentals/metrics">docs.pipecat.ai/pipecat/fundamentals/metrics</a>):</p>
+<div class="codewrap"><pre><code class="lang-python">worker = PipelineWorker(
+    pipeline,
+    params=PipelineParams(
+        enable_metrics=True,        # TTFB, TTFA, TTFAT, processing time
+        enable_usage_metrics=True,  # LLM tokens, TTS characters
+    ),
+)</code></pre></div>
+<p>That gives you <code>TTFBMetricsData</code> (time to first byte per service), <code>TTFA</code> (time to first audio, <em>including</em> TTS silence padding), <code>TTFAT</code> (time to first answer token from the LLM), processing time, and text-aggregation latency. Read them with the built-in <code>MetricsLogObserver</code> or your own observer on <code>MetricsFrame</code>. There is also OpenTelemetry tracing with Conversation / Turn / Service spans (<a href="https://signoz.io/docs/pipecat-monitoring/">SigNoz</a>, <a href="https://langfuse.com/integrations/frameworks/pipecat">Langfuse</a>). <strong>This is your demo HUD, for free.</strong></p>
+<p>Pipecat Cloud (managed): $0.01–$0.03/min for active agents (1×/2×/3× tiers), +$0.005/min SIP, +$0.018/min PSTN. <strong>Voice WebRTC transport is free for 1:1 human+agent sessions when using a Pipecat Cloud-provisioned Daily key, plus free Krisp minutes and the free Smart Turn model</strong> (<a href="https://www.daily.co/pricing/pipecat-cloud/">daily.co/pricing/pipecat-cloud</a>).</p>
+<p><strong>LiveKit Agents</strong> — Apache-2 SDK on top of the LiveKit WebRTC media server. Your agent joins a <em>room</em> as a participant, so reconnection, barge-in, multi-user, video and avatars come from the RTC layer rather than being bolted on. Native SIP and phone numbers, no Twilio bridge needed.</p>
+<p>LiveKit Cloud <strong>Build tier is free</strong>: 5,000 WebRTC participant minutes + <strong>1,000 AI agent minutes/month</strong>, 50 GB transfer, $2.50 inference credits, one free US local phone number. Ship is $50/mo, Scale $500/mo (<a href="https://livekit.com/pricing">livekit.com/pricing</a>).</p>
+<p><strong>Third-party end-to-end measurements:</strong> LiveKit Agents 750–900 ms, Pipecat-on-Daily 800–950 ms (<a href="https://www.forasoft.com/blog/article/pipecat-vs-livekit-agents">forasoft</a>). Treat this as noise — framework overhead is tens of milliseconds; your model stack sets the latency (<a href="https://www.dograh.com/feeds/blog/pipecat-livekit-agents">dograh</a>).</p>
+<p><strong>Choose Pipecat</strong> if the take-home is graded on the pipeline (provider swapping, latency instrumentation, showing your work). <strong>Choose LiveKit</strong> if it's graded on the product (robust reconnection, a polished browser client, multi-device). Setup cost for either is realistically <strong>half a day</strong> including a working browser client.</p>
+<h3 id="the-managed-three-closed-source"><span class="htext">The managed three (closed source)</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Platform</th><th style="text-align:left">Price</th><th style="text-align:left">Latency</th><th style="text-align:left">Free credit</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Vapi</strong></td><td style="text-align:left">$0.05/min platform fee + components; realistically $0.10–0.30/min all-in</td><td style="text-align:left">—</td><td style="text-align:left">~$10 trial, 60+ minutes</td></tr><tr><td style="text-align:left"><strong>Retell</strong></td><td style="text-align:left">$0.07+/min flat</td><td style="text-align:left"><strong>~600–620 ms</strong> out of the box, lowest among managed</td><td style="text-align:left">trial credit</td></tr><tr><td style="text-align:left"><strong>Bland</strong></td><td style="text-align:left">$0.07–0.12/min bundled</td><td style="text-align:left">—</td><td style="text-align:left">trial</td></tr></tbody></table></div>
+<p>Sources: <a href="https://www.retellai.com/blog/vapi-vs-bland">Retell's own comparison</a>, <a href="https://medium.com/@automation.labs/vapi-vs-retell-vs-bland-in-2026-the-true-cost-per-minute-578f38af3523">Automation Labs true-cost breakdown</a>, <a href="https://www.layer3labs.io/guides/vapi-pricing">Layer3Labs on Vapi</a>.</p>
+<p><strong>None of these is right for a take-home.</strong> They hide exactly the engineering the assignment is testing. Retell's ~600 ms is a useful <em>target line</em> to beat or match — cite it as your benchmark.</p>
+<h3 id="vad-and-turn-detection"><span class="htext">VAD and turn detection</span></h3>
+<p>This is where you win or lose the latency game.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Component</th><th style="text-align:left">What it is</th><th style="text-align:left">Cost / latency</th><th style="text-align:left">License</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Silero VAD</strong></td><td style="text-align:left">Acoustic speech/no-speech detector, the de-facto default</td><td style="text-align:left"><strong>&lt;1 ms per 30 ms chunk</strong> on one CPU thread; ONNX build runs 4–5× faster; ~2 MB JIT model; <strong>runs in-browser via WASM</strong></td><td style="text-align:left">MIT, <a href="https://github.com/snakers4/silero-vad">github</a></td></tr><tr><td style="text-align:left"><strong>Pipecat Smart Turn v3</strong></td><td style="text-align:left">Semantic end-of-turn, Whisper-tiny base + linear classifier, ~8M params, 23 languages</td><td style="text-align:left"><strong>12 ms CPU inference</strong> on a modern CPU, 60 ms on a cheap AWS instance; no GPU</td><td style="text-align:left"><strong>BSD-2</strong>, <a href="https://www.daily.co/blog/announcing-smart-turn-v3-with-cpu-inference-in-just-12ms/">announcement</a>, <a href="https://huggingface.co/pipecat-ai/smart-turn-v3">HF</a></td></tr><tr><td style="text-align:left"><strong>LiveKit turn-detector</strong></td><td style="text-align:left">Fine-tuned Qwen2.5-0.5B-Instruct predicting `&lt;\</td><td style="text-align:left">im_end\</td><td style="text-align:left">&gt;`, per-language thresholds</td><td style="text-align:left">Requires Silero VAD with <code>min_silence_duration ≥ 250 ms</code>; semantic layer adds ~100 ms</td><td style="text-align:left"><a href="https://docs.livekit.io/agents/logic/turns/turn-detector/">docs</a>, <a href="https://huggingface.co/livekit/turn-detector">HF</a></td></tr><tr><td style="text-align:left"><strong>Deepgram Flux</strong></td><td style="text-align:left">STT with end-of-turn <em>fused into the ASR model</em> — acoustic + semantic + conversational context</td><td style="text-align:left">Median EOT <strong>&lt;300 ms</strong> (~260 ms), p95 1.5 s; <strong>saves 200–600 ms vs STT+VAD</strong> pipelines; $0.0065/min EN, $0.0078/min multilingual</td><td style="text-align:left"><a href="https://deepgram.com/learn/introducing-flux-conversational-speech-recognition">Deepgram</a>, <a href="https://www.coval.ai/blog/best-speech-to-text-providers-in-2026-independent-benchmarks-and-how-to-choose/">Coval STT review Jun 2026</a></td></tr><tr><td style="text-align:left"><strong>Krisp VIVA</strong></td><td style="text-align:left">Voice isolation — strips background noise <em>and secondary voices</em> before STT; Turn Prediction v3 (~9M params, 30 MB) and Interruption Prediction v1</td><td style="text-align:left">CPU-only, no GPU; ~30% WER drop in noisy calls</td><td style="text-align:left">Commercial; <strong>free minutes included on Pipecat Cloud</strong>, <a href="https://docs.pipecat.ai/pipecat/features/krisp-viva">docs</a></td></tr></tbody></table></div>
+<p><strong>Practical stack:</strong> Silero VAD (cheap gate) + Smart Turn v3 (semantic commit) locally in your Pipecat process. Both free, both CPU, combined cost ~13 ms. If your STT budget allows the swap, Deepgram Flux collapses STT and endpointing into one call and is the single biggest latency win available — but it costs money and it's Deepgram-only, which undercuts the &quot;provider swappable&quot; story.</p>
+<hr />
+<h2 id="5-latency-budget"><span class="secnum">5</span><span class="htext">Latency budget</span></h2>
+<h3 id="what-good-means-in-2026"><span class="htext">What &quot;good&quot; means in 2026</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Bar</th><th style="text-align:left">Voice-to-voice</th></tr></thead><tbody><tr><td style="text-align:left">Feels genuinely human</td><td style="text-align:left">~300 ms</td></tr><tr><td style="text-align:left">Excellent</td><td style="text-align:left">&lt;500 ms</td></tr><tr><td style="text-align:left">Good / shippable</td><td style="text-align:left">600–800 ms p50</td></tr><tr><td style="text-align:left">Typical stitched multi-vendor stack</td><td style="text-align:left">600–1,700 ms</td></tr><tr><td style="text-align:left">Unacceptable</td><td style="text-align:left">&gt;1,200 ms p50</td></tr></tbody></table></div>
+<p>Measured production reality: across a fleet of deployments, <strong>median end-to-end response latency was 680 ms p50 and 1,180 ms p95</strong> (<a href="https://www.destilabs.com/blog/ai-voice-agent-benchmark-2026">DestiLabs 2026 benchmark, 10+ projects</a>). Managed platforms measured 600 ms (Retell, fastest) to 950–1,450 ms for typical configurations (<a href="https://telnyx.com/resources/voice-ai-agents-compared-latency">Telnyx</a>). Standard STT-LLM-TTS pipelines land at 800–1,500 ms; speech-to-speech models cut this to 400–800 ms (<a href="https://rayvoc.ai/blog/voice-ai-latency-guide/">Rayvoc</a>).</p>
+<h3 id="the-sub-500-ms-budget"><span class="htext">The sub-500 ms budget</span></h3>
+<p>From <a href="https://futureagi.com/blog/sub-500ms-voice-ai-guide-2026/">futureagi's sub-500ms guide (2026)</a>:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Stage</th><th style="text-align:left">Budget</th></tr></thead><tbody><tr><td style="text-align:left">Network (WebRTC transport)</td><td style="text-align:left">30–50 ms</td></tr><tr><td style="text-align:left">STT first partial</td><td style="text-align:left">100–150 ms</td></tr><tr><td style="text-align:left">LLM TTFT (with prefix caching)</td><td style="text-align:left">200–300 ms</td></tr><tr><td style="text-align:left">TTS first audio (streaming provider)</td><td style="text-align:left">80–150 ms</td></tr><tr><td style="text-align:left">Orchestration + inline guardrail</td><td style="text-align:left">50–100 ms</td></tr></tbody></table></div>
+<p>An aggressive variant (<a href="https://prodinit.com/blog/production-voice-ai-agents-latency-architecture">Prodinit</a>): streaming STT 60–100 ms (Deepgram Nova-3), LLM first token 100–180 ms, TTS first chunk 40–80 ms (Cartesia Sonic / ElevenLabs Flash), WebRTC transport 20–40 ms.</p>
+<p><strong>Note what is missing from both budgets: endpointing.</strong> Neither counts the silence you wait through before deciding the user stopped talking. If you run Silero VAD with its default 550 ms <code>min_silence_duration</code>, that 550 ms sits <em>on top</em> of everything above — more than the entire rest of the budget. This is the number to attack first, and the number to put on your demo HUD.</p>
+<h3 id="your-realistic-target-for-this-build"><span class="htext">Your realistic target for this build</span></h3>
+<p>With Groq Whisper turbo (batch, ~150–250 ms), Cerebras <code>gpt-oss-120b</code> (TTFT-dominated, generation ≈ free at 3,000 t/s), Cartesia Sonic (~190 ms TTFA p50), Smart Turn v3 (12 ms</p>
+<ul>
+<li>a ~250 ms trailing silence), and WebRTC (~40 ms):</li>
+</ul>
+<p><strong>~700–900 ms voice-to-voice p50 is an honest target.</strong> Claiming sub-500 ms on this stack would require Deepgram Flux and a co-located deployment. Being precise and honest about your measured number, with a waterfall showing where it goes, beats an unverified claim.</p>
+<hr />
+<h2 id="6-deployment-targets"><span class="secnum">6</span><span class="htext">Deployment targets</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Target</th><th style="text-align:left">WebSocket / WebRTC</th><th style="text-align:left">Free?</th><th style="text-align:left">Verdict for a voice agent</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Vercel</strong></td><td style="text-align:left">Native WS in <strong>public beta since 22 Jun 2026</strong> (RFC 6455 upgrade in Vercel Functions; ws, Socket.IO, FastAPI, Express, Hono, Nitro, Nuxt supported)</td><td style="text-align:left">Hobby free</td><td style="text-align:left">🚨 <strong>Will not work.</strong> The socket lives inside a Function and dies at the <strong>300 s max duration</strong>; clients must reconnect with backoff. Use Vercel for the Next.js frontend and the ephemeral-token minting route only. (<a href="https://ably.com/vercel/websockets-on-vercel">Ably</a>, <a href="https://community.vercel.com/t/does-vercel-support-websockets-now-that-we-have-fluid-compute/27205">Vercel community</a>)</td></tr><tr><td style="text-align:left"><strong>Fly.io</strong></td><td style="text-align:left">Excellent — connection-aware load balancing, global routing, built for long-lived connections</td><td style="text-align:left">❌ Free allowance removed for orgs created after <strong>Oct 2024</strong>; short trial then card-from-dollar-one</td><td style="text-align:left">✅ <strong>Best fit.</strong> Cheap (a few dollars for a take-home), Docker-native, <code>fly deploy</code> from a Dockerfile, regions you can pick to sit near your model providers. (<a href="https://www.budgetforge.dev/tools/fly-io-pricing-2026-2">budgetforge</a>)</td></tr><tr><td style="text-align:left"><strong>Railway</strong></td><td style="text-align:left">Fine</td><td style="text-align:left">❌ Free tier killed Aug 2023; $5 one-time trial credit; prepaid credits removed early 2026; Hobby $5/mo <em>including</em> $5 usage</td><td style="text-align:left">✅ Easiest DX of the three. $5 covers a take-home comfortably.</td></tr><tr><td style="text-align:left"><strong>Render</strong></td><td style="text-align:left">Fine</td><td style="text-align:left">✅ <strong>Only one with a permanent free tier</strong></td><td style="text-align:left">⚠️ Free services <strong>spin down after 15 min idle and take ~1 min to wake</strong>. Fatal for &quot;reviewer clicks the link and talks to it&quot; unless you keep it warm with a cron ping.</td></tr><tr><td style="text-align:left"><strong>Cloudflare Workers + Durable Objects</strong></td><td style="text-align:left"><code>@cloudflare/voice</code> on the Agents SDK: audio over the existing WebSocket into a continuous STT session, conversation history auto-persisted in the DO's <strong>SQLite</strong>, unified voice+text on one agent instance. RealtimeKit provides TURN + serverless SFU; raw WebRTC audio into Workers as PCM.</td><td style="text-align:left">Generous free tier</td><td style="text-align:left">⚠️ <strong>Architecturally gorgeous, but <code>@cloudflare/voice</code> is experimental/beta and moving fast.</strong> Durable Objects solve session persistence <em>and</em> memory in one primitive. High risk, high reward for 3 days. (<a href="https://developers.cloudflare.com/agents/api-reference/voice/">Cloudflare docs</a>, <a href="https://blog.cloudflare.com/voice-agents/">blog</a>)</td></tr><tr><td style="text-align:left"><strong>Modal</strong></td><td style="text-align:left">Out-of-the-box token streaming, <strong>WebRTC and WebSocket</strong> support; QuiLLMan voice-chat example ships with a React frontend</td><td style="text-align:left">✅ <strong>$30/month free compute credits</strong>, scale-to-zero, billed per second</td><td style="text-align:left">✅ <strong>Strong second choice</strong>, and the only free option with real compute. Python-native (matches Pipecat). Cold starts are the thing to watch. (<a href="https://modal.com/">Modal</a>, <a href="https://modal.com/docs/examples/llm-voice-chat">QuiLLMan</a>)</td></tr></tbody></table></div>
+<p><strong>Recommendation:</strong> Fly.io (~$3–5 for the project) or Modal ($30/mo free) for the agent process; Vercel for the Next.js frontend. Put the agent in a region close to your providers — <code>iad</code> if you're on Groq/Cerebras US endpoints.</p>
+<hr />
+<h2 id="7-memory-across-sessions"><span class="secnum">7</span><span class="htext">Memory across sessions</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Option</th><th style="text-align:left">Strength</th><th style="text-align:left">LongMemEval</th><th style="text-align:left">3-day verdict</th></tr></thead><tbody><tr><td style="text-align:left"><strong>mem0</strong></td><td style="text-align:left">Fastest integration — ~5 lines of Python; hosted free tier <em>or</em> self-host; hybrid vector + graph + KV; ~55k GitHub stars (May 2026)</td><td style="text-align:left">~49%</td><td style="text-align:left">✅ If you want a named library on your CV line</td></tr><tr><td style="text-align:left"><strong>Zep / Graphiti</strong></td><td style="text-align:left">Bi-temporal knowledge graph, async summarisation + entity extraction</td><td style="text-align:left"><strong>71.2%</strong></td><td style="text-align:left">⚠️ Best recall by a wide margin, but a whole server to run</td></tr><tr><td style="text-align:left"><strong>Letta</strong></td><td style="text-align:left">Agent-as-its-own-memory runtime, self-editing memory, sleep-time compute</td><td style="text-align:left">—</td><td style="text-align:left">❌ Biggest architectural commitment; rewrites your agent</td></tr><tr><td style="text-align:left"><strong>Structured extraction → Postgres/Supabase/SQLite</strong></td><td style="text-align:left">Zero new infra, total control, trivially explainable in a write-up</td><td style="text-align:left">—</td><td style="text-align:left">✅ <strong>Do this</strong></td></tr></tbody></table></div>
+<p>Sources: <a href="https://medium.com/@wasowski.jarek/i-compared-5-ai-agent-memory-systems-across-6-dimensions-none-wins-6a658335ed0a">Medium 6-dimension comparison</a>, <a href="https://www.developersdigest.tech/blog/best-ai-agent-memory-providers-2026">Developers Digest 2026</a>, <a href="https://particula.tech/blog/agent-memory-frameworks-tested-mem0-zep-letta-cognee-2026">particula.tech</a>.</p>
+<h3 id="the-3-day-pattern"><span class="htext">The 3-day pattern</span></h3>
+<ol>
+<li><strong>Read path (session start, off the critical path):</strong> load the user's fact rows into</li>
+<p>the system prompt as a short bulleted block. Cap it — 15–20 facts, ~300 tokens. On Groq's 8k TPM free tier this matters.</p>
+<li><strong>Write path (after each turn, <code>asyncio.create_task</code>, never awaited in the turn):</strong></li>
+<p>one cheap LLM call with a strict JSON tool schema — <code>{facts: [{key, value, confidence}]}</code> — over the last exchange. Upsert by <code>key</code> into <code>user_facts(user_id, key, value, updated_at)</code>.</p>
+<li><strong>Storage:</strong> Supabase Postgres (free tier, hosted, gives you auth for free) or plain</li>
+<p>SQLite if you're on Fly with a volume. If you go Cloudflare Durable Objects, the DO's built-in SQLite <em>is</em> your memory store and persists across reconnections and deploys automatically.</p>
+</ol>
+<aside class="callout critical" role="note"><p>⚠️ <strong>Never put memory writes in the turn's critical path</strong>, and never let memory grow the prompt unboundedly — as context grows, TTFT grows, and TTFT is your largest controllable latency component.</p></aside>
+<p>Demo moment worth engineering: end session, hard-refresh, start a new one, and the agent opens with something only the previous session could have told it. That one interaction is worth more than any latency number.</p>
+<hr />
+<h2 id="recommended-build"><span class="htext">Recommended build</span></h2>
+<div class="codewrap"><pre><code>Browser (Next.js on Vercel)
+  └─ WebRTC (SmallWebRTCTransport) ──► Pipecat agent on Fly.io / Modal
+                                          │
+        Silero VAD (&lt;1ms) + Smart Turn v3 (12ms CPU, BSD-2)
+                                          │
+        STT   Groq whisper-large-v3-turbo   (216×, free: 8 hrs audio/day)
+        LLM   Cerebras gpt-oss-120b         (~3000 t/s, free: 1M tokens/day)
+              └ fallback Groq gpt-oss-20b   (943 t/s, free: 1k RPD)
+        TTS   Cartesia Sonic                (~188ms TTFA p50, free: 20k credits)
+              └ fallback Deepgram Aura-2    ($200 free credit)
+                                          │
+        Memory  async structured extraction ──► Supabase Postgres
+        Metrics Pipecat enable_metrics=True ──► live latency HUD in the browser</code></pre></div>
+<p><strong>Day plan.</strong> Day 1: Pipecat voice loop working locally over <code>SmallWebRTCTransport</code>, all four providers wired, metrics printing to console. <em>Measure your own TTFT numbers</em> — the published ones disagree by 6×. Day 2: browser UI, latency HUD, barge-in, memory read/write, deploy to Fly. Day 3: tune endpointing (this is where your remaining latency is), add the Gemini Live speech-to-speech toggle as a second mode, write up the measured latency waterfall.</p>
+<p><strong>What to put in the write-up that most candidates won't:</strong> a p50/p95 table of your own measured per-stage latencies, the endpointing trade-off you chose and why, and the Artificial-Analysis-vs-vendor TTFT discrepancy you found and resolved by measuring.</p>
+  </main>
+</div>

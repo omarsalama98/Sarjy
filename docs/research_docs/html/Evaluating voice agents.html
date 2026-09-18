@@ -1,0 +1,357 @@
+<title>Document</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --ink:       #14171c;
+    --ink-2:     #474e5a;
+    --ink-3:     #767e8b;
+    --line:      #e2e5ea;
+    --line-2:    #eef0f4;
+    --accent:    #2d4a7c;
+    --accent-bg: #edf1f8;
+    --warn:      #a6421f;
+    --warn-bg:   #fbf0eb;
+    --code-bg:   #f0f2f6;
+    --shadow:    0 1px 2px rgba(20,23,28,.05), 0 8px 24px -12px rgba(20,23,28,.15);
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #101317;
+      --surface:   #171b21;
+      --ink:       #e7eaef;
+      --ink-2:     #a8b0bc;
+      --ink-3:     #7b838f;
+      --line:      #2a2f38;
+      --line-2:    #22262d;
+      --accent:    #8fb0e6;
+      --accent-bg: #1a2130;
+      --warn:      #e2916d;
+      --warn-bg:   #2a1d17;
+      --code-bg:   #1d222a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #101317;
+    --surface:   #171b21;
+    --ink:       #e7eaef;
+    --ink-2:     #a8b0bc;
+    --ink-3:     #7b838f;
+    --line:      #2a2f38;
+    --line-2:    #22262d;
+    --accent:    #8fb0e6;
+    --accent-bg: #1a2130;
+    --warn:      #e2916d;
+    --warn-bg:   #2a1d17;
+    --code-bg:   #1d222a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .5rem 2.25rem; margin: 0; }
+  dl.meta div { display: flex; flex-direction: column; gap: .1rem; }
+  dl.meta dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  dl.meta dd { margin: 0; font-size: .9rem; color: var(--ink-2); }
+
+  /* ---- toc ---- */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 3rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--ink-3);
+    margin: 0 0 .75rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: flex;
+    gap: .7rem;
+    font-size: .92rem;
+    border-radius: 2px;
+  }
+  .toc a:hover { color: var(--accent); }
+  .tocnum, .secnum {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: .8em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- headings ---- */
+  h2, h3, h4 { font-family: var(--serif); letter-spacing: -.01em; text-wrap: balance; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    font-weight: 600;
+    margin: 3.5rem 0 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .75rem;
+    align-items: baseline;
+  }
+  h3 { font-size: 1.14rem; font-weight: 600; margin: 2.25rem 0 .7rem; display: flex; gap: .6rem; align-items: baseline; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; color: var(--ink-2); }
+  h2 .secnum, h3 .secnum { flex: none; }
+
+  p { margin: 0 0 1.05rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line-2); margin: 2.5rem 0; }
+
+  ul, ol { margin: 0 0 1.15rem; padding-left: 1.35rem; max-width: 68ch; }
+  li { margin-bottom: .38rem; }
+  li::marker { color: var(--ink-3); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+  .codewrap { overflow-x: auto; margin: 0 0 1.4rem; }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 0;
+    min-width: min-content;
+  }
+  pre code { background: none; padding: 0; font-size: .845rem; line-height: 1.6; }
+
+  blockquote {
+    margin: 0 0 1.4rem;
+    padding: .1rem 0 .1rem 1.15rem;
+    border-left: 3px solid var(--line);
+    color: var(--ink-2);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+  }
+  .callout p { margin-bottom: .6rem; color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--warn); }
+
+  .tablewrap { overflow-x: auto; margin: 0 0 1.6rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  th, td { padding: .6rem .85rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <h1>Document</h1>
+    
+  </header>
+  <nav class="toc" aria-label="Contents"><p class="eyebrow">Contents</p><ol><li><a href="#asr-accuracy-metrics-wer-cer-and-their-weaknesses">ASR Accuracy Metrics: WER, CER, and Their Weaknesses</a></li><li><a href="#tts-quality-metrics-mos-cmos-intelligibility">TTS Quality Metrics: MOS, CMOS, Intelligibility</a></li><li><a href="#latency-metrics-inconsistent-ttfa-definitions">Latency Metrics: Inconsistent TTFA Definitions</a></li><li><a href="#end-to-end-conversational-quality-evaluation">End-to-End Conversational Quality Evaluation</a></li><li><a href="#key-papers-and-benchmarks">Key Papers and Benchmarks</a></li></ol></nav>
+  <main>
+<h2 id="asr-accuracy-metrics-wer-cer-and-their-weaknesses"><span class="htext">ASR Accuracy Metrics: WER, CER, and Their Weaknesses</span></h2>
+<h3 id="word-error-rate-wer-and-character-error-rate-cer"><span class="htext">Word Error Rate (WER) and Character Error Rate (CER)</span></h3>
+<p><strong>WER</strong> is the standard ASR metric, defined as: <a href="https://deepgram.com/learn/why-wer-fails-indian-languages-bridge-7-metric-framework">deepgram</a></p>
+<p>\[ \text{WER} = \frac{S + D + I}{N} \]</p>
+<p>where \(S\) = substitutions, \(D\) = deletions, \(I\) = insertions, and \(N\) = total words in reference. WER is computed via minimum edit distance (Levenshtein alignment) between hypothesis and reference transcripts. <a href="https://deepgram.com/learn/why-wer-fails-indian-languages-bridge-7-metric-framework">deepgram</a></p>
+<p><strong>CER</strong> (Character Error Rate) is the character-level analogue, used for languages without clear word boundaries (Chinese, Japanese) or agglutinative languages (Tamil, Turkish). <a href="https://deepgram.com/learn/why-wer-fails-indian-languages-bridge-7-metric-framework">deepgram</a></p>
+<h3 id="why-wer-penalizes-semantically-correct-variants"><span class="htext">Why WER Penalizes Semantically-Correct Variants</span></h3>
+<p>WER has <strong>three fundamental weaknesses</strong> that inflate error scores on semantically correct transcriptions: <a href="https://deepgram.com/learn/why-wer-fails-indian-languages-bridge-7-metric-framework">deepgram</a></p>
+<ol>
+<li><strong>Orthographic variation</strong>: Different valid spellings of the same word are counted as substitutions. Example: &quot;colour&quot; vs. &quot;color&quot;, &quot;ibuprofen&quot; vs. &quot;إيبوبروفين&quot; (Arabic transliteration) <a href="https://deepgram.com/learn/why-wer-fails-indian-languages-bridge-7-metric-framework">deepgram</a></li>
+</ol>
+<ol>
+<li><strong>Morphological agglutination</strong>: In agglutinative languages (Tamil, Malayalam, Turkish), a single spoken utterance can be validly written with different morpheme boundaries. WER counts different segmentations as full word errors. <a href="https://deepgram.com/learn/why-wer-fails-indian-languages-bridge-7-metric-framework">deepgram</a></li>
+</ol>
+<ol>
+<li><strong>Code-switching script variance</strong>: In Arabic–English or Persian–English code-switching, English loanwords may appear in Latin script or transliterated into Arabic/Persian script. Both are correct, but WER treats them as completely different tokens. <a href="https://deepgram.com/learn/why-wer-fails-indian-languages-bridge-7-metric-framework">deepgram</a></li>
+</ol>
+<p><strong>Empirical evidence</strong>: A 2026 benchmark on Arabic–Persian code-switching found Kendall's τ correlation of only 0.40 between WER and BERTScore for Persian–English (vs. 0.80 for German–English), indicating WER unfairly penalizes semantically equivalent transliterations. <a href="https://www.themoonlight.io/en/review/benchmarking-commercial-asr-systems-on-code-switching-speech-arabic-persian-and-german">themoonlight</a></p>
+<h3 id="wer-behavior-on-code-switched-speech"><span class="htext">WER Behavior on Code-Switched Speech</span></h3>
+<p>Code-switching (CS) exacerbates WER's weaknesses: <a href="https://deepgram.com/learn/why-wer-fails-indian-languages-bridge-7-metric-framework">deepgram</a></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Issue</th><th style="text-align:left">Example</th><th style="text-align:left">WER Penalty</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Script variance</strong></td><td style="text-align:left">&quot;feature&quot; vs. &quot;فیچر&quot; (Persian transliteration)</td><td style="text-align:left">Full substitution (1.0 WER) despite semantic equivalence  <a href="https://www.themoonlight.io/en/review/benchmarking-commercial-asr-systems-on-code-switching-speech-arabic-persian-and-german">themoonlight</a></td></tr><tr><td style="text-align:left"><strong>Morphological blending</strong></td><td style="text-align:left">Arabic prefix &quot;الـ&quot; + English word (&quot;الـfeature&quot;)</td><td style="text-align:left">Counted as insertion + substitution  <a href="https://www.themoonlight.io/en/review/benchmarking-commercial-asr-systems-on-code-switching-speech-arabic-persian-and-german">themoonlight</a></td></tr><tr><td style="text-align:left"><strong>Token alternation</strong></td><td style="text-align:left">&quot;I need to book a flight *بكره*&quot; (Arabic &quot;tomorrow&quot;)</td><td style="text-align:left">WER assumes single language; penalizes script switches  <a href="https://deepgram.com/learn/why-wer-fails-indian-languages-bridge-7-metric-framework">deepgram</a></td></tr></tbody></table></div>
+<p><strong>Alternative metrics for CS</strong>: <a href="https://deepgram.com/learn/why-wer-fails-indian-languages-bridge-7-metric-framework">deepgram</a></p>
+<ul>
+<li><strong>BERTScore</strong>: Token-level cosine similarity in multilingual embedding space (mBERT, XLM-R). Captures semantic equivalence across scripts. <a href="https://www.themoonlight.io/en/review/benchmarking-commercial-asr-systems-on-code-switching-speech-arabic-persian-and-german">themoonlight</a></li>
+<li><strong>Mixed Error Rate (MER)</strong>: Combines WER for word-based segments and CER for character-based segments within one transcription <a href="https://deepgram.com/learn/why-wer-fails-indian-languages-bridge-7-metric-framework">deepgram</a></li>
+<li><strong>Script-Aware Error Rate (SAER)</strong>: Explicitly penalizes script-switching errors <a href="https://deepgram.com/learn/why-wer-fails-indian-languages-bridge-7-metric-framework">deepgram</a></li>
+<li><strong>Switch Entry Token Error Rate (SETER)</strong>: Measures error rate specifically at code-switch boundaries <a href="https://arxivtldr.org/abs/2609.11786">arxivtldr</a></li>
+</ul>
+<p><strong>BRIDGE framework</strong> (Deepgram, 2026): Composite 7-metric evaluation for Indic ASR: <a href="https://deepgram.com/learn/why-wer-fails-indian-languages-bridge-7-metric-framework">deepgram</a></p>
+<ul>
+<li><strong>B</strong>: BERTScore (semantic similarity)</li>
+<li><strong>R</strong>: Entity F1 (named entity accuracy)</li>
+<li><strong>I</strong>: Word Information Lost (WIL, normalized complement to WER)</li>
+<li><strong>D</strong>: Domain-weighted accuracy (AWWER for agricultural/medical terms)</li>
+<li><strong>G</strong>: Grapheme-level error rate (CER)</li>
+<li><strong>E</strong>: Error segmentation (SER + MER/SAER for code-switching)</li>
+</ul>
+<h3 id="typical-wer-benchmarks"><span class="htext">Typical WER Benchmarks</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">System</th><th style="text-align:left">Monolingual WER</th><th style="text-align:left">Code-Switched WER</th><th style="text-align:left">Notes</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Whisper Large v3</strong></td><td style="text-align:left">3–6% (LibriSpeech)</td><td style="text-align:left">15–25% (Arabic–English)  <a href="https://www.themoonlight.io/en/review/benchmarking-commercial-asr-systems-on-code-switching-speech-arabic-persian-and-german">themoonlight</a></td><td style="text-align:left">Non-streaming; struggles with CS</td></tr><tr><td style="text-align:left"><strong>ElevenLabs Scribe v2</strong></td><td style="text-align:left">5–8% (conversational)</td><td style="text-align:left">13.2% (CS average)  <a href="https://www.themoonlight.io/en/review/benchmarking-commercial-asr-systems-on-code-switching-speech-arabic-persian-and-german">themoonlight</a></td><td style="text-align:left">Best on Arabic pairs; BERTScore 0.936</td></tr><tr><td style="text-align:left"><strong>Google Chirp 3</strong></td><td style="text-align:left">6–10% (conversational)</td><td style="text-align:left">18–22% (CS average)  <a href="https://www.themoonlight.io/en/review/benchmarking-commercial-asr-systems-on-code-switching-speech-arabic-persian-and-german">themoonlight</a></td><td style="text-align:left">Language-agnostic end-to-end</td></tr><tr><td style="text-align:left"><strong>Deepgram Nova-3</strong></td><td style="text-align:left">4–7% (English)</td><td style="text-align:left">N/A (no Arabic/Persian support)  <a href="https://www.themoonlight.io/en/review/benchmarking-commercial-asr-systems-on-code-switching-speech-arabic-persian-and-german">themoonlight</a></td><td style="text-align:left">Native CS for Latin-script pairs</td></tr></tbody></table></div>
+<h2 id="tts-quality-metrics-mos-cmos-intelligibility"><span class="htext">TTS Quality Metrics: MOS, CMOS, Intelligibility</span></h2>
+<h3 id="mean-opinion-score-mos"><span class="htext">Mean Opinion Score (MOS)</span></h3>
+<p><strong>MOS</strong> is the gold standard for TTS quality, asking human raters to score naturalness on a 1–5 scale: <a href="https://www.linkedin.com/posts/prakruthi-b-gowda-b3aaa9160_speechai-tts-evaluation-activity-7475554934013313024-0Y7k">linkedin</a></p>
+<p>\[ \text{MOS} = \frac{1}{N} \sum_{i=1}^{N} r_i \]</p>
+<p>where \(N\) = number of listeners, \(r_i\) = rating from listener \(i\). <a href="https://convozen.ai/research/article/benchmarking-conversational-tts">convozen</a></p>
+<p><strong>Limitations</strong>: <a href="https://arxiv.org/abs/2608.09930">arxiv</a></p>
+<ul>
+<li><strong>Expensive</strong>: Requires 20–50 trained raters per condition; not scalable for iterative development</li>
+<li><strong>Subjective</strong>: Inter-rater variance can be ±0.5 MOS points</li>
+<li><strong>Saturation</strong>: At MOS &gt; 4.5, neural MOS predictors cannot reliably differentiate frontier models <a href="https://www.linkedin.com/posts/prakruthi-b-gowda-b3aaa9160_speechai-tts-evaluation-activity-7475554934013313024-0Y7k">linkedin</a></li>
+</ul>
+<h3 id="cmos-comparative-mos-and-ab-tests"><span class="htext">CMOS (Comparative MOS) and AB Tests</span></h3>
+<p><strong>CMOS</strong> (Comparative MOS) uses pairwise comparison (System A vs. System B) rather than absolute scoring, reducing rater bias. Results are reported as preference percentages (e.g., &quot;System A preferred 62% of the time&quot;). <a href="https://convozen.ai/research/article/benchmarking-conversational-tts">convozen</a></p>
+<h3 id="intelligibility-metrics"><span class="htext">Intelligibility Metrics</span></h3>
+<p><strong>Intelligibility</strong> measures whether synthesized speech is understandable, distinct from naturalness. Key metrics: <a href="https://www.linkedin.com/posts/prakruthi-b-gowda-b3aaa9160_speechai-tts-evaluation-activity-7475554934013313024-0Y7k">linkedin</a></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Metric</th><th style="text-align:left">Description</th><th style="text-align:left">Target</th></tr></thead><tbody><tr><td style="text-align:left"><strong>WER (ASR-based)</strong></td><td style="text-align:left">Run TTS output through ASR; compare transcript to original text</td><td style="text-align:left">WER &lt; 5% for production  <a href="https://www.linkedin.com/posts/prakruthi-b-gowda-b3aaa9160_speechai-tts-evaluation-activity-7475554934013313024-0Y7k">linkedin</a></td></tr><tr><td style="text-align:left"><strong>CER</strong></td><td style="text-align:left">Character-level intelligibility (for Chinese, Japanese)</td><td style="text-align:left">CER &lt; 3%  <a href="https://www.linkedin.com/posts/prakruthi-b-gowda-b3aaa9160_speechai-tts-evaluation-activity-7475554934013313024-0Y7k">linkedin</a></td></tr><tr><td style="text-align:left"><strong>STOI</strong> (Short-Time Objective Intelligibility)</td><td style="text-align:left">Signal-processing metric predicting speech intelligibility</td><td style="text-align:left">STOI &gt; 0.85  <a href="https://git-lium.univ-lemans.fr/jsalt2025/wp1/tts4all_eval/-/tree/main/src?ref_type=heads">git-lium.univ-lemans</a></td></tr><tr><td style="text-align:left"><strong>UTMOSv2</strong></td><td style="text-align:left">Neural MOS predictor (Pearson correlation 0.84+ with human MOS)</td><td style="text-align:left">UTMOS &gt; 4.0 for production  <a href="https://www.linkedin.com/posts/prakruthi-b-gowda-b3aaa9160_speechai-tts-evaluation-activity-7475554934013313024-0Y7k">linkedin</a></td></tr></tbody></table></div>
+<h3 id="speaker-similarity-and-prosody"><span class="htext">Speaker Similarity and Prosody</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Metric</th><th style="text-align:left">Description</th><th style="text-align:left">Target</th></tr></thead><tbody><tr><td style="text-align:left"><strong>SIM-o</strong> (Speaker Similarity)</td><td style="text-align:left">Cosine similarity of speaker embeddings (WavLM, ECAPA) from reference vs. synthesized audio</td><td style="text-align:left">SIM-o &gt; 0.85 for voice cloning  <a href="https://www.linkedin.com/posts/prakruthi-b-gowda-b3aaa9160_speechai-tts-evaluation-activity-7475554934013313024-0Y7k">linkedin</a></td></tr><tr><td style="text-align:left"><strong>f0 variation</strong></td><td style="text-align:left">Expressivity score based on pitch contour variation</td><td style="text-align:left">f0 contour matches reference  <a href="https://git-lium.univ-lemans.fr/jsalt2025/wp1/tts4all_eval/-/tree/main/src?ref_type=heads">git-lium.univ-lemans</a></td></tr><tr><td style="text-align:left"><strong>MCD</strong> (Mel Cepstral Distortion)</td><td style="text-align:left">Euclidean distance between MFCCs of synthesized vs. reference audio</td><td style="text-align:left">MCD &lt; 5 dB  <a href="https://mbrenndoerfer.com/writing/text-to-speech-neural-architectures-acoustic-modeling">mbrenndoerfer</a></td></tr></tbody></table></div>
+<h3 id="automated-tts-evaluators-and-their-weaknesses"><span class="htext">Automated TTS Evaluators and Their Weaknesses</span></h3>
+<p>A 2026 study benchmarked <strong>four MOS predictors</strong> (UTMOSv2, DNSMOS, NISQA, TTSQA) and <strong>four Audio-LLM judges</strong> (Qwen-Audio, Llama-3-Audio, etc.) on 860 linguistically annotated utterances. <a href="https://arxiv.org/abs/2608.09930">arxiv</a></p>
+<p><strong>Key findings</strong>: <a href="https://arxiv.org/abs/2608.09930">arxiv</a></p>
+<ul>
+<li><strong>MOS predictors collapse onto acoustic signal quality</strong>: They detect noise, distortion, and artifacts but miss linguistically structured errors (mispronunciation, wrong stress, unnatural prosody)</li>
+<li><strong>Audio-LLM judges show selective, prompt-dependent detection</strong>: They can detect specific error types (e.g., &quot;check for mispronounced words&quot;) but do not generalize across all 10 perceptual dimensions</li>
+<li><strong>Neither class reliably captures breadth of errors</strong>: Automated evaluators miss ~40% of linguist-annotated errors, particularly prosodic and morphological mistakes</li>
+</ul>
+<p><strong>Recommendation</strong>: Use automated MOS predictors for rapid iteration, but validate with human MOS for production releases. <a href="https://arxiv.org/abs/2608.09930">arxiv</a></p>
+<h2 id="latency-metrics-inconsistent-ttfa-definitions"><span class="htext">Latency Metrics: Inconsistent TTFA Definitions</span></h2>
+<h3 id="time-to-first-audio-ttfa-definition-variance"><span class="htext">Time-to-First-Audio (TTFA) Definition Variance</span></h3>
+<p><strong>TTFA</strong> (Time-to-First-Audio) measures latency from TTS request submission to first audio sample arrival. However, vendors define TTFA inconsistently: <a href="https://www.bland.ai/blog/low-latency-tts-api">bland</a></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Vendor</th><th style="text-align:left">Clock Start</th><th style="text-align:left">Clock Stop</th><th style="text-align:left">Notes</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Coval</strong></td><td style="text-align:left">Synthesis start (after connection established)</td><td style="text-align:left">First audio chunk arrival + leading silence inside stream</td><td style="text-align:left">TTFA = (first audio chunk arrival - synthesis start) + leading silence  <a href="https://gradium.ai/content/tts-latency-benchmark-2026">gradium</a></td></tr><tr><td style="text-align:left"><strong>Bland AI</strong></td><td style="text-align:left">After connection established, on warm server, with short input sentence</td><td style="text-align:left">First byte of audio (not first intelligible word)</td><td style="text-align:left">Vendors control where clock starts/stops; end-to-end window longer than isolated TTFA  <a href="https://www.bland.ai/blog/low-latency-tts-api">bland</a></td></tr><tr><td style="text-align:left"><strong>ElevenLabs</strong></td><td style="text-align:left">Text submission to API</td><td style="text-align:left">First audio byte received</td><td style="text-align:left">Does not include network handshake or LLM inference</td></tr><tr><td style="text-align:left"><strong>Gradium</strong></td><td style="text-align:left">LLM generates first token</td><td style="text-align:left">First audible sample (excluding leading silence)</td><td style="text-align:left">Median TTFA 214 ms (Sept 2026)  <a href="https://gradium.ai/content/tts-latency-benchmark-2026">gradium</a></td></tr></tbody></table></div>
+<p><strong>Why inconsistency matters</strong>: A vendor reporting 100 ms TTFA (warm connection, short sentence) may actually deliver 400 ms end-to-end in production (cold start, long sentence, network latency). <a href="https://www.bland.ai/blog/low-latency-tts-api">bland</a></p>
+<h3 id="end-to-end-latency-budget"><span class="htext">End-to-End Latency Budget</span></h3>
+<p>Production voice agents must account for <strong>full pipeline latency</strong>, not just TTS TTFA: <a href="https://www.bland.ai/blog/low-latency-tts-api">bland</a></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Stage</th><th style="text-align:left">Typical Latency (P50)</th><th style="text-align:left">Notes</th></tr></thead><tbody><tr><td style="text-align:left">VAD end-of-speech detection</td><td style="text-align:left">20–100 ms</td><td style="text-align:left">Semantic VAD reduces false endpoints</td></tr><tr><td style="text-align:left">ASR streaming first partial</td><td style="text-align:left">100–300 ms</td><td style="text-align:left">Streaming; final transcript adds 50–100 ms</td></tr><tr><td style="text-align:left">LLM time-to-first-token (TTFT)</td><td style="text-align:left">200–600 ms</td><td style="text-align:left">Dominates pipeline; depends on model size</td></tr><tr><td style="text-align:left">TTS time-to-first-audio (TTFA)</td><td style="text-align:left">75–300 ms</td><td style="text-align:left">Modern APIs (e.g., Realtime TTS-2 Flash) achieve &lt;100 ms P99</td></tr><tr><td style="text-align:left">Network + orchestration</td><td style="text-align:left">50–200 ms</td><td style="text-align:left">WebRTC &lt;50 ms; PSTN 150–700 ms</td></tr><tr><td style="text-align:left"><strong>Total TTFA</strong></td><td style="text-align:left"><strong>600–1,200 ms</strong></td><td style="text-align:left">Sub-500 ms achievable with aggressive streaming</td></tr></tbody></table></div>
+<h3 id="recommended-latency-metrics"><span class="htext">Recommended Latency Metrics</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Metric</th><th style="text-align:left">Definition</th><th style="text-align:left">Target</th></tr></thead><tbody><tr><td style="text-align:left"><strong>TTFA (isolated)</strong></td><td style="text-align:left">TTS request → first audio byte</td><td style="text-align:left">&lt;150 ms (warm)</td></tr><tr><td style="text-align:left"><strong>End-to-end TTFA</strong></td><td style="text-align:left">User stops speaking → agent starts speaking</td><td style="text-align:left">&lt;500 ms (P50), &lt;1,000 ms (P95)  <a href="https://www.softwareseni.com/voice-agent-latency-solved-enough-for-production-benchmarks-and-architecture-tradeoffs/">softwareseni</a></td></tr><tr><td style="text-align:left"><strong>RTF (Real-Time Factor)</strong></td><td style="text-align:left">Inference time / audio duration</td><td style="text-align:left">RTF &lt; 1.0 (faster than real-time)  <a href="https://www.linkedin.com/posts/prakruthi-b-gowda-b3aaa9160_speechai-tts-evaluation-activity-7475554934013313024-0Y7k">linkedin</a></td></tr><tr><td style="text-align:left"><strong>Turn gap</strong></td><td style="text-align:left">User utterance end → agent utterance start</td><td style="text-align:left">160–230 ms (human parity)</td></tr></tbody></table></div>
+<h2 id="end-to-end-conversational-quality-evaluation"><span class="htext">End-to-End Conversational Quality Evaluation</span></h2>
+<h3 id="llm-as-judge-approaches"><span class="htext">LLM-as-Judge Approaches</span></h3>
+<p><strong>LLM-as-judge</strong> uses large language models to evaluate voice agent conversations holistically, scoring dimensions like helpfulness, naturalness, and task completion. <a href="https://arxiv.org/abs/2608.09930">arxiv</a></p>
+<p><strong>Typical setup</strong>: <a href="https://arxiv.org/abs/2608.09930">arxiv</a></p>
+<ol>
+<li>Record full conversation (user audio + agent audio + transcripts)</li>
+<li>Prompt LLM (e.g., GPT-4o, Claude) with conversation transcript + evaluation rubric</li>
+<li>LLM scores each dimension on 1–5 scale with justification</li>
+</ol>
+<p><strong>Advantages</strong>: <a href="https://arxiv.org/abs/2608.09930">arxiv</a></p>
+<ul>
+<li><strong>Scalable</strong>: No human raters needed; can evaluate thousands of conversations</li>
+<li><strong>Multi-dimensional</strong>: Can score helpfulness, naturalness, empathy, task completion simultaneously</li>
+<li><strong>Explainable</strong>: LLM provides rationale for each score</li>
+</ul>
+<p><strong>Weaknesses</strong>: <a href="https://arxiv.org/abs/2608.09930">arxiv</a></p>
+<ul>
+<li><strong>Prompt-dependent</strong>: Scores vary significantly based on prompt wording and few-shot examples</li>
+<li><strong>Bias toward verbosity</strong>: LLMs prefer longer, more detailed responses, penalizing concise agents</li>
+<li><strong>Cannot perceive audio quality</strong>: LLM judges text transcripts only; misses prosody, emotion, and acoustic artifacts</li>
+</ul>
+<h3 id="full-duplex-bench-and-turn-taking-metrics"><span class="htext">Full-Duplex-Bench and Turn-Taking Metrics</span></h3>
+<p><strong>Full-Duplex-Bench v1.5</strong> (NTU + UW + Berkeley + CMU, 2026) is an automated benchmark for overlap handling in full-duplex voice agents.</p>
+<p><strong>Metrics</strong>:</p>
+<ul>
+<li><strong>Stop latency</strong>: Time from user interruption onset to agent stopping speech</li>
+<li><strong>Response appropriateness</strong>: Whether agent correctly identifies overlap type (backchannel, barge-in, background speech)</li>
+<li><strong>Context recovery</strong>: Whether agent resumes conversation coherently after interruption</li>
+</ul>
+<p><strong>Turn-Taking metrics</strong> (Gradium, 2026):</p>
+<ul>
+<li><strong>Interruption rate</strong>: % of user utterances where agent interrupts mid-sentence</li>
+<li><strong>Backchannel detection accuracy</strong>: % of backchannels correctly identified (not triggering turn end)</li>
+<li><strong>Turn gap distribution</strong>: Histogram of user-end → agent-start intervals (target: 160–230 ms)</li>
+</ul>
+<h3 id="why-voice-agent-evaluation-is-harder-than-text-agent-evaluat"><span class="htext">Why Voice Agent Evaluation Is Harder Than Text Agent Evaluation</span></h3>
+<p>Voice agent evaluation is fundamentally more complex than text agent evaluation due to <strong>four additional dimensions</strong>: <a href="https://arxiv.org/abs/2608.09930">arxiv</a></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Dimension</th><th style="text-align:left">Text Agent</th><th style="text-align:left">Voice Agent</th><th style="text-align:left">Why Harder</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Timing</strong></td><td style="text-align:left">Irrelevant (asynchronous)</td><td style="text-align:left">Critical (latency, turn gap)</td><td style="text-align:left">Must measure P50/P95 latency across regions; human parity requires 160–230 ms turn gaps</td></tr><tr><td style="text-align:left"><strong>Audio quality</strong></td><td style="text-align:left">N/A</td><td style="text-align:left">MOS, intelligibility, speaker similarity</td><td style="text-align:left">Requires human raters or neural MOS predictors; automated evaluators miss 40% of errors  <a href="https://arxiv.org/abs/2608.09930">arxiv</a></td></tr><tr><td style="text-align:left"><strong>Multi-modal signals</strong></td><td style="text-align:left">Text only</td><td style="text-align:left">Audio + text + timing + prosody</td><td style="text-align:left">Must evaluate backchannels, interruptions, emotion; LLM-as-judge cannot perceive audio  <a href="https://arxiv.org/abs/2608.09930">arxiv</a></td></tr><tr><td style="text-align:left"><strong>Subjective quality</strong></td><td style="text-align:left">Helpfulness, correctness</td><td style="text-align:left">Helpfulness + naturalness + empathy + prosody</td><td style="text-align:left">MOS saturation at 4.5; requires fine-grained linguistic annotation (10 dimensions)  <a href="https://arxiv.org/abs/2608.09930">arxiv</a></td></tr></tbody></table></div>
+<p><strong>Additional challenges</strong>: <a href="https://deepgram.com/learn/why-wer-fails-indian-languages-bridge-7-metric-framework">deepgram</a></p>
+<ul>
+<li><strong>Code-switching</strong>: WER unfairly penalizes semantically correct transliterations; requires BERTScore + MER/SAER <a href="https://www.themoonlight.io/en/review/benchmarking-commercial-asr-systems-on-code-switching-speech-arabic-persian-and-german">themoonlight</a></li>
+<li><strong>Dialect variation</strong>: Same language (e.g., Arabic) has 30+ dialects; WER varies 10–20% across dialects <a href="https://www.themoonlight.io/en/review/benchmarking-commercial-asr-systems-on-code-switching-speech-arabic-persian-and-german">themoonlight</a></li>
+<li><strong>Domain terminology</strong>: Headline WER can hide 2× higher error rates on domain-critical terms (medical, agricultural) <a href="https://deepgram.com/learn/why-wer-fails-indian-languages-bridge-7-metric-framework">deepgram</a></li>
+</ul>
+<h2 id="key-papers-and-benchmarks"><span class="htext">Key Papers and Benchmarks</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Paper / Benchmark</th><th style="text-align:left">Year</th><th style="text-align:left">Contribution</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Beyond Naturalness</strong> (Bamgbose et al., arXiv:2608.09930)</td><td style="text-align:left">2026</td><td style="text-align:left">Deconstructs TTS naturalness into 10 linguistic dimensions; benchmarks MOS predictors and Audio-LLM judges  <a href="https://arxiv.org/abs/2608.09930">arxiv</a></td></tr><tr><td style="text-align:left"><strong>Benchmarking Commercial ASR on Code-Switching</strong> (Moonlight, 2026)</td><td style="text-align:left">2026</td><td style="text-align:left">1,200 CS utterances (Arabic–English, Persian–English, German–English); argues for BERTScore over WER  <a href="https://www.themoonlight.io/en/review/benchmarking-commercial-asr-systems-on-code-switching-speech-arabic-persian-and-german">themoonlight</a></td></tr><tr><td style="text-align:left"><strong>Why WER Fails Indian Languages</strong> (Deepgram, 2026)</td><td style="text-align:left">2026</td><td style="text-align:left">BRIDGE 7-metric framework for Indic ASR (BERTScore, Entity F1, WIL, AWWER, CER, SER, MER/SAER)  <a href="https://deepgram.com/learn/why-wer-fails-indian-languages-bridge-7-metric-framework">deepgram</a></td></tr><tr><td style="text-align:left"><strong>Full-Duplex-Bench v1.5</strong> (Lin et al., ICASSP 2026)</td><td style="text-align:left">2026</td><td style="text-align:left">Automated benchmark for overlap handling; decomposes interruptions, backchannels, background speech</td></tr><tr><td style="text-align:left"><strong>Beyond Word Error Rate</strong> (arXiv:2609.11786)</td><td style="text-align:left">2026</td><td style="text-align:left">Evaluates ASR on English–Yoruba CS; proposes switch-localized diagnostics (SETER, windowed switch point error)  <a href="https://arxivtldr.org/abs/2609.11786">arxivtldr</a></td></tr><tr><td style="text-align:left"><strong>TTS MOS Playbook</strong> (DupDub, 2025)</td><td style="text-align:left">2025</td><td style="text-align:left">Comprehensive guide to TTS evaluation (WER/CER, UTMOSv2, SIM-o, RTF)  <a href="https://www.linkedin.com/posts/prakruthi-b-gowda-b3aaa9160_speechai-tts-evaluation-activity-7475554934013313024-0Y7k">linkedin</a></td></tr></tbody></table></div>
+<p><strong>Recommended evaluation stack for production voice agents (2026)</strong>: <a href="https://deepgram.com/learn/why-wer-fails-indian-languages-bridge-7-metric-framework">deepgram</a></p>
+<ul>
+<li><strong>ASR</strong>: WER + CER + BERTScore + Entity F1 (for code-switching: MER/SAER)</li>
+<li><strong>TTS</strong>: UTMOSv2 (naturalness) + WER/CER (intelligibility) + SIM-o (speaker similarity)</li>
+<li><strong>Latency</strong>: End-to-end TTFA (P50/P95) + turn gap distribution</li>
+<li><strong>Conversational quality</strong>: LLM-as-judge (helpfulness, task completion) + Full-Duplex-Bench (overlap handling)</li>
+</ul>
+<p>Voice agent evaluation requires <strong>multi-metric, multi-dimensional</strong> approaches that capture both surface accuracy (WER, MOS) and deeper qualities (semantic fidelity, naturalness, turn-taking timing). Single-number metrics are insufficient for production deployments. <a href="https://arxiv.org/abs/2608.09930">arxiv</a></p>
+  </main>
+</div>

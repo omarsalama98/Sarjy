@@ -1,0 +1,497 @@
+<title>Arabic &amp; Bilingual Voice — Feasibility for a 3-Day Clinical Copilot</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --ink:       #14171c;
+    --ink-2:     #474e5a;
+    --ink-3:     #767e8b;
+    --line:      #e2e5ea;
+    --line-2:    #eef0f4;
+    --accent:    #2d4a7c;
+    --accent-bg: #edf1f8;
+    --warn:      #a6421f;
+    --warn-bg:   #fbf0eb;
+    --code-bg:   #f0f2f6;
+    --shadow:    0 1px 2px rgba(20,23,28,.05), 0 8px 24px -12px rgba(20,23,28,.15);
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #101317;
+      --surface:   #171b21;
+      --ink:       #e7eaef;
+      --ink-2:     #a8b0bc;
+      --ink-3:     #7b838f;
+      --line:      #2a2f38;
+      --line-2:    #22262d;
+      --accent:    #8fb0e6;
+      --accent-bg: #1a2130;
+      --warn:      #e2916d;
+      --warn-bg:   #2a1d17;
+      --code-bg:   #1d222a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #101317;
+    --surface:   #171b21;
+    --ink:       #e7eaef;
+    --ink-2:     #a8b0bc;
+    --ink-3:     #7b838f;
+    --line:      #2a2f38;
+    --line-2:    #22262d;
+    --accent:    #8fb0e6;
+    --accent-bg: #1a2130;
+    --warn:      #e2916d;
+    --warn-bg:   #2a1d17;
+    --code-bg:   #1d222a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .5rem 2.25rem; margin: 0; }
+  dl.meta div { display: flex; flex-direction: column; gap: .1rem; }
+  dl.meta dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  dl.meta dd { margin: 0; font-size: .9rem; color: var(--ink-2); }
+
+  /* ---- toc ---- */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 3rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--ink-3);
+    margin: 0 0 .75rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: flex;
+    gap: .7rem;
+    font-size: .92rem;
+    border-radius: 2px;
+  }
+  .toc a:hover { color: var(--accent); }
+  .tocnum, .secnum {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: .8em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- headings ---- */
+  h2, h3, h4 { font-family: var(--serif); letter-spacing: -.01em; text-wrap: balance; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    font-weight: 600;
+    margin: 3.5rem 0 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .75rem;
+    align-items: baseline;
+  }
+  h3 { font-size: 1.14rem; font-weight: 600; margin: 2.25rem 0 .7rem; display: flex; gap: .6rem; align-items: baseline; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; color: var(--ink-2); }
+  h2 .secnum, h3 .secnum { flex: none; }
+
+  p { margin: 0 0 1.05rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line-2); margin: 2.5rem 0; }
+
+  ul, ol { margin: 0 0 1.15rem; padding-left: 1.35rem; max-width: 68ch; }
+  li { margin-bottom: .38rem; }
+  li::marker { color: var(--ink-3); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+  .codewrap { overflow-x: auto; margin: 0 0 1.4rem; }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 0;
+    min-width: min-content;
+  }
+  pre code { background: none; padding: 0; font-size: .845rem; line-height: 1.6; }
+
+  blockquote {
+    margin: 0 0 1.4rem;
+    padding: .1rem 0 .1rem 1.15rem;
+    border-left: 3px solid var(--line);
+    color: var(--ink-2);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+  }
+  .callout p { margin-bottom: .6rem; color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--warn); }
+
+  .tablewrap { overflow-x: auto; margin: 0 0 1.6rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  th, td { padding: .6rem .85rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <h1>Arabic &amp; Bilingual Voice — Feasibility for a 3-Day Clinical Copilot</h1>
+    <dl class="meta"><div><dt>note</dt><dd>State of the art, September 2026. Every number below carries a source and a date. Where a</dd></div><div><dt>note</dt><dd>number is vendor-self-reported or unverifiable I say so explicitly, and there is a</dd></div><div><dt>note</dt><dd><a href="#12-what-i-could-not-verify">dedicated section</a> listing everything I could not confirm.</dd></div></dl>
+  </header>
+  <nav class="toc" aria-label="Contents"><p class="eyebrow">Contents</p><ol><li><a href="#summary-read-this-page-only">Summary — read this page only</a></li><li><a href="#1-arabic-stt-asr-quality-september-2026"><span class="tocnum">1</span>Arabic STT / ASR quality, September 2026</a></li><li><a href="#2-code-switching-arabic-english-intra-sentence-the-make-or-b"><span class="tocnum">2</span>Code-switching (Arabic ↔ English, intra-sentence) — the make-or-break section</a></li><li><a href="#3-arabic-tts-september-2026"><span class="tocnum">3</span>Arabic TTS, September 2026</a></li><li><a href="#4-realtime-speech-to-speech-apis-and-arabic"><span class="tocnum">4</span>Realtime speech-to-speech APIs and Arabic</a></li><li><a href="#5-arabic-llm-quality-for-medical-reasoning"><span class="tocnum">5</span>Arabic LLM quality for medical reasoning</a></li><li><a href="#6-rtl-bilingual-frontend"><span class="tocnum">6</span>RTL / bilingual frontend</a></li><li><a href="#7-verdict"><span class="tocnum">7</span>Verdict</a></li><li><a href="#8-what-i-could-not-verify"><span class="tocnum">8</span>What I could not verify</a></li><li><a href="#sources">Sources</a></li></ol></nav>
+  <main>
+<h2 id="summary-read-this-page-only"><span class="htext">Summary — read this page only</span></h2>
+<p><strong>Verdict: GO.</strong> A bilingual Arabic/English voice assistant that handles intra-sentence code-switching is buildable in ~3 part-time days in September 2026. It would <em>not</em> have been in early 2025. The thing that changed is that code-switching stopped being a research problem and became a purchasing decision: as of March 2026 there is a commercial, production, real-time <strong>Arabic–English bilingual ASR model — with a medical variant trained on drug names, dosages and ICD-10-CM codes</strong> — which is almost comically on-target for a doctor-facing clinical copilot.</p>
+<p><strong>The single biggest risk is the output leg, not the input leg.</strong> STT for code-switching is solved by picking the right vendor. TTS is not: ElevenLabs' own docs state that automatic language detection is <em>&quot;unreliable for short text or codemixed input&quot;</em> and that production systems must pass explicit <code>[AR]</code> / <code>[EN]</code> tags inline. Your LLM emits untagged mixed text. Something has to tag it before it reaches TTS, or English drug names get read with Arabic phonology (or vice versa) — which in a clinical demo is the exact failure the demo exists to disprove.</p>
+<h3 id="recommended-stack-for-arabic-specifically"><span class="htext">Recommended stack for Arabic specifically</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Stage</th><th style="text-align:left">Pick</th><th style="text-align:left">Why</th></tr></thead><tbody><tr><td style="text-align:left"><strong>STT (primary)</strong></td><td style="text-align:left"><strong>Speechmatics <code>ar_en</code> bilingual pack</strong>, realtime</td><td style="text-align:left">The only vendor shipping a <em>single</em> bilingual Arabic+English model. Claims 6.3% WER on mixed speech vs Google 9.7%. Gulf + Egyptian + Levantine. Free tier: 480 min/mo, 240 realtime min. First-class Pipecat <strong>and</strong> LiveKit plugins.</td></tr><tr><td style="text-align:left"><strong>STT (fallback / A-B)</strong></td><td style="text-align:left"><strong>ElevenLabs Scribe v2 Realtime</strong> (~150 ms)</td><td style="text-align:left">Won the only <em>independent</em> commercial code-switching benchmark: 13.2% mean WER vs 38.6% (OpenAI), 39.4% (Google Chirp 3), 43.6% (Azure). Gap widens to <strong>41.5 points</strong> on the hardest code-switch quartile.</td></tr><tr><td style="text-align:left"><strong>LLM</strong></td><td style="text-align:left">GPT-5 / GPT-o3 class, or Claude Sonnet 4</td><td style="text-align:left">Best published Arabic <em>medical</em> accuracy: 0.765 / 0.764 / 0.694 on MedAraBench (24,883 Arabic MCQs, Feb 2026). Arabic-specialist models are far behind: Fanar 0.498, ALLaM-7B 0.447.</td></tr><tr><td style="text-align:left"><strong>TTS</strong></td><td style="text-align:left"><strong>ElevenLabs Flash v2.5</strong> (Arabic supported, ~75 ms model latency, 137 ms measured median TTFT)</td><td style="text-align:left">Fastest Arabic-capable option with real voice quality. <strong>Requires an explicit language-tagging step.</strong></td></tr><tr><td style="text-align:left"><strong>Do NOT use</strong></td><td style="text-align:left">Deepgram Nova-3 for code-switching</td><td style="text-align:left">Deepgram supports 17 Arabic locales, but Arabic is <strong>not</strong> in Nova-3's multilingual/code-switching mode (that mode is EN/ES/FR/DE/HI/RU/PT/JA/IT/NL only). It is a monolingual Arabic model.</td></tr></tbody></table></div>
+<h3 id="six-facts-that-should-shape-the-build"><span class="htext">Six facts that should shape the build</span></h3>
+<ol>
+<li><strong>Dialect, not Arabic, is the axis of difficulty.</strong> On the same models: MSA 10.19 WER,</li>
+<p>Levantine 23.53, Egyptian 34.8, <strong>Gulf/Khaleeji 68.39</strong>, Moroccan 81.77 (<a href="https://arxiv.org/html/2601.13319v1">Arab Voices, arXiv 2601.13319, 19 Jan 2026</a>). &quot;Arabic works&quot; is meaningless; Gulf is ~6.7× harder than MSA. Demo in Egyptian if you have a choice.</p>
+<li><strong>WER is the wrong metric for code-switching and overstates the problem by ~3×.</strong> When</li>
+<p>a system writes an embedded English word in Arabic transliteration instead of Latin script, WER scores it a 100% substitution error even though it is semantically perfect. BERTScore rankings agree exactly (Kendall's τ = 1.000 on both Arabic pairs) but the magnitudes are far smaller (<a href="https://arxiv.org/abs/2605.19069">arXiv 2605.19069, May 2026</a>). <strong>Consequence for your demo: don't display WER. Show the transcript.</strong></p>
+<li><strong>Script inconsistency is the real failure mode, not error rate.</strong> The same paper's</li>
+<p>hypothesis for why ElevenLabs' BERTScore <em>rises</em> on the hardest quartile (0.929 → 0.938) is that it &quot;consistently picks a single script convention and applies it coherently,&quot; while others produce inconsistent output. Your UI has to survive both conventions.</p>
+<li><strong>Frontier LLMs beat Arabic-specialist LLMs on medicine, decisively.</strong> MedAraBench and</li>
+<p>MedArabiQ both find this. MedArabiQ's conclusion: <em>&quot;task specificity may be more critical than language specificity for Arabic medical tasks.&quot;</em> Don't reach for ALLaM or Jais.</p>
+<li><strong>Arabic medical reasoning does lag.</strong> Best model is 0.765 on MedAraBench, which the</li>
+<p>authors state &quot;does not match expert-level performance.&quot; GPT-4's MedArabiQ accuracy collapsed 66.3% → 35.7% under injected cognitive bias. Ship a clinical disclaimer.</p>
+<li><strong><code>dir=&quot;auto&quot;</code> will break your live captions.</strong> It uses the Unicode <em>first-strong</em></li>
+<p>heuristic, not majority script. A caption line that begins &quot;patient عنده chest pain&quot; locks the entire line LTR; the next line beginning in Arabic flips RTL. During streaming the direction can flip mid-token as the first strong character arrives.</p>
+</ol>
+<h3 id="minimum-viable-demo-that-still-lands"><span class="htext">Minimum viable demo that still lands</span></h3>
+<p>A single live caption pane, Egyptian Arabic in, code-switched transcript rendered with correct bidi, and a <strong>side-by-side toggle: Speechmatics <code>ar_en</code> vs Whisper-large-v3.</strong> Speak one sentence — &quot;عندي patient عنده chest pain ومحتاج aspirin&quot; — and let the audience watch Whisper mangle it while the bilingual model keeps <code>patient</code>, <code>chest pain</code> and <code>aspirin</code> intact in Latin script. That contrast <em>is</em> the demo. Everything else (TTS reply, memory, HUD) is garnish. Budget day 3 entirely for the TTS language-tagging step, because that is where the time will actually go.</p>
+<hr />
+<h2 id="1-arabic-stt-asr-quality-september-2026"><span class="secnum">1</span><span class="htext">Arabic STT / ASR quality, September 2026</span></h2>
+<h3 id="11-the-dialect-cliff"><span class="secnum">1.1</span><span class="htext">The dialect cliff</span></h3>
+<p>The most useful single source is <strong>Arab Voices: Mapping Standard and Dialectal Arabic Speech Technology</strong> (<a href="https://arxiv.org/html/2601.13319v1">arXiv 2601.13319, 19 Jan 2026</a>), which aggregates 31 datasets across 14 dialects and evaluates 14 open models (Whisper-large-v3, MMS, SeamlessM4T v2, Omnilingual/OmniASR, Qwen3). Best-system WER per variety:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Variety</th><th style="text-align:left">Code</th><th style="text-align:left">Best WER</th></tr></thead><tbody><tr><td style="text-align:left">Modern Standard Arabic</td><td style="text-align:left">arb</td><td style="text-align:left"><strong>10.19</strong></td></tr><tr><td style="text-align:left">Levantine</td><td style="text-align:left">apc</td><td style="text-align:left">23.53</td></tr><tr><td style="text-align:left">Egyptian</td><td style="text-align:left">arz</td><td style="text-align:left">34.80</td></tr><tr><td style="text-align:left"><strong>Gulf / Khaleeji</strong></td><td style="text-align:left">afb</td><td style="text-align:left"><strong>68.39</strong></td></tr><tr><td style="text-align:left">Tunisian</td><td style="text-align:left">aeb</td><td style="text-align:left">74.31</td></tr><tr><td style="text-align:left">Algerian</td><td style="text-align:left">arq</td><td style="text-align:left">78.01</td></tr><tr><td style="text-align:left">Moroccan</td><td style="text-align:left">ary</td><td style="text-align:left">81.77</td></tr><tr><td style="text-align:left">Hassaniyya</td><td style="text-align:left">mey</td><td style="text-align:left">88.45</td></tr></tbody></table></div>
+<aside class="callout critical" role="note"><p>🚨 Gulf Arabic at 68 WER on open models is the finding that should most change your plans. If the take-home is demoed with a Khaleeji speaker on an open model, it fails. The commercial bilingual models (§2) are the only credible answer for Gulf.</p></aside>
+<p>Note: this paper evaluates <strong>open models only — no commercial APIs.</strong> Datasets used include Common Voice, FLEURS, MGB-2, MGB-3, MGB-5, MASC, QASR, GALE, Casablanca and SADA; the code-mixed sets it catalogues are <strong>ArzEn, Mixat, SCC and ZAEBUC-Spoken</strong>.</p>
+<h3 id="12-open-weights-leaderboard-multi-dialect-zero-shot"><span class="secnum">1.2</span><span class="htext">Open-weights leaderboard (multi-dialect, zero-shot)</span></h3>
+<p>The <a href="https://huggingface.co/spaces/elmresearchcenter/open_universal_arabic_asr_leaderboard">Open Universal Arabic ASR Leaderboard</a> (ELM Research Center; methodology published at <a href="https://www.isca-archive.org/interspeech_2025/wang25_interspeech.pdf">Interspeech 2025</a>) evaluates zero-shot multi-dialect generalisation over six test sets spanning MSA, Egyptian, Gulf, Levantine and Maghrebi.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Model</th><th style="text-align:left">Avg WER</th><th style="text-align:left">CommonVoice</th><th style="text-align:left">MASC-C</th><th style="text-align:left">MASC-N</th><th style="text-align:left">MGB-2</th><th style="text-align:left">SADA</th><th style="text-align:left">Casablanca</th><th style="text-align:left">Date</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Audar-ASR-V1-Turbo</strong></td><td style="text-align:left"><strong>24.78</strong></td><td style="text-align:left">8.60</td><td style="text-align:left">19.60</td><td style="text-align:left">28.35</td><td style="text-align:left">11.13</td><td style="text-align:left">29.41</td><td style="text-align:left">51.58</td><td style="text-align:left"><a href="https://www.audarai.com/news/introducing-audar-asr-v1">9 Jul 2026</a></td></tr><tr><td style="text-align:left">Cohere Transcribe Arabic</td><td style="text-align:left">25.87</td><td style="text-align:left">5.82</td><td style="text-align:left">15.54</td><td style="text-align:left">27.07</td><td style="text-align:left">—</td><td style="text-align:left">37.47</td><td style="text-align:left">49.71</td><td style="text-align:left"><a href="https://cohere.com/blog/transcribe-arabic">7 Jul 2026</a></td></tr><tr><td style="text-align:left">Munsit-1 (CNTXT AI)</td><td style="text-align:left">26.68</td><td style="text-align:left">—</td><td style="text-align:left">—</td><td style="text-align:left">—</td><td style="text-align:left">—</td><td style="text-align:left">—</td><td style="text-align:left">—</td><td style="text-align:left"><a href="https://munsit.com/blog/best-arabic-speech-to-text">3 Aug 2026</a></td></tr><tr><td style="text-align:left">OmniASR-LLM-7B</td><td style="text-align:left">28.32</td><td style="text-align:left">9.75</td><td style="text-align:left">19.69</td><td style="text-align:left">29.29</td><td style="text-align:left">—</td><td style="text-align:left">41.61</td><td style="text-align:left">56.46</td><td style="text-align:left">7 Jul 2026</td></tr><tr><td style="text-align:left">Qwen3-ASR-0.6B</td><td style="text-align:left">42.18</td><td style="text-align:left">—</td><td style="text-align:left">—</td><td style="text-align:left">—</td><td style="text-align:left">—</td><td style="text-align:left">—</td><td style="text-align:left">—</td><td style="text-align:left">9 Jul 2026</td></tr><tr><td style="text-align:left"><strong>Whisper Large v3</strong></td><td style="text-align:left"><strong>36.86</strong></td><td style="text-align:left">17.83</td><td style="text-align:left">24.66</td><td style="text-align:left">34.63</td><td style="text-align:left">—</td><td style="text-align:left">55.96</td><td style="text-align:left">71.81</td><td style="text-align:left">7 Jul 2026</td></tr></tbody></table></div>
+<p>Reading this table:</p>
+<ul>
+<li><strong>Whisper large-v3 is ~11 WER points behind the Arabic-specialist state of the art</strong>, and</li>
+<p>the gap is worst exactly where it matters — Casablanca (multidialectal) 71.81 vs 49.71.</p>
+<li><strong>Casablanca is brutal for everyone.</strong> Even the leader is at ~50 WER. Casablanca</li>
+<p>(<a href="https://arxiv.org/pdf/2410.04527">arXiv 2410.04527</a>) is the honest multidialectal test; Common Voice AR is the flattering one (5.8–8.6 WER). Beware anyone quoting only Common Voice.</p>
+<li><strong>Audar-ASR-V1</strong> explicitly ships Arabic-English code-switching via a <code>&lt;tag:ar+en&gt;</code></li>
+<p>control token, trained on 300k+ hours; weights on Hugging Face, API invite-only. Its internal Gulf-Emirati set scores 30.02 WER — far better than the 68 above, but it is a <em>vendor-internal</em> set, so not comparable.</p>
+<li><strong>Cohere Transcribe Arabic</strong> is Apache 2.0, free on Cohere's API with rate limits,</li>
+<p>RTFx 525 (vs Whisper's 146), and claims native-speaker preference over Whisper in 95.8% of tests on accuracy, dialect faithfulness and code-switching robustness. It preserves the speaker's dialect rather than normalising to MSA.</p>
+</ul>
+<h3 id="13-commercial-providers-what-each-actually-offers-for-arabic"><span class="secnum">1.3</span><span class="htext">Commercial providers — what each actually offers for Arabic</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Provider</th><th style="text-align:left">Arabic status</th><th style="text-align:left">Dialects</th><th style="text-align:left">Realtime</th><th style="text-align:left">Published Arabic WER</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Speechmatics</strong></td><td style="text-align:left"><code>ar</code> + <strong><code>ar_en</code> bilingual pack</strong>; medical variant</td><td style="text-align:left">Gulf, Egyptian, Levantine, MSA</td><td style="text-align:left">Yes, sub-second, same model as batch</td><td style="text-align:left">4.5% Arabic-only; 6.3% code-switched (<strong>vendor</strong>)</td></tr><tr><td style="text-align:left"><strong>ElevenLabs Scribe v2 / v2 Realtime</strong></td><td style="text-align:left">Supported; docs tier Arabic as <strong>&quot;Good: &gt;10% to ≤20% WER&quot;</strong></td><td style="text-align:left">Not broken out</td><td style="text-align:left">Yes, ~150 ms</td><td style="text-align:left">Tier only, no point estimate</td></tr><tr><td style="text-align:left"><strong>Deepgram Nova-3</strong></td><td style="text-align:left">17 Arabic locales (<code>ar</code>, <code>ar-EG</code>, <code>ar-SA</code>, <code>ar-AE</code>, <code>ar-IQ</code>, <code>ar-MA</code>…)</td><td style="text-align:left">Gulf, Levantine, Egyptian/Nile, Maghrebi, Mesopotamian</td><td style="text-align:left">Yes (streaming + batch)</td><td style="text-align:left">None published; blog claims &quot;~40% lower WER&quot; unqualified</td></tr><tr><td style="text-align:left"><strong>Soniox v5</strong></td><td style="text-align:left">60+ languages incl. Arabic, mid-sentence switching</td><td style="text-align:left">Not broken out</td><td style="text-align:left">Yes, sub-200 ms</td><td style="text-align:left">None published</td></tr><tr><td style="text-align:left"><strong>OpenAI (Whisper / gpt-4o-transcribe)</strong></td><td style="text-align:left">Yes</td><td style="text-align:left">Poor on dialect</td><td style="text-align:left">Realtime API yes</td><td style="text-align:left">36.86 avg (Whisper, leaderboard)</td></tr><tr><td style="text-align:left"><strong>Google Chirp 3</strong></td><td style="text-align:left">Yes, <code>auto</code> language inference</td><td style="text-align:left">Weak on Gulf (see §2)</td><td style="text-align:left">Yes</td><td style="text-align:left">None published</td></tr><tr><td style="text-align:left"><strong>Azure AI Speech (CLID)</strong></td><td style="text-align:left">Yes, segment-level LID</td><td style="text-align:left">Multiple locales</td><td style="text-align:left">Yes</td><td style="text-align:left">None published</td></tr><tr><td style="text-align:left"><strong>AssemblyAI Universal 3.5 Pro</strong></td><td style="text-align:left">Yes</td><td style="text-align:left">Not broken out</td><td style="text-align:left">Yes</td><td style="text-align:left">40.9% mixed error (per Speechmatics)</td></tr><tr><td style="text-align:left"><strong>Munsit / CNTXT AI</strong></td><td style="text-align:left">Arabic-only specialist, 25+ dialects</td><td style="text-align:left">All major</td><td style="text-align:left">Yes, &quot;sub-300 ms&quot; (<strong>vendor</strong>)</td><td style="text-align:left">26.68 avg (leaderboard)</td></tr><tr><td style="text-align:left"><strong>Audar AI</strong></td><td style="text-align:left">Arabic-first, open weights</td><td style="text-align:left">Multi</td><td style="text-align:left">Not stated</td><td style="text-align:left">24.78 avg (leaderboard)</td></tr><tr><td style="text-align:left"><strong>Cohere Transcribe Arabic</strong></td><td style="text-align:left">Open weights, Apache 2.0</td><td style="text-align:left">Multi</td><td style="text-align:left">Not stated</td><td style="text-align:left">25.87 avg (leaderboard)</td></tr></tbody></table></div>
+<p>Sources: <a href="https://docs.speechmatics.com/speech-to-text/languages">Speechmatics languages docs</a>, <a href="https://elevenlabs.io/docs/overview/capabilities/speech-to-text">ElevenLabs STT docs</a>, <a href="https://developers.deepgram.com/docs/models-languages-overview">Deepgram models &amp; languages</a>, <a href="https://soniox.com/platform/arabic">Soniox Arabic</a>, <a href="https://deepgram.com/learn/nova-3-arabic-speech-to-text-production-grade-stt">Deepgram Nova-3 Arabic blog</a>. All retrieved 18 Sep 2026.</p>
+<hr />
+<h2 id="2-code-switching-arabic-english-intra-sentence-the-make-or-b"><span class="secnum">2</span><span class="htext">Code-switching (Arabic ↔ English, intra-sentence) — the make-or-break section</span></h2>
+<h3 id="21-the-one-independent-benchmark"><span class="secnum">2.1</span><span class="htext">The one independent benchmark</span></h3>
+<p><strong>Benchmarking Commercial ASR Systems on Code-Switching Speech: Arabic, Persian, and German</strong> (<a href="https://arxiv.org/abs/2605.19069">arXiv 2605.19069</a>, v1 18 May 2026, v3 22 May 2026). Four language pairs — <strong>Egyptian Arabic–English, Saudi Arabic (Najdi/Hijazi)–English</strong>, Persian–English, German–English — 300 samples each, natural conversational recordings by native speakers, difficulty-stratified by a computed <code>H_Score</code>.</p>
+<p><strong>Overall results (Table 4):</strong></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">System</th><th style="text-align:left">Mean WER</th><th style="text-align:left">Mean BERTScore</th><th style="text-align:left">CS pairs covered</th></tr></thead><tbody><tr><td style="text-align:left"><strong>ElevenLabs Scribe v2</strong></td><td style="text-align:left"><strong>13.2%</strong></td><td style="text-align:left"><strong>0.936</strong></td><td style="text-align:left">4</td></tr><tr><td style="text-align:left">OpenAI gpt-4o-transcribe</td><td style="text-align:left">38.6%</td><td style="text-align:left">0.856</td><td style="text-align:left">4</td></tr><tr><td style="text-align:left">Google Chirp 3</td><td style="text-align:left">39.4%</td><td style="text-align:left">0.862</td><td style="text-align:left">4</td></tr><tr><td style="text-align:left">Azure AI Speech (CLID)</td><td style="text-align:left">43.6%</td><td style="text-align:left">0.839</td><td style="text-align:left">4</td></tr><tr><td style="text-align:left">Deepgram Nova-3</td><td style="text-align:left">5.0% †</td><td style="text-align:left">0.959 †</td><td style="text-align:left"><strong>1 (German only)</strong></td></tr></tbody></table></div>
+<p>† The paper explicitly excludes Deepgram from the ranking: <em>&quot;Deepgram Nova-3 does not list Arabic or Persian in its documented CS language support. For these pairs we suppress WER and BERTScore and exclude the system from aggregate rankings.&quot;</em> Its 5.0% is German-only and is <strong>not</strong> an Arabic result. Do not quote it as one.</p>
+<p><strong>By difficulty quartile (Table 5) — this is the table that matters:</strong></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Quartile</th><th style="text-align:left">ElevenLabs</th><th style="text-align:left">Google Chirp 3</th><th style="text-align:left">OpenAI</th><th style="text-align:left">Azure</th></tr></thead><tbody><tr><td style="text-align:left">Q1 (easiest)</td><td style="text-align:left">2.0%</td><td style="text-align:left">4.4%</td><td style="text-align:left">9.7%</td><td style="text-align:left">17.1%</td></tr><tr><td style="text-align:left">Q2</td><td style="text-align:left">13.9%</td><td style="text-align:left">30.8%</td><td style="text-align:left">46.2%</td><td style="text-align:left">46.4%</td></tr><tr><td style="text-align:left">Q3</td><td style="text-align:left">15.0%</td><td style="text-align:left">54.4%</td><td style="text-align:left">48.7%</td><td style="text-align:left">54.2%</td></tr><tr><td style="text-align:left"><strong>Q4 (hardest)</strong></td><td style="text-align:left"><strong>20.0%</strong></td><td style="text-align:left">61.5%</td><td style="text-align:left">45.2%</td><td style="text-align:left">52.2%</td></tr></tbody></table></div>
+<aside class="callout critical" role="note"><p>⚠️ The 2.4-point gap between ElevenLabs and Google at Q1 becomes a <strong>41.5-point gap at Q4</strong>. Q4 is dominated by Arabic and Persian utterances with dense switching and morphological blending — i.e. exactly how your doctors speak. Aggregate WER numbers hide this completely. Never choose an Arabic code-switching ASR on an aggregate number.</p></aside>
+<p><strong>On Gulf specifically:</strong> <em>&quot;Google Chirp 3 performs worse on Saudi Arabic than on Egyptian Arabic, suggesting that Gulf dialectal phonology remains less robustly covered than more widely represented Arabic varieties.&quot;</em></p>
+<h3 id="22-what-actually-happens-to-the-english-words"><span class="secnum">2.2</span><span class="htext">What actually happens to the English words</span></h3>
+<p>Three distinct behaviours, all documented:</p>
+<ol>
+<li><strong>Kept in Latin script</strong> — the good case. ElevenLabs is reported to pick one script</li>
+<p>convention and apply it coherently.</p>
+<li><strong>Transliterated into Arabic script</strong> — semantically correct, *scored as 100% wrong by</li>
+<p>WER*. This is the source of the ~3× inflation. It is also a genuine UI problem for you: <code>أسبرين</code> and <code>aspirin</code> must both map to the same drug downstream.</p>
+<li><strong>Failure modes at switch boundaries</strong> — the paper's architectural analysis notes that</li>
+<p>segment-level LID systems (Azure CLID) are <em>&quot;structurally limited to producing one script per recognition segment&quot;</em>, so a mid-segment switch cannot be represented at all.</p>
+</ol>
+<p>Whisper specifically has a well-documented additional pathology: it will return <strong>Arabic speech transliterated into Latin script</strong> even with <code>language=&quot;ar&quot;</code> set (e.g. &quot;marhaban&quot; instead of &quot;مرحبا&quot;) — reported repeatedly on the <a href="https://community.openai.com/t/issue-with-arabic-transcription-in-whisper-large-v3-turbo-naah-naahe/1291617">OpenAI developer forum</a>. Fine-tunes exist specifically to patch this (e.g. <a href="https://dataloop.ai/library/model/mohamedrashad_arabic-whisper-codeswitching-edition/">Arabic Whisper CodeSwitching Edition</a>), which is itself evidence base Whisper is inadequate here.</p>
+<h3 id="23-named-code-switching-benchmarks"><span class="secnum">2.3</span><span class="htext">Named code-switching benchmarks</span></h3>
+<ul>
+<li><strong>ArzEn</strong> (Hamed, Vu &amp; Abdennadher 2020) — Egyptian Arabic–English, 6,213 sentences,</li>
+<p><strong>66.9% code-mixed</strong>, 30.0% monolingual Arabic, 3.1% monolingual English. Extended by <strong>ArzEn-ST</strong> (<a href="https://arxiv.org/pdf/2211.12000">arXiv 2211.12000</a>) into a three-way speech-translation corpus with ASR/MT/ST baselines, and used by <strong>ArzEn-LLM</strong> (<a href="https://arxiv.org/pdf/2406.18120">arXiv 2406.18120</a>).</p>
+<li><strong>Mixat</strong> — Emirati Arabic–English code-mixed; catalogued in Arab Voices.</li>
+<li><strong>SCC</strong>, <strong>ZAEBUC-Spoken</strong> — additional code-mixed sets in the Arab Voices catalogue.</li>
+<li><strong>SwitchLingua</strong> (Xie et al. 2026) — 12-language synthesized+recorded CS benchmark.</li>
+<li><strong>SAGE</strong> (<a href="https://arxiv.org/pdf/2506.22143">arXiv 2506.22143</a>) — spliced-audio data</li>
+<p>augmentation for low-resource Arabic-English CS ASR.</p>
+<li>The 2605.19069 benchmark set itself is published on Hugging Face.</li>
+</ul>
+<h3 id="24-the-vendor-that-built-for-exactly-this"><span class="secnum">2.4</span><span class="htext">The vendor that built for exactly this</span></h3>
+<p><a href="https://www.speechmatics.com/company/articles-and-news/arabic-english-bilingual-speech-to-text"><strong>Speechmatics</strong></a> (6 Mar 2026) shipped a single bilingual Arabic–English model rather than two monolingual ones. Claims: <strong>6.3% WER on mixed speech</strong> (vs Google 9.7%, &quot;35% fewer errors&quot;) and <strong>4.5% on Arabic-only</strong> (vs Google 5.9%, Whisper 6.2%). Gulf + Egyptian + Levantine. Sub-second latency, same model realtime and batch, cloud / on-prem / on-device.</p>
+<p>Four days later (<a href="https://finance.yahoo.com/news/speechmatics-achieves-world-first-bilingual-125400210.html">10 Mar 2026</a>) they announced an <strong>Arabic–English medical</strong> variant: trained on twice the vocabulary of their English medical model, covering <strong>ICD-10-CM codes, drug names, dosages and clinical shorthand &quot;regardless of which language carries them&quot;</strong>, built from real clinical audio with dialect variation. Their own framing of the problem (<a href="https://www.speechmatics.com/company/articles-and-news/your-voice-agent-speaks-perfect-arabic-thats-the-problem">5 Mar 2026</a>) is almost verbatim your brief: <em>&quot;A doctor names a drug in English and finishes the sentence in Arabic.&quot;</em></p>
+<p>Their newer general model <strong>Melia 1</strong> (launched June 2026) was benchmarked <a href="https://www.speechmatics.com/company/articles-and-news/melia-code-switching-arabic-mandarin-tamil">1 Sep 2026</a> at <strong>15.1% mixed error rate on Arabic–English with no language hints</strong>, vs Soniox v5 33.2%, AssemblyAI Universal 3.5 Pro 40.9%, Amazon 45.6%. Vendor-run, unnamed test set — treat as directional, not as ground truth.</p>
+<p><strong>Practical config.</strong> The <a href="https://docs.speechmatics.com/speech-to-text/languages">Speechmatics languages docs</a> list an <strong>&quot;Arabic &amp; English bilingual&quot; pack, language code <code>ar_en</code></strong>, described as <em>&quot;ideal when transcribing Arabic and English in the same media file or stream.&quot;</em> Note a documentation conflict: the <a href="https://docs.pipecat.ai/server/services/stt/speechmatics">Pipecat Speechmatics service docs</a> document bilingual modes via <code>language</code> + <code>domain</code> (e.g. <code>Language.ES</code> + <code>domain=&quot;bilingual-en&quot;</code>, plus packs <code>cmn_en</code>, <code>en_ms</code>, <code>en_ta</code>) and <strong>do not list <code>ar_en</code></strong>. Resolve this against the live API on day 1 — try <code>ar_en</code> as a language code first, then <code>language=&quot;ar&quot;, domain=&quot;bilingual-en&quot;</code>. Plugins exist for both <a href="https://docs.livekit.io/agents/integrations/speechmatics/">LiveKit</a> (<code>livekit-plugins-speechmatics</code>) and Pipecat.</p>
+<hr />
+<h2 id="3-arabic-tts-september-2026"><span class="secnum">3</span><span class="htext">Arabic TTS, September 2026</span></h2>
+<h3 id="31-latency"><span class="secnum">3.1</span><span class="htext">Latency</span></h3>
+<p>Measured TTFT, <a href="https://silma.ai/blog/best-low-latency-arabic-text-to-speech-apis-for-developers-2026-benchmark">SILMA benchmark, 15 Sep 2026</a>:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Model</th><th style="text-align:left">Min TTFT</th><th style="text-align:left">Median TTFT</th><th style="text-align:left">Cost/min</th></tr></thead><tbody><tr><td style="text-align:left">Cartesia Sonic 3.5</td><td style="text-align:left">102 ms</td><td style="text-align:left"><strong>120 ms</strong></td><td style="text-align:left">—</td></tr><tr><td style="text-align:left">ElevenLabs Flash v2.5</td><td style="text-align:left">131 ms</td><td style="text-align:left">137 ms</td><td style="text-align:left">$0.050</td></tr><tr><td style="text-align:left">Deepgram Aura-2</td><td style="text-align:left">251 ms</td><td style="text-align:left">256 ms</td><td style="text-align:left">$0.027</td></tr><tr><td style="text-align:left">SILMA TTS v2</td><td style="text-align:left">279 ms</td><td style="text-align:left">280 ms</td><td style="text-align:left">$0.025</td></tr><tr><td style="text-align:left">ElevenLabs v3</td><td style="text-align:left">677 ms</td><td style="text-align:left">730 ms</td><td style="text-align:left">$0.100</td></tr></tbody></table></div>
+<aside class="callout critical" role="note"><p>⚠️ This benchmark does <strong>not</strong> break results out by language. These are global TTFT figures, not Arabic-specific. Arabic TTFT is unverified for every provider.</p></aside>
+<p>ElevenLabs' own docs claim ~75 ms model latency for Flash v2.5; the 137 ms measured figure is the honest one to plan against.</p>
+<h3 id="32-dialect-coverage-this-is-where-providers-diverge-sharply"><span class="secnum">3.2</span><span class="htext">Dialect coverage — this is where providers diverge sharply</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Provider</th><th style="text-align:left">Arabic dialect coverage</th><th style="text-align:left">Source</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Azure Neural TTS</strong></td><td style="text-align:left">~20 locales: <code>ar-SA</code>, <code>ar-EG</code>, <code>ar-AE</code>, <code>ar-LB</code>, <code>ar-OM</code>, <code>ar-IQ</code>, <code>ar-MA</code>… named voices each (Salma/ar-EG, Zariyah/ar-SA)</td><td style="text-align:left"><a href="https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support">MS Learn</a></td></tr><tr><td style="text-align:left"><strong>ElevenLabs Multilingual v2</strong></td><td style="text-align:left">Arabic listed as &quot;Arabic (Saudi Arabia, UAE)&quot;; Egyptian/Gulf/Moroccan voices exist in the voice library</td><td style="text-align:left"><a href="https://elevenlabs.io/docs/overview/models">ElevenLabs models</a></td></tr><tr><td style="text-align:left"><strong>ElevenLabs Flash v2.5</strong></td><td style="text-align:left">Arabic among 32 languages</td><td style="text-align:left">same</td></tr><tr><td style="text-align:left"><strong>ElevenLabs v3</strong></td><td style="text-align:left">Arabic among 70+ languages</td><td style="text-align:left">same</td></tr><tr><td style="text-align:left"><strong>Google Cloud (Chirp 3 HD)</strong></td><td style="text-align:left"><strong><code>ar-XA</code> — MSA only.</strong> No Gulf, Levantine, Egyptian or Maghrebi voice variants documented</td><td style="text-align:left"><a href="https://docs.cloud.google.com/text-to-speech/docs/list-voices-and-types">Google TTS voice list</a></td></tr><tr><td style="text-align:left"><strong>Amazon Polly</strong></td><td style="text-align:left">MSA + Gulf (<code>ar-AE</code>)</td><td style="text-align:left"><a href="https://munsit.com/blog/best-arabic-tts">Munsit TTS roundup, 30 Jul 2026</a></td></tr><tr><td style="text-align:left"><strong>Cartesia Sonic 3 / 3.6</strong></td><td style="text-align:left">Arabic among 42 / 44 languages; 3.6 lists &quot;several Arabic locales&quot;</td><td style="text-align:left"><a href="https://docs.cartesia.ai/build-with-cartesia/tts-models/latest">Cartesia docs</a></td></tr><tr><td style="text-align:left"><strong>Munsit / Faseeh TTS</strong></td><td style="text-align:left">Gulf, MSA, Levantine, Egyptian, Maghrebi + <strong>dedicated Tashkīl (diacritization) API endpoint</strong></td><td style="text-align:left">Munsit roundup</td></tr><tr><td style="text-align:left"><strong>Soniox TTS</strong></td><td style="text-align:left">Arabic voices, &quot;starts speaking in under a second&quot;, explicitly handles &quot;alphanumerics, names, borrowed words, language switching&quot;</td><td style="text-align:left"><a href="https://soniox.com/platform/arabic">Soniox Arabic</a></td></tr></tbody></table></div>
+<h3 id="33-diacritization-the-structural-arabic-tts-problem"><span class="secnum">3.3</span><span class="htext">Diacritization — the structural Arabic TTS problem</span></h3>
+<p>Arabic script omits short vowels. <code>كتب</code> is <em>kataba</em> (&quot;he wrote&quot;), <em>kutub</em> (&quot;books&quot;), or <em>kutiba</em> (&quot;it was written&quot;) — same letters, three pronunciations, three meanings. TTS must restore diacritics (tashkīl) before phonemisation, and this is a genuine NLP task, not a lookup.</p>
+<ul>
+<li>Microsoft reports that **improving diacritic prediction alone produced a 78% reduction</li>
+<p>in pronunciation errors** for <code>ar-SA</code> and <code>ar-EG</code> voices (<a href="https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/azure-ai-voices-in-arabic-improved-pronunciation/4360306">Azure AI blog</a>).</p>
+<li>2026 research (KSAA-2026 shared task at OSACT7/LREC 2026) finds **text-only Seq2Seq</li>
+<p>diacritizers outperform off-the-shelf multimodal/ASR-based ones** (<a href="https://aclanthology.org/2026.osact-1.31/">Fine-Tashkeel, ACL Anthology</a>; <a href="https://arxiv.org/pdf/2605.25928">Thaka, arXiv 2605.25928</a>).</p>
+<li>Practical escape hatches: Munsit exposes diacritization as its own API so you can fix</li>
+<p>pronunciation deterministically instead of regenerating audio; Azure and Polly accept SSML with IPA phonemes; ElevenLabs' route is phonetic respelling.</p>
+</ul>
+<h3 id="34-embedded-english-inside-an-arabic-sentence-the-actual-ris"><span class="secnum">3.4</span><span class="htext">Embedded English inside an Arabic sentence — the actual risk</span></h3>
+<p>ElevenLabs' documentation is explicit: language detection is <strong>&quot;automatic but unreliable for short text or codemixed input — always pass explicit language tags in the text parameter (e.g. <code>[EN] Hello [ES] Hola</code>) for production systems to avoid mispronunciation&quot;</strong>, and further warns to <em>&quot;avoid mixing right-to-left scripts (Arabic, Hebrew) without explicit markup.&quot;</em></p>
+<aside class="callout critical" role="note"><p>🚨 <strong>This is the single biggest implementation risk in the project.</strong> Your LLM will emit <code>&quot;المريض محتاج aspirin مرتين يومياً&quot;</code> as plain text. Handed to TTS untagged, the English token is a coin flip. You need a tagging step between LLM and TTS: either (a) instruct the LLM to emit <code>[AR]</code>/<code>[EN]</code> span tags directly in its output, or (b) run a cheap regex on Unicode script ranges (Arabic block <code>U+0600–U+06FF</code> vs Latin) to segment and tag. Option (b) is ~20 lines, deterministic, and is what I would ship in 3 days.</p></aside>
+<p>Independent corroboration that this is a real production problem: TTS providers &quot;mispronounce names, addresses, medical terms, product names, acronyms&quot; and <em>&quot;the mispronunciation isn't even consistent — the model will pronounce the same word differently across calls&quot;</em> (<a href="https://www.rime.ai/resources/tts-voice-best-practices">Rime, TTS best practices 2026</a>). Hence the existence of pronunciation-dictionary features (<a href="https://telnyx.com/release-notes/tts-pronunciation-dictionaries">Telnyx</a>) — worth wiring a small dictionary of your demo's drug names if time permits.</p>
+<hr />
+<h2 id="4-realtime-speech-to-speech-apis-and-arabic"><span class="secnum">4</span><span class="htext">Realtime speech-to-speech APIs and Arabic</span></h2>
+<h3 id="openai-realtime"><span class="htext">OpenAI Realtime</span></h3>
+<ul>
+<li>Arabic <strong>is</strong> supported. <code>gpt-4o-realtime</code> documents 70+ input languages; OpenAI states</li>
+<p>it only lists languages that came in <strong>under 50% WER</strong>, and <em>&quot;the model returns results for languages not listed but the quality will be low.&quot;</em> Arabic makes the list, but that is a low bar — a 50% WER threshold tells you nothing about Egyptian vs Gulf.</p>
+<li><code>gpt-realtime-translate</code> supports 70+ input / 13 output languages, with Arabic named</li>
+<p>among the better-performing output languages (<a href="https://developers.openai.com/cookbook/examples/voice_solutions/realtime_translation_guide">OpenAI cookbook</a>).</p>
+<li><strong>No dialect breakdown is published anywhere.</strong> There is no <code>ar-EG</code> vs <code>ar-SA</code> story.</li>
+<li>Known pathology: with <code>input_audio_transcription</code> enabled, **Arabic speech sometimes</li>
+<p>comes back transcribed as English**. Workaround is to set the <code>language</code> parameter explicitly on <code>input_audio_transcription</code> (<a href="https://community.openai.com/t/arabic-transcription-issue-with-openai-realtime-api/1117262">OpenAI forum, 10 Feb 2025</a>). Old report, but the underlying language-lock behaviour is the same class of bug the code-switching benchmark documents.</p>
+</ul>
+<h3 id="gemini-live"><span class="htext">Gemini Live</span></h3>
+<ul>
+<li>Arabic <strong>is</strong> in the documented list — <strong><code>ar</code>, one of 99 supported languages</strong></li>
+<p>(<a href="https://ai.google.dev/gemini-api/docs/live-api/capabilities">Live API capabilities</a>, retrieved 18 Sep 2026). <strong>No regional variants</strong> (<code>ar-EG</code>, <code>ar-XA</code>) are documented.</p>
+<li>Native-audio models <em>&quot;can switch between languages naturally during conversation&quot;</em> — the</li>
+<p>closest thing to a documented code-switching claim from either realtime vendor, though it is about turn-level switching, not intra-sentence.</p>
+<li><strong>Stability is a live concern, independent of language.</strong> Through 2026 the Google AI</li>
+<p>developer forum carries reports of: audio regression after the 9 Mar 2026 update; voice/volume degradation on outputs longer than ~1 min; premature <code>turnComplete</code> causing <a href="https://github.com/googleapis/python-genai/issues/2117">mid-sentence truncation</a>; and, as recently as <strong>5 Sep 2026, first-audio latency of 16–26 s</strong> on <code>gemini-3.1-flash-live-preview</code> (<a href="https://discuss.ai.google.dev/t/gemini-3-1-flash-live-preview-first-audio-16-26-s-since-2026-09-05-09-00-utc-reproduced-on-an-isolated-project-same-model-on-2026-09-03/180927">forum thread</a>).</p>
+</ul>
+<aside class="callout critical" role="note"><p>⚠️ <strong>Recommendation: do not build the Arabic demo on a speech-to-speech API.</strong> Neither vendor publishes Arabic dialect quality, neither lets you swap the ASR, and a black-box S2S pipeline gives you nothing to <em>show</em>. A cascade lets you put the code-switched transcript on screen — which is the whole point. Keep Gemini Live as an optional toggle if you already have one wired from the English build.</p></aside>
+<hr />
+<h2 id="5-arabic-llm-quality-for-medical-reasoning"><span class="secnum">5</span><span class="htext">Arabic LLM quality for medical reasoning</span></h2>
+<h3 id="51-medarabench-the-large-one"><span class="secnum">5.1</span><span class="htext">MedAraBench — the large one</span></h3>
+<p><a href="https://arxiv.org/html/2602.01714">arXiv 2602.01714</a>, 2 Feb 2026. <strong>24,883 Arabic multiple-choice medical questions</strong>, 19 specialties, five difficulty levels (Y1–Y5), digitised from regional medical school exams, quality-checked by clinicians and LLM-as-judge.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Model</th><th style="text-align:left">Accuracy</th></tr></thead><tbody><tr><td style="text-align:left">GPT-o3</td><td style="text-align:left"><strong>0.765</strong></td></tr><tr><td style="text-align:left">GPT-5</td><td style="text-align:left">0.764</td></tr><tr><td style="text-align:left">Claude Sonnet 4</td><td style="text-align:left">0.694</td></tr><tr><td style="text-align:left">GPT-4.1</td><td style="text-align:left">0.673</td></tr><tr><td style="text-align:left">Gemini 2.0 Flash</td><td style="text-align:left">0.654</td></tr><tr><td style="text-align:left">DeepSeek-Chat-v3</td><td style="text-align:left">0.620</td></tr><tr><td style="text-align:left">Qwen-Plus</td><td style="text-align:left">0.618</td></tr><tr><td style="text-align:left">Llama-3.3-70B</td><td style="text-align:left">0.547</td></tr><tr><td style="text-align:left"><strong>Fanar-C-1-8.7B</strong> (Qatar)</td><td style="text-align:left">0.498</td></tr><tr><td style="text-align:left"><strong>ALLaM-7B</strong> (Saudi)</td><td style="text-align:left">0.447</td></tr><tr><td style="text-align:left">MedGemma-4B</td><td style="text-align:left">0.390</td></tr></tbody></table></div>
+<p>Two conclusions, both actionable: <strong>frontier general models win by 25+ points over Arabic- specialist models</strong>, and even the winner &quot;does not match expert-level performance.&quot;</p>
+<h3 id="52-medarabiq-the-diagnostic-one"><span class="secnum">5.2</span><span class="htext">MedArabiQ — the diagnostic one</span></h3>
+<p><a href="https://arxiv.org/html/2505.03427">arXiv 2505.03427</a>. Seven Arabic medical tasks (MCQ, fill-in-blank, patient–doctor Q&amp;A). Findings that matter for a clinical copilot:</p>
+<ul>
+<li><strong>No single model dominates.</strong> Gemini 1.5 Pro 57.5% and Claude 3.5 Sonnet 53.5% lead on</li>
+<p>MCQ; DeepSeek v3 79.7% on fill-in-blank-with-choices; <strong>Jais 85.7% on open-ended patient–doctor Q&amp;A</strong> — an Arabic-specialist model winning the <em>conversational</em> task while losing the knowledge tasks. If your copilot is dialogue-shaped, that is worth knowing.</p>
+<li><strong>Cognitive bias is devastating.</strong> GPT-4 fell from <strong>66.3% → 35.7%</strong> under bias-injected</li>
+<p>conditions. A copilot that echoes a doctor's stated hypothesis will amplify anchoring.</p>
+<li><strong>The benchmark is MSA-only</strong>, which the authors flag as a limitation: it &quot;may not</li>
+<p>reflect real clinical communication using dialects.&quot; So the published numbers are an <em>upper bound</em> on real dialectal clinical performance.</p>
+<li>Authors' conclusion: *&quot;task specificity may be more critical than language specificity</li>
+<p>for Arabic medical tasks.&quot;*</p>
+</ul>
+<h3 id="53-other-arabic-medical-evaluation"><span class="secnum">5.3</span><span class="htext">Other Arabic medical evaluation</span></h3>
+<ul>
+<li><strong>AraHealthQA 2025</strong> (<a href="https://aclanthology.org/2025.arabicnlp-sharedtasks.18/">ACL Anthology</a>) —</li>
+<p>first shared task on Arabic health QA, two tracks: MentalQA and MedArabiQ, the latter spanning 12 specialties. Winning approaches were prompt-engineering + ensembling over <strong>Gemini 2.5 Flash</strong>, not fine-tuned Arabic models (<a href="https://arxiv.org/pdf/2509.11365">arXiv 2509.11365</a>).</p>
+<li><strong>Arabic Healthcare Understanding &amp; Reasoning</strong> (<a href="https://arxiv.org/html/2508.15797v1">arXiv 2508.15797</a>).</li>
+<li><strong>QIMMA</strong> (<a href="https://arxiv.org/pdf/2604.03395">arXiv 2604.03395</a>) argues many Arabic</li>
+<p>benchmarks are themselves unreliable — worth a caveat line in your write-up.</p>
+</ul>
+<h3 id="54-arabic-specialist-llms-for-completeness"><span class="secnum">5.4</span><span class="htext">Arabic-specialist LLMs, for completeness</span></h3>
+<ul>
+<li><strong>Falcon-H1-Arabic</strong> (TII, <a href="https://falcon-lm.github.io/blog/falcon-h1-arabic/">5 Jan 2026</a>) —</li>
+<p>hybrid Mamba-Transformer; 7B scores 71.47% avg on the Open Arabic LLM Leaderboard (beating Fanar-1-9B and ALLaM-7B), 34B scores 75.36% (beating Qwen2.5-72B and Llama-3.3-70B). Strong on 3LM (STEM), ArabCulture, AraDice (dialect).</p>
+<li><strong>Fanar 2.0</strong> (QCRI/HBKU, <a href="https://arxiv.org/pdf/2603.16397">arXiv 2603.16397</a>) —</li>
+<p>Fanar-2-27B-Instruct, Apache 2.0, ~Mar 2026.</p>
+<li><strong>ALLaM</strong> — now under HUMAIN (Saudi).</li>
+</ul>
+<blockquote><p>These are excellent for Arabic <em>fluency and culture</em> and poor for <em>medicine</em>. For a clinical copilot, use a frontier model and spend your effort on the prompt.</p></blockquote>
+<hr />
+<h2 id="6-rtl-bilingual-frontend"><span class="secnum">6</span><span class="htext">RTL / bilingual frontend</span></h2>
+<h3 id="61-the-core-bug-dirauto-uses-first-strong-not-majority"><span class="secnum">6.1</span><span class="htext">The core bug: <code>dir=&quot;auto&quot;</code> uses first-strong, not majority</span></h3>
+<p>The HTML <code>dir=&quot;auto&quot;</code> attribute resolves direction from the <strong>first strong directional character</strong> in the element, per the Unicode Bidirectional Algorithm. It is not a vote. <a href="https://dev.to/shayan_salehirad/direction-is-not-alignment-rendering-mixed-persian-and-english-text-2e67">Direction is not alignment (13 Sep 2026)</a> puts it precisely: <em>&quot;Appending Persian after an existing unisolated <code>Hello</code> does not make it switch merely because Persian now dominates.&quot;</em></p>
+<p>For your live captions this means: <strong>a caption line that begins with an English word renders entirely LTR</strong>, punctuation lands on the wrong side, and the Arabic reads right-aligned in a left-aligned block. The next line, beginning in Arabic, flips. The pane visually stutters.</p>
+<p><strong>Worse during streaming:</strong> tokens arrive incrementally. If the first token is Arabic the line commits RTL; if the first arriving token happens to be <code>patient</code> it commits LTR and the rest of the Arabic reflows under an LTR paragraph. Direction can visibly flip mid-stream.</p>
+<h3 id="62-fixes-in-order-of-effort"><span class="secnum">6.2</span><span class="htext">Fixes, in order of effort</span></h3>
+<ol>
+<li><strong>Compute direction per line from dominant script, not first character.</strong> Count Arabic-</li>
+<p>block codepoints (<code>U+0600–U+06FF</code>, plus <code>U+0750–U+077F</code>, <code>U+FB50–U+FDFF</code>, <code>U+FE70–U+FEFF</code>) vs Latin, set <code>dir</code> explicitly. This is the single highest-value fix and is ~15 lines. <a href="https://github.com/avizeapp/bidi-dir"><code>bidi-dir</code></a> is a zero-dependency library that does exactly this — &quot;resolve text direction by dominant script, not by the first character; fixes mixed Persian/Arabic/Hebrew text that <code>dir=&quot;auto&quot;</code> renders backwards.&quot;</p>
+<li><strong>Isolate every foreign-script span with <code>&lt;bdi&gt;</code>.</strong> Wrap each Latin run inside an Arabic</li>
+<p>line: <code>&lt;p dir=&quot;rtl&quot;&gt;عندي &lt;bdi dir=&quot;ltr&quot;&gt;patient&lt;/bdi&gt; عنده &lt;bdi dir=&quot;ltr&quot;&gt;chest pain&lt;/bdi&gt;&lt;/p&gt;</code>. <code>&lt;bdi&gt;</code> is exactly &quot;treat this text in isolation from its surroundings&quot; (<a href="https://codelucky.com/html-bdi-tag/">MDN/CodeLucky</a>). Equivalent CSS is <code>unicode-bidi: isolate</code>.</p>
+<li><strong>Separate the three concerns.</strong> Direction (<code>dir</code>), alignment (<code>text-align</code>) and</li>
+<p>isolation (<code>&lt;bdi&gt;</code>) are independent. The named &quot;critical mistake&quot; is conflating direction with alignment. You can legitimately want <code>dir=&quot;rtl&quot;</code> with <code>text-align: left</code> in a caption rail.</p>
+<li><strong>Freeze direction once committed during a stream.</strong> Decide the line's <code>dir</code> on first</li>
+<p>flush and don't recompute on every token, or accept flicker.</p>
+<li><strong>Next.js specifics.</strong> Next does <strong>not</strong> set direction from <code>lang</code> — you must set</li>
+<p><code>document.documentElement.dir</code> yourself, usually from your i18n layer (<a href="https://github.com/i18next/next-i18next/discussions/1738">next-i18next discussion #1738</a>). Use CSS logical properties (<code>margin-inline-start</code>, <code>padding-inline-end</code>, <code>inset-inline</code>) throughout rather than left/right so one <code>dir</code> flip restyles the whole app; Tailwind's <code>ms-*</code>/<code>me-*</code>/<code>ps-*</code>/<code>pe-*</code> and <code>rtl:</code>/<code>ltr:</code> variants cover this. (<a href="https://leancode.co/blog/right-to-left-in-react">LeanCode RTL in React</a>, <a href="https://better-i18n.com/en/blog/rtl-support-css-react-guide/">better-i18n RTL guide</a>)</p>
+<li><strong>If you want the heavy artillery</strong>, <a href="https://github.com/CodeinScrubs/BidiLens">BidiLens</a></li>
+<p>bundles per-block direction policy, inline isolation, <strong>streaming stability</strong>, and bidi-control auditing with React adapters. Probably overkill for 3 days, but its existence tells you streaming bidi is a known hard problem.</p>
+</ol>
+<h3 id="63-security-note-worth-one-line-in-the-write-up"><span class="secnum">6.3</span><span class="htext">Security note worth one line in the write-up</span></h3>
+<p>Unicode bidi control characters (RLO/LRO, <code>U+202A</code>–<code>U+202E</code>) can visually reorder text without changing its bytes — the &quot;Trojan Source&quot; class of attack. If transcripts are ever rendered into a clinical record, strip bidi control characters from ASR output before storage. BidiLens ships &quot;bidi-control auditing&quot; for this reason.</p>
+<hr />
+<h2 id="7-verdict"><span class="secnum">7</span><span class="htext">Verdict</span></h2>
+<h3 id="71-is-it-buildable-in-3-part-time-days-on-freecheap-tiers"><span class="secnum">7.1</span><span class="htext">Is it buildable in ~3 part-time days on free/cheap tiers?</span></h3>
+<p><strong>Yes — GO.</strong> The decisive change is that Arabic-English code-switching is now a line item you buy rather than a model you train. Concretely:</p>
+<ul>
+<li><strong>Speechmatics free tier</strong>: 480 min/month total, <strong>240 realtime minutes</strong>, 2 concurrent</li>
+<p>realtime sessions, 3,000 Voice Agent minutes. Pro is $0.0067/min realtime (~$0.40/hr). (<a href="https://www.speechmatics.com/pricing">Speechmatics pricing</a> via <a href="https://getpulsesignal.com/pricing/speechmatics">PulseSignal</a>, retrieved 18 Sep 2026 — <strong>verify on the pricing page directly; tier details move.</strong>)</p>
+<li><strong>Groq Whisper large-v3-turbo free tier</strong>: 20 RPM, 2,000 req/day, 28,800 audio sec/day,</li>
+<p>$0.04/hr paid — the cheapest possible <em>baseline</em> to A/B against (<a href="https://console.groq.com/docs/model/whisper-large-v3-turbo">Groq docs</a>).</p>
+<li><strong>Cohere Transcribe Arabic</strong>: free on Cohere's API with rate limits, Apache 2.0 weights.</li>
+<li><strong>Soniox</strong>: $0.12/hr realtime STT, $0.10/hr async, ~$0.70/hr TTS, no free tier documented.</li>
+<li><strong>Munsit</strong>: free 10,000 credits (~30 min), then $8/mo; $0.12/hr realtime.</li>
+<li><strong>ElevenLabs</strong>: Scribe realtime from ~$0.28/hr; TTS Flash v2.5 ~$0.05/min.</li>
+</ul>
+<p>A three-day budget of a few dollars covers the whole build.</p>
+<h3 id="72-the-single-biggest-risk"><span class="secnum">7.2</span><span class="htext">The single biggest risk</span></h3>
+<p><strong>The TTS output leg — specifically, rendering an LLM-generated Arabic sentence containing English drug names without mispronouncing them.</strong> Ranked reasoning:</p>
+<ol>
+<li>STT code-switching: <strong>solved by vendor choice.</strong> Low risk.</li>
+<li>TTS code-switching: <strong>not solved by vendor choice.</strong> ElevenLabs' own docs say automatic</li>
+<p>detection is unreliable on codemixed input and mandate explicit tags. You must build the tagging step. Unknowns compound: diacritization ambiguity on the Arabic, phoneme choice on the English, and no published Arabic-specific TTFT from anyone.</p>
+<li>Second-order risk: <strong>240 free realtime minutes disappears fast</strong> when you're re-running</li>
+<p>the same test sentence 200 times. Record 5–10 canonical WAV files on day 1 and iterate against files, not a live mic.</p>
+<li>Third: <strong>Gulf dialect.</strong> If your demo audio is Khaleeji rather than Egyptian, every</li>
+<p>number in §1.1 gets worse. Control this — pick your demo speaker.</p>
+</ol>
+<h3 id="73-minimum-viable-version-that-still-impresses"><span class="secnum">7.3</span><span class="htext">Minimum viable version that still impresses</span></h3>
+<p>Strip to the contrast, not the pipeline:</p>
+<ol>
+<li><strong>Mic → Speechmatics <code>ar_en</code> realtime → caption pane with correct bidi.</strong> That alone is</li>
+<p>the demo.</p>
+<li><strong>A/B toggle to Whisper-large-v3 via Groq</strong> on the same audio. Side by side. The</li>
+<p>audience sees <code>chest pain</code> survive on one side and dissolve into Arabic transliteration on the other. This is the single most persuasive 20 seconds you can build.</p>
+<li><strong>One LLM turn</strong> — a clinical summary or a drug-interaction flag — proving the code-</li>
+<p>switched transcript is machine-usable downstream (e.g. <code>aspirin</code> and <code>أسبرين</code> normalise to the same RxNorm-style key).</p>
+<li><strong>TTS reply with the script-range tagger</strong> (§3.4 option b). Even a 20-line regex tagger</li>
+<p>demonstrates you understood the problem.</p>
+<li><strong>Skip</strong>: speech-to-speech, dialect ID, diacritization models, Arabic-specialist LLMs,</li>
+<p>any fine-tuning. All are day-5+ work.</p>
+</ol>
+<h3 id="74-ranked-stack-for-arabic"><span class="secnum">7.4</span><span class="htext">Ranked stack for Arabic</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Rank</th><th style="text-align:left">Stack</th><th style="text-align:left">When to pick it</th></tr></thead><tbody><tr><td style="text-align:left"><strong>1</strong></td><td style="text-align:left">Speechmatics <code>ar_en</code> realtime → GPT-5/o3 → ElevenLabs Flash v2.5 + script tagger</td><td style="text-align:left">Default. Only true bilingual model, medical variant exists, free tier sufficient, plugins in both Pipecat and LiveKit.</td></tr><tr><td style="text-align:left"><strong>2</strong></td><td style="text-align:left">ElevenLabs Scribe v2 Realtime (~150 ms) → GPT-5 → ElevenLabs Flash v2.5</td><td style="text-align:left">If Speechmatics' <code>ar_en</code> config fights you on day 1. Independently benchmarked best on code-switching; one vendor for STT+TTS; ~150 ms.</td></tr><tr><td style="text-align:left"><strong>3</strong></td><td style="text-align:left">Soniox v5 realtime (sub-200 ms, $0.12/hr) → GPT-5 → Soniox TTS</td><td style="text-align:left">Cheapest coherent single-vendor bilingual option; explicitly claims mid-sentence switching and handles &quot;borrowed words&quot;. Weaker third-party validation (33.2% mixed error in Speechmatics' own test).</td></tr><tr><td style="text-align:left"><strong>4</strong></td><td style="text-align:left">Groq Whisper-v3-turbo → GPT-5 → ElevenLabs</td><td style="text-align:left"><strong>Baseline only.</strong> Use as the losing side of the A/B. Not viable as the product.</td></tr><tr><td style="text-align:left"><strong>5</strong></td><td style="text-align:left">Gemini Live native audio (Arabic <code>ar</code>)</td><td style="text-align:left">Optional toggle if already wired. No dialect docs, 2026 stability complaints, and it hides the transcript — which is your demo.</td></tr><tr><td style="text-align:left"><strong>—</strong></td><td style="text-align:left">Deepgram Nova-3 Arabic</td><td style="text-align:left"><strong>Avoid for this use case.</strong> 17 Arabic locales but Arabic is excluded from the code-switching multilingual mode. Fine for monolingual Arabic.</td></tr></tbody></table></div>
+<hr />
+<h2 id="8-what-i-could-not-verify"><span class="secnum">8</span><span class="htext">What I could not verify</span></h2>
+<p>Listed explicitly, as requested.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Claim</th><th style="text-align:left">Status</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Per-language-pair WER for Egyptian and Saudi Arabic in arXiv 2605.19069</strong></td><td style="text-align:left"><strong>NOT VERIFIED.</strong> The paper presents these only in Figures 2 and 3 (raster images); the text says &quot;Figures 2 and 3 report the per-language-pair results, making separate result tables unnecessary.&quot; I have the overall means (Table 4) and the difficulty quartiles (Table 5) verbatim from the PDF. An earlier automated read of the PDF produced per-pair numbers around &quot;45–50% for OpenAI on Egyptian&quot; — <strong>I could not confirm those in the extracted text and have excluded them.</strong> Do not cite them.</td></tr><tr><td style="text-align:left">Speechmatics 6.3% / 4.5% / 15.1% figures</td><td style="text-align:left"><strong>Vendor self-reported</strong>, test set unnamed, not independently reproduced.</td></tr><tr><td style="text-align:left">Melia 1 competitor numbers (Soniox 33.2%, AssemblyAI 40.9%, Amazon 45.6%)</td><td style="text-align:left"><strong>Vendor-run comparison</strong>, unnamed test set.</td></tr><tr><td style="text-align:left">Deepgram Nova-3 Arabic WER</td><td style="text-align:left"><strong>No published number exists.</strong> The &quot;~40% lower WER&quot; blog claim has no named benchmark and no date on the page.</td></tr><tr><td style="text-align:left">ElevenLabs Arabic-specific WER</td><td style="text-align:left">Only a docs <em>tier</em>: &quot;Good, &gt;10% to ≤20% WER&quot;. No point estimate, no dialect breakdown.</td></tr><tr><td style="text-align:left">Munsit &quot;sub-300 ms realtime&quot; and &quot;&lt;150 ms TTS&quot;</td><td style="text-align:left"><strong>Vendor self-reported.</strong> No independent measurement found.</td></tr><tr><td style="text-align:left">Arabic-specific TTS TTFT for any provider</td><td style="text-align:left"><strong>NOT VERIFIED.</strong> The SILMA 15 Sep 2026 benchmark gives global TTFT only, not per-language.</td></tr><tr><td style="text-align:left">Whether the Speechmatics <strong>medical</strong> Arabic-English model is available self-serve / on the free tier</td><td style="text-align:left"><strong>NOT VERIFIED.</strong> Press release says &quot;available now in our portal&quot;; no pricing or tier detail found. Check before relying on it.</td></tr><tr><td style="text-align:left">Exact Speechmatics bilingual Arabic config parameter</td><td style="text-align:left"><strong>CONFLICTING.</strong> Speechmatics docs list pack <code>ar_en</code>; Pipecat's service docs list bilingual packs <code>cmn_en</code>/<code>en_ms</code>/<code>en_ta</code> + <code>domain=&quot;bilingual-en&quot;</code> and <strong>do not include <code>ar_en</code></strong>. Resolve against the live API.</td></tr><tr><td style="text-align:left">Whether Scribe v2 Realtime covers the same 90+ languages as batch Scribe v2</td><td style="text-align:left"><strong>NOT STATED</strong> in ElevenLabs docs. Both are described as &quot;90+ languages&quot; but no realtime language list is published.</td></tr><tr><td style="text-align:left">Arabic quality reports for Gemini Live specifically</td><td style="text-align:left"><strong>NONE FOUND.</strong> All 2026 forum complaints are language-agnostic (compression, truncation, latency regressions).</td></tr><tr><td style="text-align:left">Arabic quality reports for OpenAI Realtime specifically</td><td style="text-align:left">Only a <strong>Feb 2025</strong> forum report of Arabic being returned in English. No 2026 Arabic-specific evaluation found.</td></tr><tr><td style="text-align:left">Whisper large-v3 vs large-v3-turbo Arabic difference</td><td style="text-align:left"><strong>NOT FOUND.</strong> No source compares the two on Arabic. Leaderboard figures are for large-v3.</td></tr><tr><td style="text-align:left">Modern commercial WER on MGB-2 / MGB-3</td><td style="text-align:left">Only Audar-ASR-V1-Turbo publishes MGB-2 (11.13). <strong>No commercial API publishes MGB-2 or MGB-3.</strong></td></tr><tr><td style="text-align:left">Gulf-dialect WER for any commercial provider</td><td style="text-align:left"><strong>NOT PUBLISHED by anyone.</strong> The 68.39 figure is open models only. Audar's 30.02 Gulf-Emirati number is a vendor-internal test set.</td></tr><tr><td style="text-align:left">Speechmatics free-tier exact limits</td><td style="text-align:left">Sourced from a third-party pricing aggregator, not the vendor page. Verify directly.</td></tr><tr><td style="text-align:left">Cartesia Sonic Arabic <em>quality</em></td><td style="text-align:left">Language support is documented (42→44 languages incl. Arabic); no Arabic quality or dialect evaluation exists.</td></tr><tr><td style="text-align:left">Artificial Analysis &quot;Scribe v2 first at 2.3% AA-WER (Feb 2026)&quot;</td><td style="text-align:left">This is an <strong>aggregate multilingual</strong> figure surfaced via search summary; I did not verify it on Artificial Analysis directly and it is <strong>not</strong> an Arabic number.</td></tr></tbody></table></div>
+<hr />
+<h2 id="sources"><span class="htext">Sources</span></h2>
+<ul>
+<li><a href="https://arxiv.org/html/2601.13319v1">Arab Voices: Mapping Standard and Dialectal Arabic Speech Technology, arXiv 2601.13319</a> — 19 Jan 2026</li>
+<li><a href="https://arxiv.org/abs/2605.19069">Benchmarking Commercial ASR Systems on Code-Switching Speech, arXiv 2605.19069</a> — May 2026</li>
+<li><a href="https://huggingface.co/spaces/elmresearchcenter/open_universal_arabic_asr_leaderboard">Open Universal Arabic ASR Leaderboard</a> · <a href="https://www.isca-archive.org/interspeech_2025/wang25_interspeech.pdf">Interspeech 2025 paper</a></li>
+<li><a href="https://arxiv.org/pdf/2410.04527">Casablanca: Data and Models for Multidialectal Arabic Speech Recognition, arXiv 2410.04527</a></li>
+<li><a href="https://cohere.com/blog/transcribe-arabic">Cohere Transcribe Arabic</a> — 7 Jul 2026</li>
+<li><a href="https://www.audarai.com/news/introducing-audar-asr-v1">Audar-ASR-V1</a> — 9 Jul 2026</li>
+<li><a href="https://munsit.com/blog/best-arabic-speech-to-text">Best Arabic Speech to Text in 2026 (Munsit)</a> — 3 Aug 2026</li>
+<li><a href="https://www.speechmatics.com/company/articles-and-news/arabic-english-bilingual-speech-to-text">Speechmatics: Arabic–English bilingual model</a> — 6 Mar 2026</li>
+<li><a href="https://finance.yahoo.com/news/speechmatics-achieves-world-first-bilingual-125400210.html">Speechmatics: Arabic–English medical model (press)</a> — 10 Mar 2026</li>
+<li><a href="https://www.speechmatics.com/company/articles-and-news/your-voice-agent-speaks-perfect-arabic-thats-the-problem">Speechmatics: Your voice agent speaks perfect Arabic. That's the problem.</a> — 5 Mar 2026</li>
+<li><a href="https://www.speechmatics.com/company/articles-and-news/melia-code-switching-arabic-mandarin-tamil">Speechmatics: Melia 1 code-switching</a> — 1 Sep 2026</li>
+<li><a href="https://docs.speechmatics.com/speech-to-text/languages">Speechmatics languages docs</a> · <a href="https://docs.livekit.io/agents/integrations/speechmatics/">LiveKit plugin</a> · <a href="https://docs.pipecat.ai/server/services/stt/speechmatics">Pipecat service</a></li>
+<li><a href="https://elevenlabs.io/docs/overview/models">ElevenLabs models</a> · <a href="https://elevenlabs.io/docs/overview/capabilities/speech-to-text">STT capabilities</a> · <a href="https://elevenlabs.io/blog/introducing-scribe-v2">Scribe v2 announcement</a> (9 Jan 2026) · <a href="https://elevenlabs.io/realtime-speech-to-text">Scribe v2 Realtime</a></li>
+<li><a href="https://developers.deepgram.com/docs/models-languages-overview">Deepgram models &amp; languages overview</a> · <a href="https://deepgram.com/learn/nova-3-arabic-speech-to-text-production-grade-stt">Nova-3 Arabic</a></li>
+<li><a href="https://soniox.com/platform/arabic">Soniox Arabic platform</a> · <a href="https://soniox.com/pricing">Soniox pricing</a></li>
+<li><a href="https://console.groq.com/docs/model/whisper-large-v3-turbo">Groq whisper-large-v3-turbo</a></li>
+<li><a href="https://silma.ai/blog/best-low-latency-arabic-text-to-speech-apis-for-developers-2026-benchmark">SILMA Arabic TTS latency benchmark</a> — 15 Sep 2026</li>
+<li><a href="https://munsit.com/blog/best-arabic-tts">Best Arabic TTS Tools (Munsit)</a> — 30 Jul 2026</li>
+<li><a href="https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/azure-ai-voices-in-arabic-improved-pronunciation/4360306">Azure AI Arabic voices, improved pronunciation</a> · <a href="https://learn.microsoft.com/en-us/azure/ai-services/speech-service/language-support">Azure language support</a></li>
+<li><a href="https://docs.cloud.google.com/text-to-speech/docs/list-voices-and-types">Google Cloud TTS voices</a> · <a href="https://docs.cloud.google.com/text-to-speech/docs/chirp3-hd">Chirp 3 HD</a></li>
+<li><a href="https://docs.cartesia.ai/build-with-cartesia/tts-models/latest">Cartesia TTS models</a></li>
+<li><a href="https://ai.google.dev/gemini-api/docs/live-api/capabilities">Gemini Live API capabilities</a> · <a href="https://discuss.ai.google.dev/t/gemini-3-1-flash-live-preview-first-audio-16-26-s-since-2026-09-05-09-00-utc-reproduced-on-an-isolated-project-same-model-on-2026-09-03/180927">Gemini Live latency regression report</a> (5 Sep 2026) · <a href="https://github.com/googleapis/python-genai/issues/2117">truncation issue</a></li>
+<li><a href="https://developers.openai.com/cookbook/examples/voice_solutions/realtime_translation_guide">OpenAI realtime translation guide</a> · <a href="https://community.openai.com/t/arabic-transcription-issue-with-openai-realtime-api/1117262">Arabic transcription issue</a> (10 Feb 2025)</li>
+<li><a href="https://arxiv.org/html/2602.01714">MedAraBench, arXiv 2602.01714</a> — 2 Feb 2026</li>
+<li><a href="https://arxiv.org/html/2505.03427">MedArabiQ, arXiv 2505.03427</a></li>
+<li><a href="https://aclanthology.org/2025.arabicnlp-sharedtasks.18/">AraHealthQA 2025 shared task</a> · <a href="https://arxiv.org/pdf/2509.11365">!MSA system paper, arXiv 2509.11365</a></li>
+<li><a href="https://arxiv.org/html/2508.15797v1">Arabic Healthcare Understanding &amp; Reasoning, arXiv 2508.15797</a> · <a href="https://arxiv.org/pdf/2604.03395">QIMMA, arXiv 2604.03395</a></li>
+<li><a href="https://falcon-lm.github.io/blog/falcon-h1-arabic/">Falcon-H1-Arabic</a> — 5 Jan 2026 · <a href="https://arxiv.org/pdf/2603.16397">Fanar 2.0, arXiv 2603.16397</a></li>
+<li><a href="https://arxiv.org/pdf/2211.12000">ArzEn-ST, arXiv 2211.12000</a> · <a href="https://arxiv.org/pdf/2406.18120">ArzEn-LLM, arXiv 2406.18120</a> · <a href="https://arxiv.org/pdf/2506.22143">SAGE, arXiv 2506.22143</a></li>
+<li><a href="https://aclanthology.org/2026.osact-1.31/">Fine-Tashkeel, KSAA-2026</a> · <a href="https://arxiv.org/pdf/2605.25928">Thaka, arXiv 2605.25928</a></li>
+<li><a href="https://dev.to/shayan_salehirad/direction-is-not-alignment-rendering-mixed-persian-and-english-text-2e67">Direction is not alignment</a> — 13 Sep 2026 · <a href="https://github.com/avizeapp/bidi-dir">bidi-dir</a> · <a href="https://github.com/CodeinScrubs/BidiLens">BidiLens</a> · <a href="https://codelucky.com/html-bdi-tag/">HTML bdi</a> · <a href="https://leancode.co/blog/right-to-left-in-react">RTL in React (LeanCode)</a> · <a href="https://github.com/i18next/next-i18next/discussions/1738">next-i18next direction discussion</a></li>
+<li><a href="https://www.rime.ai/resources/tts-voice-best-practices">Rime TTS best practices 2026</a> · <a href="https://telnyx.com/release-notes/tts-pronunciation-dictionaries">Telnyx pronunciation dictionaries</a></li>
+</ul>
+<p><em>Compiled 18 September 2026.</em></p>
+  </main>
+</div>

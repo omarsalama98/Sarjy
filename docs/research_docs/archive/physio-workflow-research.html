@@ -1,0 +1,552 @@
+<title>How Physiotherapists Actually Reason: Research for a Voice AI Clinical Thinking Partner</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --ink:       #14171c;
+    --ink-2:     #474e5a;
+    --ink-3:     #767e8b;
+    --line:      #e2e5ea;
+    --line-2:    #eef0f4;
+    --accent:    #2d4a7c;
+    --accent-bg: #edf1f8;
+    --warn:      #a6421f;
+    --warn-bg:   #fbf0eb;
+    --code-bg:   #f0f2f6;
+    --shadow:    0 1px 2px rgba(20,23,28,.05), 0 8px 24px -12px rgba(20,23,28,.15);
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #101317;
+      --surface:   #171b21;
+      --ink:       #e7eaef;
+      --ink-2:     #a8b0bc;
+      --ink-3:     #7b838f;
+      --line:      #2a2f38;
+      --line-2:    #22262d;
+      --accent:    #8fb0e6;
+      --accent-bg: #1a2130;
+      --warn:      #e2916d;
+      --warn-bg:   #2a1d17;
+      --code-bg:   #1d222a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #101317;
+    --surface:   #171b21;
+    --ink:       #e7eaef;
+    --ink-2:     #a8b0bc;
+    --ink-3:     #7b838f;
+    --line:      #2a2f38;
+    --line-2:    #22262d;
+    --accent:    #8fb0e6;
+    --accent-bg: #1a2130;
+    --warn:      #e2916d;
+    --warn-bg:   #2a1d17;
+    --code-bg:   #1d222a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .5rem 2.25rem; margin: 0; }
+  dl.meta div { display: flex; flex-direction: column; gap: .1rem; }
+  dl.meta dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  dl.meta dd { margin: 0; font-size: .9rem; color: var(--ink-2); }
+
+  /* ---- toc ---- */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 3rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--ink-3);
+    margin: 0 0 .75rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: flex;
+    gap: .7rem;
+    font-size: .92rem;
+    border-radius: 2px;
+  }
+  .toc a:hover { color: var(--accent); }
+  .tocnum, .secnum {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: .8em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- headings ---- */
+  h2, h3, h4 { font-family: var(--serif); letter-spacing: -.01em; text-wrap: balance; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    font-weight: 600;
+    margin: 3.5rem 0 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .75rem;
+    align-items: baseline;
+  }
+  h3 { font-size: 1.14rem; font-weight: 600; margin: 2.25rem 0 .7rem; display: flex; gap: .6rem; align-items: baseline; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; color: var(--ink-2); }
+  h2 .secnum, h3 .secnum { flex: none; }
+
+  p { margin: 0 0 1.05rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line-2); margin: 2.5rem 0; }
+
+  ul, ol { margin: 0 0 1.15rem; padding-left: 1.35rem; max-width: 68ch; }
+  li { margin-bottom: .38rem; }
+  li::marker { color: var(--ink-3); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+  .codewrap { overflow-x: auto; margin: 0 0 1.4rem; }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 0;
+    min-width: min-content;
+  }
+  pre code { background: none; padding: 0; font-size: .845rem; line-height: 1.6; }
+
+  blockquote {
+    margin: 0 0 1.4rem;
+    padding: .1rem 0 .1rem 1.15rem;
+    border-left: 3px solid var(--line);
+    color: var(--ink-2);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+  }
+  .callout p { margin-bottom: .6rem; color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--warn); }
+
+  .tablewrap { overflow-x: auto; margin: 0 0 1.6rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  th, td { padding: .6rem .85rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <h1>How Physiotherapists Actually Reason: Research for a Voice AI Clinical Thinking Partner</h1>
+    <dl class="meta"><div><dt>note</dt><dd><em>Research report — 18 September 2026</em></dd></div></dl>
+  </header>
+  <nav class="toc" aria-label="Contents"><p class="eyebrow">Contents</p><ol><li><a href="#summary">Summary</a></li><li><a href="#1-the-actual-referral-pathway"><span class="tocnum">1</span>The actual referral pathway</a></li><li><a href="#2-what-the-physio-actually-does-at-a-first-appointment"><span class="tocnum">2</span>What the physio actually does at a first appointment</a></li><li><a href="#3-red-flag-screening-is-it-genuinely-in-physio-scope"><span class="tocnum">3</span>Red flag screening — is it genuinely in physio scope?</a></li><li><a href="#4-clinical-reasoning-during-and-after"><span class="tocnum">4</span>Clinical reasoning — during, and after</a></li><li><a href="#5-what-physios-actually-look-up-and-what-has-a-usable-api"><span class="tocnum">5</span>What physios actually look up, and what has a usable API</a></li><li><a href="#6-known-reasoning-failure-modes"><span class="tocnum">6</span>Known reasoning failure modes</a></li><li><a href="#7-existing-products"><span class="tocnum">7</span>Existing products</a></li><li><a href="#sources">Sources</a></li></ol></nav>
+  <main>
+<h2 id="summary"><span class="htext">Summary</span></h2>
+<h3 id="the-three-things-to-act-on"><span class="htext">The three things to act on</span></h3>
+<ol>
+<li><strong>Your first assumption is half wrong, and the half that's wrong is the important half.</strong> Yes, in Egypt, Saudi Arabia and the UAE a physician referral is legally required. But in the UK, the US, the Netherlands and most of Western Europe, direct access is either the norm or the explicit policy direction. More importantly: <strong>even when a referral exists, it usually doesn't contain a diagnosis.</strong> One JOSPT study found only 32% of physician referral diagnoses were anatomically specific; a 2025 cross-sectional study found 33% of neck/back referrals arrived with <em>no</em> medical diagnosis at all, with &quot;pain&quot; as the stated reason in 88% of those. The physio is doing the diagnostic work in nearly every case — the referral label is a starting anchor, not an answer.</li>
+</ol>
+<ol>
+<li><strong>Your second assumption is mostly wrong as stated, but points at something real.</strong> Differential reasoning does <em>not</em> happen only after the appointment. The subjective exam <strong>is</strong> the differential — hypotheses form in the first minutes from the body chart, and the objective exam is explicitly designed as hypothesis <em>testing</em> (which tests you choose, and how hard you push, is determined by SINSS judgements made in the room). This is documented in the Jones/Edwards clinical reasoning literature and in think-aloud studies showing reflection-<em>in</em>-action during the encounter. <strong>What genuinely happens after the session is different and narrower:</strong> (a) documentation — 85% of US PTs report taking notes home; (b) reflection-<em>on</em>-action on the cases that didn't resolve cleanly; (c) the &quot;what else could this be / did I miss something&quot; re-check that new graduates describe carrying out of the room unresolved. Build for <em>that</em>, not for &quot;the differential.&quot;</li>
+</ol>
+<ol>
+<li><strong>Red flag screening is emphatically in physio scope — and physios are measurably bad at it unaided. This is your strongest product justification.</strong> Austrian registered physiotherapists (n=479, 2024) correctly classified 79.4% of non-critical medical cases and 70.5% of MSK cases — but only <strong>53.3% of critical medical cases</strong>. A coin flip on the cases that kill people. The professional bodies (IFOMPT/JOSPT 2020, CSP, APTA) place this squarely in scope, and the UK's National Suspected Cauda Equina Pathway makes specific screening and documentation <em>mandatory</em> for physios regardless of who referred.</li>
+</ol>
+<h3 id="the-design-consequences"><span class="htext">The design consequences</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Finding</th><th style="text-align:left">What it means for the product</th></tr></thead><tbody><tr><td style="text-align:left">Referral labels are non-specific or absent in ~1/3 to 2/3 of cases</td><td style="text-align:left">The referral diagnosis is an <strong>anchor to be challenged</strong>, not context to be trusted. Surface it as a hypothesis with a confidence level, not as a fact.</td></tr><tr><td style="text-align:left">Reasoning happens in-room; only <em>checking</em> happens after</td><td style="text-align:left">The post-session slot is real but narrow. The highest-leverage untapped slot is the <strong>pre-session brief for the next appointment</strong> — physios see patients repeatedly and arrive cold.</td></tr><tr><td style="text-align:left">Red flags have poor individual diagnostic accuracy (Downie, BMJ 2013)</td><td style="text-align:left"><strong>Do not build a checklist that fires alerts.</strong> The current international framework explicitly rejects checklists in favour of an &quot;index of suspicion&quot; that accumulates across sessions. A checklist product would be professionally out of date on arrival.</td></tr><tr><td style="text-align:left">Physios are the longitudinal contact; symptoms emerge between visits</td><td style="text-align:left">Track red-flag signal <strong>across the episode</strong>, not per-visit. This is a capability nobody currently has and no scribe can produce.</td></tr><tr><td style="text-align:left">53.3% accuracy on critical medical cases</td><td style="text-align:left">Challenge-the-reasoning is the value proposition, not documentation speed.</td></tr></tbody></table></div>
+<h3 id="one-external-api-recommendation"><span class="htext">One external API — recommendation</span></h3>
+<p><strong>Europe PMC REST API.</strong> Free, no API key, no rate-limit gate for normal use, covers 37.8M abstracts plus 3.2M open-access full texts, supports structured queries and returns citations with dates. Justification: the actual post-session physio question is <em>&quot;is there evidence for X in this presentation&quot;</em> / <em>&quot;what's current on Y&quot;</em>, and Europe PMC lets every claim the voice partner makes carry a real, checkable, dated reference. Runner-up considered and rejected: NICE Syndication API is free <strong>only inside the UK</strong> and charges territory-based licence fees overseas — a hard blocker if your physio is in Egypt or the Gulf. PEDro (the physiotherapy-specific evidence database, 70,000+ records) has <strong>no public API that I could find</strong> — verify directly with them before assuming otherwise.</p>
+<p>Clinical prediction rules (Ottawa ankle, Canadian C-spine) should be <strong>hardcoded, not API-called</strong>: they are short, stable, public algorithms, and an API is the wrong shape for them.</p>
+<h3 id="what-i-could-not-verify"><span class="htext">What I could not verify</span></h3>
+<ul>
+<li>No national statistic exists (that I could find) for <strong>what proportion of NHS MSK physiotherapy patients currently self-refer</strong>. Policy commitment and service-level data exist; the headline number does not.</li>
+<li><strong>Egypt</strong>: I found no primary regulatory document. The &quot;no direct access&quot; claim traces to secondary sources citing the General Physical Therapy Syndicate. Treat as probable but unconfirmed.</li>
+<li><strong>No physiotherapy-specific diagnostic error prevalence study exists.</strong> The cognitive bias literature (anchoring, premature closure, diagnostic momentum) is imported from medicine. I found the concepts applied to physio qualitatively, never measured.</li>
+<li>Several key papers (JOSPT, Physiopedia, PubMed, ScienceDirect) blocked automated retrieval. Where I relied on search-engine summaries rather than primary text, I have flagged it inline as <strong>[secondary]</strong>.</li>
+</ul>
+<hr />
+<h2 id="1-the-actual-referral-pathway"><span class="secnum">1</span><span class="htext">The actual referral pathway</span></h2>
+<h3 id="the-global-picture"><span class="htext">The global picture</span></h3>
+<p>World Physiotherapy's <strong>Annual Membership Census 2023</strong> (published January 2024; 119 of 127 member organisations responding, 93.7% response rate) found that <strong>35% reported full direct access</strong> in their country or territory — people could see a physiotherapist without referral. That is the cleanest single global number available. It also means ~65% do not have full direct access, which is why your physio's intuition is grounded in something real.</p>
+<p>But that global average conceals two completely different worlds.</p>
+<h3 id="where-direct-access-is-the-norm-or-the-trajectory"><span class="htext">Where direct access is the norm or the trajectory</span></h3>
+<p><strong>United States.</strong> As of <strong>1 July 2025</strong>, per APTA's <em>State of Direct Access to Physical Therapist Services</em> report, <strong>all 50 states, DC and the US Virgin Islands have either provisional or unrestricted direct access</strong> for evaluation and treatment — 21 states unrestricted, 29 plus DC and USVI provisional (time limits, visit caps, or referral requirements for specific procedures such as needle EMG). Note the important gap APTA itself flags: <em>legal</em> direct access ≠ <em>reimbursed</em> direct access. Payer policies still require referrals or prior authorisation in many cases, which is why utilisation lags legality.</p>
+<p>Utilisation data: a large non-Medicare claims analysis of 62,707 outpatient PT episodes (Iowa and South Dakota) found <strong>27% were self-referred</strong> — over 17,000 self-referred versus over 45,000 physician-referred. Self-referred episodes used 86% of the visits and $0.87 for every $1.00 of physician-referred episodes. An earlier PTJ study (1997) found direct access episodes averaged <strong>7.6 visits versus 12.2</strong>, and <strong>$1,004 versus $2,236</strong>.</p>
+<p><strong>United Kingdom.</strong> Two separate mechanisms:</p>
+<ul>
+<li><em>Private practice</em>: a chartered physiotherapist may treat a self-referring patient directly. No referral has ever been required. The CSP actively promotes self-referral as practice improvement.</li>
+<li><em>NHS primary care</em>: <strong>First Contact Physiotherapy (FCP)</strong> embeds physios in general practice as the first clinician a patient sees, no GP consultation first. Funded via the Additional Roles Reimbursement Scheme (from 2019); the <strong>NHS Long Term Plan committed to direct access to MSK FCPs for all adults in England by 2023/24</strong>. The CSP estimates <strong>85% of patients presenting to a GP with an MSK problem could be seen safely by a physiotherapist straight away</strong>. MSK accounts for roughly 20–30% of all GP consultations.</li>
+</ul>
+<p>The BJGP evaluation (Goodwin et al., <em>Br J Gen Pract</em> 2024;74(747):e717) — 426 adults across 46 UK general practices, December 2019 to October 2022 — found FCP patients re-consulted their GP for the same problem in <strong>8.3%</strong> of cases versus <strong>30.9%</strong> for those who started with the GP; fewer medications including opioids; lower NHS costs; and <strong>&quot;no safety issues were identified&quot;</strong> across any arm. That last finding matters for your product's positioning: the safety objection to physio-first has been tested and did not hold.</p>
+<p><strong>European Union.</strong> Bury &amp; Stokes' review (<em>Physiotherapy</em>, 2013) found that in <strong>over half of EU member states</strong> service users can self-refer. Self-referral is the established norm in the Netherlands, Norway, Sweden and the UK. This is the most recent comprehensive EU mapping I could find — it is over a decade old, and the direction of travel since has been toward more access, not less.</p>
+<h3 id="where-the-always-referred-assumption-is-straightforwardly-tr"><span class="htext">Where the &quot;always referred&quot; assumption is straightforwardly true</span></h3>
+<p><strong>Egypt.</strong> Direct access is <strong>not</strong> permitted; patients require a referral. The profession is regulated by the General Physical Therapy Syndicate under Professional Practice Law No. 3 of 1985 and General Syndicate Law No. 209 of 1994; only graduates of physiotherapy faculties may practise. <strong>[secondary — I could not obtain a primary regulatory text; treat as probable, not confirmed.]</strong></p>
+<p><strong>Saudi Arabia.</strong> Direct access is <strong>not</strong> allowed; all patients need a physician referral, and referrals sometimes specify which intervention to use. Physiotherapy is positioned as a secondary care service. Licensing is via the Saudi Commission for Health Specialties. A 2025 cross-sectional study of Saudi physiotherapists found <strong>55.3% never or rarely consult a scope-of-practice document</strong>, and only <strong>24.7% correctly identified which practice settings permit direct access</strong> — i.e. even the practitioners are unclear on their own boundaries.</p>
+<p><strong>United Arab Emirates.</strong> Direct access is not implemented in public health services (Alnaqbi, Shousha, AlKetbi &amp; Hegazy, <em>PLOS ONE</em>, 11 June 2021; n=264). 70% of physiotherapists were aware of the concept, 30% had never heard of it. Barriers identified: limited physician and policymaker support, restricted autonomy, limited scope of practice, weak EBP infrastructure, and <strong>concerns about diagnostic competence</strong> — which is, notably, exactly the gap your product addresses.</p>
+<h3 id="verdict-on-assumption-1"><span class="htext">Verdict on assumption 1</span></h3>
+<blockquote><p><strong>Partially correct, geographically. Wrong in its implication.</strong></p></blockquote>
+<p>If your physio practises in Egypt or the Gulf, &quot;patients arrive referred&quot; is accurate. If they practise in the UK, US or most of Western Europe, it is increasingly false and getting falser.</p>
+<p>But the implication — <em>&quot;so the physio is not the one making the diagnosis&quot;</em> — does not follow even where the referral is universal, for three independent reasons:</p>
+<p><strong>(a) The referral usually contains no usable diagnosis.</strong> Jette et al. (<em>JOSPT</em> 2005;35(9):572–579) found only <strong>32%</strong> of physician referral diagnoses to physical therapy were anatomically oriented and reported specific pathology. A 2025 cross-sectional study of neck and low back pain referrals found <strong>33% arrived with no medical diagnosis at all</strong>, with &quot;pain&quot; the stated reason in <strong>88%</strong> of those. The referral is an access token, not a diagnosis.</p>
+<p><strong>(b) Physiotherapy diagnosis is a separate professional act.</strong> APTA House of Delegates policy (**HOD P07-25-70-57, *Diagnosis by Physical Therapists*<strong>) states plainly that &quot;physical therapists shall establish a diagnosis for each patient/client,&quot; and that PTs order diagnostic tests including imaging and labs where indicated. A companion policy (</strong>HOD P06-15-25-24**) endorses movement system diagnostic labels distinct from pathoanatomic ones. The physio's diagnosis answers a different question from the doctor's: not <em>what is the tissue pathology</em> but <em>what is the movement dysfunction, what drives it, and what will change it</em>.</p>
+<p><strong>(c) Where measured, physios diagnose at parity with physicians.</strong> Pooled κ for diagnostic concordance between advanced practice physiotherapists and physicians is <strong>0.76 (95% CI 0.68–0.85)</strong> on moderate-certainty evidence. In an emergency department study, raw agreement was 86.1% with Gwet's AC1 = 0.84 (95% CI 0.69–0.98); a knee-disorder study found κ = 0.81 (95% CI 0.72–0.90); orthopaedic clinic studies report 74.5–90% agreement. The most common disagreement pattern: physios suspected fracture or contusion where the physician diagnosed a ligament or meniscal problem — i.e. physios erred toward caution.</p>
+<p><strong>Design implication.</strong> The referral diagnosis should enter your system as a <strong>labelled prior with a confidence weight</strong>, and the product should explicitly and routinely ask whether the findings support it. Treating the referral label as established context is the single most likely way to build anchoring bias into the tool.</p>
+<hr />
+<h2 id="2-what-the-physio-actually-does-at-a-first-appointment"><span class="secnum">2</span><span class="htext">What the physio actually does at a first appointment</span></h2>
+<p>The documented structure is stable across the English-speaking training tradition (Maitland-derived, taught essentially the same way in the UK, Australia, Ireland, and much of the Gulf and Egypt where curricula follow it).</p>
+<h3 id="the-subjective-examination-canonical-order"><span class="htext">The subjective examination — canonical order</span></h3>
+<ol>
+<li><strong>Demographics, occupation, functional demands, patient's own goals</strong></li>
+<li><strong>Body chart</strong> — symptom distribution mapped on a body outline. Depth (deep/superficial), quality, constancy (constant vs intermittent), and presence of paraesthesia/numbness. Physiopedia's account is explicit that the body chart &quot;should give the physiotherapist an initial impression (<strong>working hypothesis</strong>) as to which structures may be involved&quot; — the differential starts here, in the first few minutes.</li>
+<li><strong>Aggravating factors</strong> — what activity/movement/position/posture provokes symptoms, <em>how long</em> it takes to provoke, and <em>how much</em> activity is required.</li>
+<li><strong>Easing factors</strong> — what relieves, and <em>how long</em> relief takes to arrive.</li>
+<li><strong>24-hour behaviour (diurnal pattern)</strong> — morning (including duration of morning stiffness — the key discriminator for inflammatory arthropathy), through the day, evening, night (night pain being a cardinal red flag).</li>
+<li><strong>History of present condition</strong> — onset (traumatic vs insidious), mechanism, progression, previous episodes, treatment to date and response.</li>
+<li><strong>Past medical history, medications, imaging, special questions / red flags</strong></li>
+<li><strong>Social history, yellow flags</strong> (beliefs, fear-avoidance, work and compensation context)</li>
+</ol>
+<h3 id="sinss-the-framework-that-governs-everything-downstream"><span class="htext">SINSS — the framework that governs everything downstream</span></h3>
+<p><strong>Severity, Irritability, Nature, Stage, Stability.</strong> The authoritative modern treatment is Petersen EJ, Thurmond SM &amp; Jensen GM, <em>&quot;Severity, Irritability, Nature, Stage, and Stability (SINSS): A clinical perspective,&quot; Journal of Manual &amp; Manipulative Therapy</em> 2021;29(5):297–309.</p>
+<p>SINSS is <strong>not</strong> a documentation category. It is the decision function that determines <strong>how much objective examination to perform and how hard to push</strong>. Its stated purpose is to help the clinician &quot;filter and group information, prioritise the problem list, and determine which tests should be used and when&quot; — ensuring &quot;the patient isn't under- or over-examined and/or treated&quot; — and explicitly to <strong>reduce clinical reasoning errors</strong>.</p>
+<ul>
+<li><strong>Severity</strong> — intensity of symptoms and the degree to which they limit activity.</li>
+<li><strong>Irritability</strong> — Maitland's construct: <em>the ease with which symptoms are provoked and the time they take to settle.</em> Three characteristics govern classification: the time and vigour of activity required to aggravate; the severity of the pain produced; and the persistence of pain after the aggravating activity stops. Highly irritable = easily provoked, moderate-to-severe, slow to settle. The practical test is comparative: &quot;pain goes immediately when I stand up straight&quot; (low irritability) versus &quot;pain persists 10–15 minutes after standing up straight&quot; (high). Reliability of clinicians' irritability judgements has been formally studied in low back pain (<em>J Man Manip Ther</em>, 2009) and is imperfect — which is itself a reasoning-support opportunity.</li>
+<li><strong>Nature</strong> — the clinician's hypothesis about the tissue/pathology/mechanism, including psychosocial contributors and precautions.</li>
+<li><strong>Stage</strong> — acute / subacute / chronic.</li>
+<li><strong>Stability</strong> — improving, worsening, or static. This is the variable most likely to change <em>between</em> sessions and the one your product is best placed to track.</li>
+</ul>
+<p>The 2021 paper is candid that SINSS &quot;has been inconsistently defined and applied in clinical practice&quot; — which means a voice partner that applies it <em>consistently</em> is adding something real, not just formalising what already happens.</p>
+<h3 id="the-objective-examination-hypothesis-testing-not-a-protocol"><span class="htext">The objective examination — hypothesis testing, not a protocol</span></h3>
+<p>Standard sequence: observation (posture, symmetry, atrophy/hypertrophy, signs of inflammation, gait) → active range of motion including functional tasks → passive physiological movement → overpressure → resisted/muscle testing → neurological screening (myotomes, dermatomes, reflexes) → special tests → palpation → accessory/joint play movements.</p>
+<p>The critical point for your product: <strong>which of these tests get performed, and in what order, and with how much force, is decided by the SINSS judgement made in the subjective.</strong> A highly irritable presentation gets a truncated exam that stops before symptom reproduction. That decision is made <em>in the room</em>, in real time. This is why assumption 2 is wrong (see §4).</p>
+<h3 id="pain-scales-and-outcome-measures"><span class="htext">Pain scales and outcome measures</span></h3>
+<ul>
+<li><strong>NPRS</strong> (Numeric Pain Rating Scale, 0–10) — the working default. MCID commonly cited as a <strong>2-point reduction or 30% decrease</strong>.</li>
+<li><strong>VAS</strong> — 100mm line; largely superseded by NPRS in verbal/telehealth contexts because NPRS can be administered by voice.</li>
+<li><strong>PSFS</strong> (Patient-Specific Functional Scale) — patient nominates 3–5 activities they can't do, rates each 0–10. Region-agnostic, exceptionally well-suited to voice capture.</li>
+<li><strong>Region-specific</strong>: ODI (Oswestry Disability Index, low back — MCID commonly 8–10 points), NDI (neck), LEFS (lower extremity — MCID 9 points), UEFI / QuickDASH (upper limb), KOOS/HOOS (knee/hip), SPADI (shoulder).</li>
+</ul>
+<p><strong>Licensing caution:</strong> several of these are copyrighted instruments with restrictions on reproduction in commercial software. NPRS and PSFS are the safest to implement directly; check ODI and DASH licensing before embedding.</p>
+<hr />
+<h2 id="3-red-flag-screening-is-it-genuinely-in-physio-scope"><span class="secnum">3</span><span class="htext">Red flag screening — is it genuinely in physio scope?</span></h2>
+<h3 id="short-answer-yes-unambiguously-and-the-referral-does-not-dis"><span class="htext">Short answer: yes, unambiguously, and the referral does not discharge the duty</span></h3>
+<p>The definitive document is the <strong>International Framework for Red Flags for Potential Serious Spinal Pathologies</strong> — Finucane LM, Downie A, Mercer C, Greenhalgh SM, Boissonnault WG, Pool-Goudzwaard AL et al., <em>JOSPT</em> 2020;50(7):350–372. It was led by <strong>IFOMPT</strong> — the international federation of orthopaedic manipulative <em>physical therapists</em>. The profession wrote its own framework. Scope is not in question.</p>
+<h3 id="the-canonical-msk-red-flag-categories"><span class="htext">The canonical MSK red flag categories</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Category</th><th style="text-align:left">Representative features</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Cauda equina syndrome</strong></td><td style="text-align:left">Bladder/bowel dysfunction, saddle anaesthesia, bilateral radicular pain, sexual dysfunction</td></tr><tr><td style="text-align:left"><strong>Fracture</strong></td><td style="text-align:left">Significant trauma, osteoporosis, prolonged corticosteroid use, older age</td></tr><tr><td style="text-align:left"><strong>Malignancy</strong></td><td style="text-align:left">Previous cancer history, unexplained weight loss, age &gt;50, failure to improve with conservative care, night pain</td></tr><tr><td style="text-align:left"><strong>Infection</strong> (spinal/septic arthritis)</td><td style="text-align:left">Fever, IV drug use, immunosuppression, recent systemic infection, unremitting pain</td></tr><tr><td style="text-align:left"><strong>Inflammatory arthropathy</strong></td><td style="text-align:left">Age &lt;45 at onset, insidious onset, &gt;30min morning stiffness, improvement with exercise not rest, night waking in second half of night, good NSAID response</td></tr><tr><td style="text-align:left"><strong>Vascular</strong> (AAA, cervical arterial dysfunction)</td><td style="text-align:left">Pulsatile mass, cardiovascular risk profile; for cervical — the &quot;5 Ds and 3 Ns&quot;</td></tr></tbody></table></div>
+<h3 id="the-crucial-nuance-red-flags-perform-badly-individually"><span class="htext">The crucial nuance: red flags perform badly individually</span></h3>
+<p>**Downie A et al., <em>BMJ</em> 2013 Dec 11;347:f7095** — systematic review of red flags to screen for fracture and malignancy in low back pain (14 studies). Findings:</p>
+<ul>
+<li>Only <strong>13 red flags (25%)</strong> had been evaluated in more than one study.</li>
+<li>Of the four red flags endorsed by the American College of Physicians guideline, only older age, trauma and corticosteroid use had any data — and <strong>even when present, they raised the likelihood of fracture by up to only 15%</strong>.</li>
+</ul>
+<p>A 2025 scoping review on red flags for spinal malignancy reached similar conclusions about diagnostic utility.</p>
+<p><strong>This is the single most important thing for your product to get right.</strong> The 2020 international framework was written precisely because guidelines disagreed about which red flags to use, &quot;which has led to confusion and inconsistency in clinical management.&quot; Its answer is not a better checklist — it is a <strong>clinical reasoning pathway</strong> in which red flags contribute to an evolving <em>index of suspicion</em>. Greenhalgh &amp; Selfe's <em>Red Flags</em> pocketbooks (Elsevier) formalise the same idea with a <strong>hierarchy of red flags</strong>, an <strong>index of suspicion</strong>, explicit treatment of <strong>&quot;red herrings&quot;</strong>, and conditional probability reasoning.</p>
+<p><strong>A voice AI that fires binary red-flag alerts would be building the exact artefact the profession spent a decade moving away from.</strong> The correct model is cumulative suspicion across the episode.</p>
+<h3 id="yes-physios-are-the-longitudinal-safety-net-this-is-document"><span class="htext">Yes — physios are the longitudinal safety net. This is documented.</span></h3>
+<p>This part of your framing is <strong>correct and under-exploited</strong>.</p>
+<ul>
+<li>Serious pathology &quot;can develop between the physician consultation and the initial physical therapy evaluation&quot; — the referral is a snapshot; the physio has the film.</li>
+<li>**Boissonnault WG &amp; Ross MD, &quot;Physical Therapists Referring Patients to Physicians: A Review of Case Reports and Series,&quot; <em>JOSPT</em> 2012;42(5):446–454<strong> — identified </strong>78 published case reports** of physical therapists referring patients to physicians with a subsequent medical diagnosis. Presenting symptoms: pain (n=60), weakness (n=4), tingling/numbness (n=2), combination (n=12).</li>
+<li>Documented example: a 48-year-old woman referred for low back pain who, <strong>at the sixth session</strong>, reported new left hand weakness and headaches — referred to the emergency department, diagnosed with lung cancer. The signal simply did not exist at session one. <strong>[secondary — surfaced via search summary of the case report literature; verify the primary before citing publicly.]</strong></li>
+<li>Ross MD et al., <em>&quot;Physical Therapist Clinical Reasoning and Action for Individuals With Undiagnosed Lower Extremity Tumors: A Report of 3 Cases,&quot; JOSPT</em> 2017 — three tumours found by physios during episodes of care.</li>
+<li>A vestibular therapist correctly identified stroke from vertebral artery dissection in a patient physicians had diagnosed as BPPV (<em>Diagnosis</em>, 2016 — &quot;Diagnosis is a team sport&quot;).</li>
+</ul>
+<p>The red-flag literature also names the mechanism by which the referring doctor's error propagates: <strong>&quot;diagnostic momentum, in which the initial diagnostic label given to the patient prohibits investigation of alternate possibilities downstream.&quot;</strong> That is your product's adversary, stated by the profession in its own words.</p>
+<h3 id="professional-body-guidance"><span class="htext">Professional body guidance</span></h3>
+<p><strong>CSP (UK).</strong> The <strong>National Suspected Cauda Equina Syndrome Pathway</strong> (published February 2023; implications for physiotherapists set out by Williams JT, Lister H, Fakouri B &amp; Panchmatia JR in <em>Physiotherapy</em>, March 2024;122(1)) imposes specific, non-optional obligations on physiotherapists:</p>
+<ul>
+<li>Screen for symptoms of <strong>recent onset (&lt;2 weeks)</strong>: new difficulty initiating or impaired sensation of urinary flow; altered perianal/perineal/genital sensation; severe or progressive lower limb neurological deficit; loss of rectal fullness sensation; new sexual dysfunction.</li>
+<li>Sudden bilateral leg pain, or unilateral progressing to bilateral, requires urgent (&lt;2 week) MSK referral.</li>
+<li>Document lower limb power and sensation. Digital rectal examination is <strong>not</strong> required in community/triage settings, but subjective perianal sensation assessment <strong>is</strong>.</li>
+<li><strong>&quot;Negative examination findings do not exclude CES if positive subjective symptoms are present.&quot;</strong></li>
+<li>Safety-net with CES warning cards and videos for patient self-monitoring.</li>
+<li>Emergency referral on suspicion — and <strong>&quot;if a telephone assessment has taken place, it is not necessary to examine the patient face-to-face prior to making an emergency referral.&quot;</strong></li>
+</ul>
+<p>The CSP also publishes <em>Learning from litigation: cauda equina syndrome</em> — a signal that this is where physios get sued. And CSP guidance confirms that <strong>requesting plain X-ray, ultrasound and MRI is within physiotherapy scope</strong>, with FCPs ideally holding the same referral rights as primary care colleagues.</p>
+<p><strong>APTA (US).</strong> Diagnosis, differential screening and referral are core scope (HOD P07-25-70-57). The JOSPT editorial <em>&quot;Red Flags: To Screen or Not to Screen?&quot;</em> (2010) states the duty directly: it is the physical therapist's responsibility to use a management model that evaluates red flag findings and triggers referral.</p>
+<h3 id="the-uncomfortable-evidence-physios-are-not-good-at-this-unai"><span class="htext">The uncomfortable evidence: physios are not good at this unaided</span></h3>
+<p>This is your justification. It is strong and it is quantified.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Study</th><th style="text-align:left">Population</th><th style="text-align:left">Result</th></tr></thead><tbody><tr><td style="text-align:left">Austrian registered physiotherapists, <em>BMC Primary Care</em> 2024</td><td style="text-align:left">n=479, clinical vignettes</td><td style="text-align:left"><strong>70.5%</strong> MSK cases, <strong>79.4%</strong> non-critical medical, <strong>53.3% critical medical</strong> correctly classified</td></tr><tr><td style="text-align:left">European final-year physiotherapy students, 15 countries (<em>Musculoskelet Sci Pract</em>, 2017)</td><td style="text-align:left">undergraduate</td><td style="text-align:left">mean <strong>53%</strong> (median 67%) of critical medical vignettes correct</td></tr><tr><td style="text-align:left">Specific low back pain vignettes, 2026</td><td style="text-align:left">qualified physios</td><td style="text-align:left"><strong>47%</strong> detection for lumbar spinal stenosis; <strong>28%</strong> for spondyloarthritis</td></tr><tr><td style="text-align:left">French physiotherapists, self-referred patients (2023)</td><td style="text-align:left">vignettes</td><td style="text-align:left">management decisions outperformed diagnostic hypotheses, &quot;especially for the critical medical category&quot;</td></tr></tbody></table></div>
+<p>A ~50% hit rate on the cases where being wrong causes catastrophic harm, in a profession where the practitioner sees the patient eight times and the doctor saw them once. That is the gap.</p>
+<p>A 2025 feasibility study (<em>BMC Medical Education</em>) tested digital educational training to improve serious-pathology recognition — evidence the profession is actively looking for exactly this kind of intervention.</p>
+<hr />
+<h2 id="4-clinical-reasoning-during-and-after"><span class="secnum">4</span><span class="htext">Clinical reasoning — during, and after</span></h2>
+<h3 id="correcting-assumption-2"><span class="htext">Correcting assumption 2</span></h3>
+<blockquote><p><strong>&quot;Differential reasoning happens AFTER the appointment, not in front of the patient.&quot;</strong>  <strong>This is wrong as a description of clinical reasoning, and right as a description of workflow. The distinction matters enormously for what you build.</strong></p></blockquote>
+<p><strong>Why it's wrong.</strong> The entire architecture of the physiotherapy assessment is built on in-room differential reasoning:</p>
+<ul>
+<li>Hypotheses are generated from the <strong>body chart</strong>, within minutes, and explicitly described in the teaching literature as the &quot;working hypothesis.&quot;</li>
+<li>The <strong>objective examination is hypothesis testing.</strong> You do not run a fixed battery; you select tests to discriminate between the hypotheses you formed in the subjective. If differential reasoning happened afterwards, test selection would be impossible.</li>
+<li><strong>SINSS is an in-room reasoning act with immediate consequences</strong> — it determines whether you stop the exam before reproducing symptoms.</li>
+<li>Physiotherapists in the MSK field are documented to use <strong>&quot;hypothetico-deductive reasoning and early hypothesis generation and testing&quot;</strong> in patient management (Jones).</li>
+<li><strong>Reflection-in-action</strong> — Schön's term for real-time adjustment during the encounter — is documented empirically in physiotherapists. Gilliland S &amp; Wainwright SF, <em>&quot;Patterns of Clinical Reasoning in Physical Therapist Students,&quot; Physical Therapy</em> 2017;97(5):499–, used retrospective think-aloud after standardised patient encounters and found participants &quot;frequently employed reflection-in-action during patient encounters.&quot;</li>
+</ul>
+<p>Note the finding from that same study that maps directly onto your physio's self-report: four reasoning patterns emerged — <strong>protocol-based</strong>, hypothetico-deductive, pain reasoning, and behaviour analysis. Protocol-based reasoning (running a standard sequence, deferring interpretation) is a real and observed pattern — it is the <em>novice</em> pattern. A physio who says &quot;I do the assessment, then think about it later&quot; may be accurately describing a protocol-based workflow. That is a thing to support carefully, not a thing to design the whole product around as if it were expert practice.</p>
+<p><strong>Why it's right anyway.</strong> Three post-session activities are real, documented, and currently unsupported:</p>
+<ol>
+<li><strong>Documentation, which genuinely happens later.</strong> Per WebPT's <em>State of Rehab Therapy</em> 2024 <strong>[secondary]</strong>: 85% of physical therapists take documentation home; 36% name it a leading cause of burnout; only ~35% finish documentation during paid hours. Reported time: 8–15 minutes per encounter, 2–6 hours per day. Clinic norms vary from &quot;notes done by end of day&quot; to &quot;clinicians documenting until 7pm.&quot;</li>
+</ol>
+<ol>
+<li><strong>Reflection-on-action.</strong> Schön's second category — looking back at what happened after the encounter. Distinct from reflection-in-action, and this is where the referral diagnosis gets genuinely reconsidered, where the non-responding patient gets rethought, and where literature gets looked up.</li>
+</ol>
+<ol>
+<li><strong>Unresolved uncertainty carried out of the room.</strong> Phua R, Mandrusiak A, Singh L, Martin R &amp; Forbes R, <em>&quot;Identifying and navigating suspected serious pathologies: New-graduate physiotherapists' perspectives and developmental needs,&quot; Musculoskeletal Science &amp; Practice</em>, 2024 — 18 semi-structured interviews, reflexive thematic analysis. Four themes: (1) physiotherapists as advocates; (2) <strong>navigating uncertainties and complexities</strong>; (3) safe and accessible workplace support builds confidence; (4) importance of direct learning opportunities. New graduates recognise their role as first-contact practitioners &quot;yet also experience significant uncertainties&quot; — and resolve them, when they can, by finding a colleague afterwards.</li>
+</ol>
+<p><strong>The product reframing.</strong> Your voice partner is not capturing the differential — the physio already did that in the room. It is:</p>
+<ul>
+<li>the <strong>colleague who isn't there</strong> when the uncertainty gets carried out of the room (theme 3 above, stated as a developmental need by the profession itself);</li>
+<li>the thing that <strong>challenges the anchor</strong> the referral installed;</li>
+<li>the thing that <strong>remembers across sessions</strong> what a human clinician with a 40-patient caseload cannot.</li>
+</ul>
+<p>And the strongest unclaimed slot is arguably not post-session at all: it's the <strong>60-second pre-brief before the next appointment with the same patient</strong>, where &quot;last time you hypothesised X, stability was static, and you said you'd reassess Y&quot; changes the encounter that is about to happen.</p>
+<h3 id="the-frameworks-named"><span class="htext">The frameworks, named</span></h3>
+<p><strong>Hypothesis categories (Jones, 1987/1992, evolved since).</strong> The set physiotherapists are taught to reason across:</p>
+<ul>
+<li>Pathobiological mechanisms (tissue healing stage, pain mechanisms — nociceptive / neuropathic / nociplastic)</li>
+<li>Source of symptoms / dysfunction</li>
+<li>Contributing factors</li>
+<li>Precautions and contraindications to examination and treatment</li>
+<li>Management / treatment</li>
+<li>Prognosis</li>
+<li>Functional limitations</li>
+<li>Patient perspectives on their experience</li>
+</ul>
+<p>This is the natural ontology for your data model. It is what a physio's reasoning is already shaped like.</p>
+<p>**Clinical reasoning strategies (Edwards I, Jones M, Carr J, Braunack-Mayer A, Jensen GM, <em>&quot;Clinical Reasoning Strategies in Physical Therapy,&quot; Physical Therapy</em> 2004;84(4):312–330).** Multiple case study, grounded theory; 6 peer-designated expert physical therapists across orthopaedic, neurological and domiciliary practice plus 6 further expert interviews. The contribution is that physiotherapy reasoning is <em>not</em> one process. It identifies distinct strategies — diagnostic, narrative, procedural, interactive, collaborative, predictive, teaching and ethical reasoning — and the movement <em>between</em> them, which they term <strong>&quot;dialectical reasoning.&quot;</strong></p>
+<blockquote><p><strong>Design consequence:</strong> a tool that only supports <em>diagnostic</em> reasoning supports a minority of what a physio is doing. Narrative reasoning (understanding the patient's story and beliefs) and collaborative reasoning (shared decision-making) are co-equal strands, and they are where the physio's actual differentiator over an imaging report lives.</p></blockquote>
+<p><strong>Pattern recognition vs hypothetico-deductive.</strong> Experts pattern-match; novices work hypothetico-deductively. Both are documented in physios. Patterns in physiotherapy exist &quot;not only in classic diagnostic syndromes... but also in the pathobiological mechanisms associated with those syndromes and the multitude of environmental, physical, psychological, social and cultural factors.&quot; The failure mode of expert pattern recognition is exactly premature closure — which is what a reasoning partner exists to interrupt.</p>
+<h3 id="how-often-does-the-referral-label-turn-out-to-be-wrong"><span class="htext">How often does the referral label turn out to be wrong?</span></h3>
+<p><strong>I could not find a direct study of this, and I want to be explicit about it.</strong> Nobody appears to have published &quot;in N consecutive referred patients, the physiotherapist's diagnosis differed from the referral diagnosis in X%.&quot; If that study exists it did not surface across a dozen searches.</p>
+<p>What can be said from adjacent evidence:</p>
+<ul>
+<li>In <strong>32–67%</strong> of cases, the question is moot because the referral carries no specific diagnosis to disagree with (Jette 2005; 2025 cross-sectional study).</li>
+<li>Where both parties commit to a specific diagnosis, agreement is <strong>good to very good</strong> (κ ≈ 0.76–0.84) — but those studies used advanced-practice physios in ED and orthopaedic triage, not community physios receiving specialist referrals.</li>
+<li>The disagreements that do occur cluster around fracture/contusion versus soft tissue.</li>
+</ul>
+<p><strong>This is a genuine research gap and arguably a data asset you could build.</strong> A product that records the referral label and the physio's post-assessment formulation generates precisely the dataset that does not currently exist.</p>
+<hr />
+<h2 id="5-what-physios-actually-look-up-and-what-has-a-usable-api"><span class="secnum">5</span><span class="htext">What physios actually look up, and what has a usable API</span></h2>
+<h3 id="what-gets-looked-up"><span class="htext">What gets looked up</span></h3>
+<p><strong>Clinical prediction rules</strong> — used to decide whether imaging or onward referral is needed:</p>
+<ul>
+<li><strong>Ottawa Ankle Rules</strong> — ankle X-ray if tenderness over posterior 6cm or tip of lateral/medial malleolus; midfoot X-ray if tenderness over navicular or base of 5th metatarsal; imaging if unable to take four steps both immediately and at assessment. Sensitivity approaching 100%, modest specificity; reduces unnecessary radiographs by <strong>30–40%</strong>. One survey found <strong>48% of physiotherapists used them intentionally</strong> <strong>[secondary — provenance uncertain]</strong>.</li>
+<li><strong>Ottawa Knee Rule</strong>, <strong>Canadian C-Spine Rule</strong> (clears cervical spine without imaging in alert, stable trauma patients), <strong>Wells criteria</strong> (DVT), <strong>Canadian CT Head Rule</strong>.</li>
+<li>Condition-specific CPRs: lumbar spinal stenosis, cervical radiculopathy (Wainner), carpal tunnel.</li>
+</ul>
+<p><strong>Guidelines</strong> — NICE (UK), JOSPT/APTA Academy of Orthopaedic Physical Therapy ICF-linked CPGs (Low Back Pain rev. 2021, Neck Pain rev. 2017, and regional guidelines), national MSK pathways.</p>
+<p><strong>Outcome measures and their MCIDs</strong> — see §2.</p>
+<p><strong>Exercise prescription</strong> — HEP libraries (Physitrack, Medbridge, PhysioTools), dosage parameters, progression criteria.</p>
+<p><strong>Evidence</strong> — PEDro (physiotherapy-specific, 70,000+ trials, reviews and guidelines, run by the Institute for Musculoskeletal Health at University of Sydney), PubMed, Cochrane.</p>
+<h3 id="api-assessment"><span class="htext">API assessment</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Source</th><th style="text-align:left">API?</th><th style="text-align:left">Free?</th><th style="text-align:left">Verdict</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Europe PMC</strong></td><td style="text-align:left">Yes — Articles REST API, Annotations API, Grants API, OAI, SOAP</td><td style="text-align:left">Yes. No key mentioned; open-access content and metadata. 37.8M abstracts, 6.4M full-text records, 3.2M OA items</td><td style="text-align:left"><strong>Recommended.</strong> Only restriction: no bulk automated download of non-OA content</td></tr><tr><td style="text-align:left"><strong>NICE Syndication API</strong></td><td style="text-align:left">Yes — REST, JSON/XML, all NICE guidance, quality standards and public information</td><td style="text-align:left"><strong>Free within the UK only.</strong> Overseas use incurs territory-based licence fees; 3-month test licences available; apply to syndication@nice.org.uk</td><td style="text-align:left">Strong content, wrong economics if the user is outside the UK. Keep as a UK-market upgrade path</td></tr><tr><td style="text-align:left"><strong>WHO ICD-11 API</strong></td><td style="text-align:left">Yes — REST, cloud-hosted at id.who.int, also self-hostable</td><td style="text-align:left">Yes. CC BY-ND 3.0 IGO</td><td style="text-align:left">Useful for coding/terminology normalisation, not for reasoning</td></tr><tr><td style="text-align:left"><strong>PEDro</strong></td><td style="text-align:left"><strong>None found</strong></td><td style="text-align:left">Database is free to use</td><td style="text-align:left">The obvious physio-specific source has no discoverable programmatic access. <strong>Verify directly with PEDro before ruling out</strong></td></tr><tr><td style="text-align:left"><strong>MDCalc</strong></td><td style="text-align:left"><strong>No public API found</strong></td><td style="text-align:left">—</td><td style="text-align:left">Hosts Ottawa/Canadian rules as calculators; no documented developer access</td></tr><tr><td style="text-align:left"><strong>JOSPT CPGs</strong></td><td style="text-align:left">No</td><td style="text-align:left">Some CPG PDFs are freely mirrored by the Academy of Orthopaedic Physical Therapy (orthopt.org)</td><td style="text-align:left">PDFs, not machine-readable</td></tr><tr><td style="text-align:left"><strong>wger</strong></td><td style="text-align:left">Yes — REST, no authentication required for the exercise DB</td><td style="text-align:left">Yes. AGPLv3 code; exercise/ingredient data CC BY-SA 3.0. ~845+ exercises with multilingual names, muscle groups, equipment, images</td><td style="text-align:left">Viable for exercise prescription, but it is a <em>fitness</em> database, not a rehab one. Dosage and progression logic for pathology is absent</td></tr></tbody></table></div>
+<h3 id="recommendation-and-justification"><span class="htext">Recommendation and justification</span></h3>
+<p><strong>Europe PMC REST API.</strong></p>
+<p>The justification is not &quot;it's free&quot; — it's that it matches the shape of the actual post-session question. When a physio sits down after a session and thinks <em>&quot;this doesn't fit the referral label&quot;</em> or <em>&quot;is this presentation actually consistent with X&quot;</em>, the resolution step is literature, and it is literature they will not go and find because it takes twenty minutes they do not have. Europe PMC turns that into a sub-second call, returns dated citations, and — critically for a clinical tool — lets every assertion the voice partner makes be <strong>attributed and checkable</strong>. An unattributed LLM claim in a clinical reasoning context is a liability; a claim with a PMID and a date is a conversation.</p>
+<p>Secondary justification: it covers PEDro's underlying primary literature even though PEDro itself is closed, so you get most of the physiotherapy evidence base by another route.</p>
+<p><strong>Hardcode, don't API:</strong> Ottawa Ankle/Knee, Canadian C-Spine, and the red flag constellations. These are short, stable, publicly documented algorithms. Calling out to a third party for them adds latency and a failure mode for no benefit — and for a voice product, latency is the product.</p>
+<hr />
+<h2 id="6-known-reasoning-failure-modes"><span class="secnum">6</span><span class="htext">Known reasoning failure modes</span></h2>
+<h3 id="what-the-physio-literature-names-explicitly"><span class="htext">What the physio literature names explicitly</span></h3>
+<ul>
+<li><strong>Anchoring on the referral diagnosis / diagnostic momentum.</strong> Named directly in the physiotherapy red-flag literature: &quot;delayed or missed diagnoses may be partly attributable to diagnostic momentum, in which the initial diagnostic label given to the patient prohibits investigation of alternate possibilities downstream.&quot; In physiotherapy this is structurally worse than in medicine, because the referral label arrives <em>before</em> the clinician forms any independent impression, and arrives with the authority of a specialist.</li>
+<li><strong>Premature closure</strong> — accepting a diagnosis before it is fully verified. In general medicine, self-reported by 58.5% of physicians in a Japanese survey; anchoring by 60.0%; availability bias 46.2%. The expert physio's reliance on pattern recognition is precisely the cognitive machinery that produces it.</li>
+<li><strong>Search satisficing</strong> — stopping once a plausible mechanical explanation is found. The red-flag framing literature's core worry: &quot;treating an undetected serious condition as if it were mechanical is precisely what screening exists to prevent.&quot;</li>
+<li><strong>Confirmation bias in the objective exam</strong> — a physio who hypothesises impingement selects impingement tests. Test selection is hypothesis-driven by design, which makes it hypothesis-confirming by default.</li>
+<li><strong>Low base rate desensitisation.</strong> Serious pathology is rare in MSK caseloads. Rarity plus poor individual red flag accuracy plus repeated non-events produces reasonable-feeling complacency. The Austrian 53.3% figure is what this looks like measured.</li>
+<li><strong>Inconsistent application of the structure that exists.</strong> The 2021 SINSS paper: the construct &quot;has been inconsistently defined and applied in clinical practice.&quot;</li>
+</ul>
+<h3 id="what-i-could-not-find"><span class="htext">What I could not find</span></h3>
+<p><strong>There is no published prevalence study of diagnostic error in physiotherapy specifically.</strong> The general figures (diagnostic error affects ~5% of US outpatient adults, ~12 million annually; a 2024 cross-sectional estimate of 2.59 million missed diagnoses causing 795,000 serious harms; cognitive factors contributing to ~74% of diagnostic errors) are from medicine and cannot be transferred without caveat. The physiotherapy evidence is: vignette studies of accuracy (§3), case-report series of catches (§3), and qualitative studies of uncertainty (§4). <strong>Nobody has measured how often physios get it wrong in real practice.</strong> Be honest about that in any marketing claim.</p>
+<hr />
+<h2 id="7-existing-products"><span class="secnum">7</span><span class="htext">Existing products</span></h2>
+<h3 id="directly-adjacent"><span class="htext">Directly adjacent</span></h3>
+<p><strong>Physiotutors Clinical Assistant (&quot;ChatCPG&quot;) + AI Co-Pilot</strong> — the closest thing to your concept that exists. ChatCPG is a chat assistant grounded in international clinical practice guidelines, marketed as &quot;a mentor in your pocket,&quot; 50+ languages, free 14-day trial then bundled with premium membership. Separately, an <strong>AI Co-Pilot that &quot;listens, transcribes, and gives quick access to relevant, evidence-based information during every patient session&quot;</strong> — i.e. they are already in the voice, in-session space. Their own caveat: &quot;the AI can still make mistakes&quot; and it &quot;should complement, not replace, clinical judgment.&quot; <em>What it misses:</em> it is a question-answering tool. It has no memory of the patient across sessions, no model of the referral anchor, no SINSS state, and no mechanism for challenging the clinician's reasoning unprompted. It answers what you ask. It does not ask what you didn't.</p>
+<p><strong>Flok Health (Cambridge, UK)</strong> — the notable outlier: not a clinician tool but an autonomous AI physiotherapist. Certified as a <strong>Class IIa medical device</strong> (reported October 2025), described as the first AI system approved in the UK or Europe to autonomously deliver end-to-end diagnostic triage and treatment without clinician input. Pilot at Cambridgeshire Community Services NHS Trust, <strong>February–June 2025</strong> (12 weeks): more than halved back pain waiting lists and reduced MSK waits by 44%. Raised <strong>$12.5M Series A</strong>; expanded regulatory clearance across MSK and pelvic health pathways. <em>Strategically important:</em> Flok is competing for the <em>patient</em>, not the clinician. It validates regulatory feasibility and it is the argument your physio will hear (&quot;won't AI replace me?&quot;). Your positioning is the opposite bet — augment the clinician's judgement rather than substitute it.</p>
+<h3 id="ai-scribes-serving-physiotherapy"><span class="htext">AI scribes serving physiotherapy</span></h3>
+<p>Heidi Health, PatientNotes (CEO Darren Ross is himself a physiotherapist), Nabla, Dorascribe, Skriber, Tandem Health, DeepCura. All documentation-first: transcribe the encounter, generate a SOAP note. Reported 50–75% documentation time reduction.</p>
+<p><strong>The documented gap is precisely your thesis.</strong> A 2025 analysis of AI scribe end-user feedback (arXiv 2512.04118) found clinicians flagging <strong>&quot;the lack of appropriate clinical reasoning in AI scribe outputs... as a critical limitation that could negatively impact clinical outcomes,&quot;</strong> alongside hallucinated diagnoses, exam findings, symptoms, dates and medications. PatientNotes has publicly signalled interest in moving toward suggesting exercise prescriptions and &quot;even guide clinical reasoning&quot; — so this space will be contested, from the documentation side inward.</p>
+<h3 id="physician-side-reasoning-tools-the-pattern-to-learn-from-not"><span class="htext">Physician-side reasoning tools (the pattern to learn from, not compete with)</span></h3>
+<p><strong>Glass Health</strong> — combines ambient scribing with clinical decision support so the encounter that generates the note also generates the differential and assessment plan. <strong>Microsoft Dragon Copilot</strong> (launched March 2025) — unified voice AI assistant for documentation, information surfacing and task automation; ~5 minutes saved per encounter, reduced burnout in 70% of surveyed clinicians. <strong>Penda Health / OpenAI</strong> — LLM clinical copilot offering clinicians a second opinion on demand.</p>
+<p>None of these are built for physiotherapy, and the mismatch is structural, not cosmetic: they assume a single diagnostic encounter, a pathoanatomic diagnosis, and no repeated longitudinal contact. Physiotherapy is 6–12 sessions over 8 weeks with a movement-system formulation that evolves. That is a different product.</p>
+<h3 id="the-unoccupied-ground"><span class="htext">The unoccupied ground</span></h3>
+<p>Nothing found does any of the following:</p>
+<ol>
+<li><strong>Treats the referral diagnosis as an anchor to be actively challenged</strong>, with the physio's independent formulation recorded separately.</li>
+<li><strong>Tracks red flag signal cumulatively across an episode of care</strong> as an index of suspicion rather than per-visit checklist — the model the 2020 international framework actually calls for.</li>
+<li><strong>Maintains SINSS state across sessions</strong>, particularly Stability (improving/static/worsening), and flags when the trajectory contradicts the working hypothesis.</li>
+<li><strong>Briefs the clinician before the next session</strong> rather than only debriefing after the last one.</li>
+<li><strong>Interrupts premature closure by asking what was ruled out and how</strong> — the thing the supervising colleague does, which new graduates explicitly named as their developmental need.</li>
+</ol>
+<hr />
+<h2 id="sources"><span class="htext">Sources</span></h2>
+<p><strong>Referral pathways and direct access</strong></p>
+<ul>
+<li><a href="https://www.apta.org/apta-and-you/news-publications/reports/2025/state-of-direct-access-to-physical-therapist-services">APTA — State of Direct Access to Physical Therapist Services (July 2025)</a> · <a href="https://www.apta.org/contentassets/6f37221cc8cc4087ab79aaf206d8dee8/apta-state-of-direct-access-2025-final-1.pdf">full PDF</a></li>
+<li><a href="https://www.apta.org/advocacy/issues/direct-access-advocacy/direct-access-by-state">APTA — Direct Access by State</a></li>
+<li><a href="https://world.physio/sites/default/files/2024-01/AMC2023-Global.pdf">World Physiotherapy — Annual Membership Census 2023, global report (Jan 2024)</a> · <a href="https://world.physio/sites/default/files/2024-01/PS-2023-Direct-access.pdf">Policy statement: direct access and self-referral (2023)</a></li>
+<li><a href="https://pubmed.ncbi.nlm.nih.gov/23537881/">Bury &amp; Stokes — Direct access and self-referral to physiotherapy in the EU, <em>Physiotherapy</em> 2013</a></li>
+<li><a href="https://www.england.nhs.uk/gp/expanding-our-workforce/first-contact-physiotherapists/">NHS England — First contact physiotherapists</a></li>
+<li><a href="https://bjgp.org/content/74/747/e717">First contact physiotherapy: clinical effectiveness and costs, <em>BJGP</em> 2024;74(747):e717</a> · <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11325442/">PMC full text</a></li>
+<li><a href="https://pubmed.ncbi.nlm.nih.gov/22092033/">Comparison of health care use for physician-referred vs self-referred outpatient PT episodes (2012)</a></li>
+<li><a href="https://academic.oup.com/ptj/article-abstract/77/1/10/2633027">Resource use and cost in direct access vs physician referral PT episodes, <em>PTJ</em> 1997</a></li>
+<li><a href="https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0253155">Alnaqbi et al. — Barriers to direct access in the UAE, <em>PLOS ONE</em>, 11 June 2021</a></li>
+<li><a href="https://pubmed.ncbi.nlm.nih.gov/39922593/">Physiotherapists' perspectives on direct access in Saudi Arabia (2025)</a> · <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC13555331/">Implementation of direct access policy in Saudi Arabia, *RMHP*</a></li>
+<li><a href="https://zawia3.com/en/physical-therapy-chaos/">The chaos of physiotherapy in Egypt — unlicensed centres (Zawia3)</a></li>
+<li><a href="https://www.csp.org.uk/documents/key-considerations-implementation-self-referral">CSP — self-referral, key implementation considerations</a></li>
+</ul>
+<p><strong>Referral diagnosis quality and diagnostic concordance</strong></p>
+<ul>
+<li><a href="https://pubmed.ncbi.nlm.nih.gov/16268244/">Jette et al. — Current status and correlates of physicians' referral diagnoses for physical therapy, <em>JOSPT</em> 2005;35(9):572-9</a></li>
+<li><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11970003/">Physician referrals for neck and low back pain to physical therapy: cross-sectional study (2025)</a></li>
+<li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11584553/">Diagnostic concordance between physiotherapists and emergency physicians (2024)</a></li>
+<li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC6842540/">Concordance between physiotherapists and physicians in the ED, <em>BMC Emerg Med</em> 2019</a></li>
+<li><a href="https://link.springer.com/article/10.1186/s12891-017-1799-3">Diagnostic validity and triage concordance for common knee disorders, <em>BMC Musculoskelet Disord</em> 2017</a></li>
+<li><a href="https://www.apta.org/apta-and-you/leadership-and-governance/policies/diagnosis-by-physical-therapist">APTA — Diagnosis by Physical Therapists (HOD P07-25-70-57)</a> · <a href="https://www.apta.org/patient-care/interventions/movement-system-management/movement-system-diagnosis">Movement System Diagnosis</a></li>
+</ul>
+<p><strong>Assessment structure, SINSS, outcome measures</strong></p>
+<ul>
+<li><a href="https://pubmed.ncbi.nlm.nih.gov/33999785/">Petersen, Thurmond &amp; Jensen — SINSS: A clinical perspective, <em>J Man Manip Ther</em> 2021;29(5):297-309</a> · <a href="https://scholarworks.bgsu.edu/physical_therapy_pub/4/">record</a></li>
+<li><a href="https://www.physio-pedia.com/Severity,_Irritability,_Nature,_Stage_and_Stability_(SINSS">Physiopedia — SINSS</a>)</li>
+<li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC2813500/">An Exploration of Maitland's Concept of Pain Irritability in Low Back Pain (2009)</a> · <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2762835/">Reliability of Maitland's irritability judgments</a></li>
+<li><a href="https://en.wikibooks.org/wiki/Physiotherapy_Assessment/Subjective">Physiotherapy Assessment / Subjective (Wikibooks)</a></li>
+<li><a href="https://www.physio-pedia.com/Template:Clinical_Examination">Physiopedia — Clinical Examination template</a></li>
+<li><a href="https://pubmed.ncbi.nlm.nih.gov/24828475/">Minimum important differences for the PSFS, 4 region-specific measures, and the NPRS (2014)</a></li>
+</ul>
+<p><strong>Red flags and serious pathology</strong></p>
+<ul>
+<li><a href="https://pubmed.ncbi.nlm.nih.gov/32438853/">Finucane et al. — International Framework for Red Flags for Potential Serious Spinal Pathologies, <em>JOSPT</em> 2020;50(7):350-372</a> · <a href="https://www.jospt.org/doi/10.2519/jospt.2020.9971">journal page</a></li>
+<li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3898572/">Downie et al. — Red flags to screen for malignancy and fracture in low back pain, <em>BMJ</em> 2013;347:f7095</a></li>
+<li><a href="https://www.mdpi.com/2077-0383/14/20/7174">Diagnostic utility of red flags for spinal malignancy: scoping review (2025)</a></li>
+<li><a href="https://www.csp.org.uk/journal/article/physiotherapy-journal-march-2024/national-suspected-cauda-equina-syndrome-pathway">Williams, Lister, Fakouri &amp; Panchmatia — The National Suspected Cauda Equina Syndrome Pathway: implications for physiotherapists, <em>Physiotherapy</em>, March 2024</a></li>
+<li><a href="https://www.csp.org.uk/publications/learning-litigation-cauda-equina-syndrome-ces">CSP — Learning from litigation: cauda equina syndrome</a></li>
+<li><a href="https://shop.elsevier.com/books/red-flags/greenhalgh/978-0-443-10140-3">Greenhalgh &amp; Selfe — <em>Red Flags: A Guide to Identifying Serious Pathology of the Spine</em> (Elsevier)</a></li>
+<li><a href="https://pubmed.ncbi.nlm.nih.gov/22282166/">Boissonnault &amp; Ross — Physical Therapists Referring Patients to Physicians: A Review of Case Reports and Series, <em>JOSPT</em> 2012;42(5):446-454</a></li>
+<li><a href="https://www.jospt.org/doi/10.2519/jospt.2017.7037">PT Clinical Reasoning and Action for Individuals With Undiagnosed Lower Extremity Tumors, <em>JOSPT</em> 2017</a></li>
+<li><a href="https://www.jospt.org/doi/10.2519/jospt.2010.0109">Red Flags: To Screen or Not to Screen?, <em>JOSPT</em> 2010</a></li>
+<li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5532056/">Diagnosis is a team sport — vestibular therapist and dizziness (2016)</a></li>
+<li><a href="https://link.springer.com/article/10.1186/s12875-024-02634-8">The ability of Austrian registered physiotherapists to recognise serious pathology, <em>BMC Primary Care</em> 2024</a> · <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11523903/">PMC</a></li>
+<li><a href="https://www.researchgate.net/publication/321378961_Keeprefer_decision_making_abilities_of_European_final_year_undergraduate_physiotherapy_students_a_cross-sectional_survey_using_clinical_vignettes">Keep/refer decision making of European final-year physiotherapy students (2017)</a></li>
+<li><a href="https://pubmed.ncbi.nlm.nih.gov/37902190/">French physiotherapists' diagnostic hypotheses and management decisions for self-referred patients (2023)</a></li>
+<li><a href="https://www.sciencedirect.com/science/article/abs/pii/S2468781226001049">Physiotherapists' ability to identify and manage specific low back pain: vignette study (2026)</a></li>
+<li><a href="https://link.springer.com/article/10.1186/s12909-025-08101-x">Improving physiotherapists' ability to recognise serious pathology with digital training, <em>BMC Med Educ</em> 2025</a></li>
+<li><a href="https://www.csp.org.uk/professional-clinical/improvement-innovation/first-contact-physiotherapy/first-contact-physio-0">CSP — First contact physiotherapy radiology guidance</a></li>
+</ul>
+<p><strong>Clinical reasoning</strong></p>
+<ul>
+<li><a href="https://academic.oup.com/ptj/article/84/4/312/2805347">Edwards, Jones et al. — Clinical Reasoning Strategies in Physical Therapy, <em>Physical Therapy</em> 2004;84(4):312-330</a></li>
+<li><a href="https://academic.oup.com/ptj/article/97/5/499/3089730">Gilliland &amp; Wainwright — Patterns of Clinical Reasoning in Physical Therapist Students, <em>Physical Therapy</em> 2017;97(5):499-</a></li>
+<li><a href="https://pubmed.ncbi.nlm.nih.gov/38520877/">Phua, Mandrusiak, Singh, Martin &amp; Forbes — Identifying and navigating suspected serious pathologies: new-graduate physiotherapists' perspectives and developmental needs, <em>Musculoskelet Sci Pract</em> 2024</a></li>
+<li><a href="https://www.physio-pedia.com/Clinical_Reasoning">Physiopedia — Clinical Reasoning for Musculoskeletal Practice</a></li>
+<li><a href="https://basicmedicalkey.com/clinical-reasoning-in-physiotherapy/">Clinical reasoning in physiotherapy (Basicmedical Key — Jones hypothesis categories)</a></li>
+<li><a href="https://link.springer.com/chapter/10.1007/978-3-319-93224-8_23">Premature Closure: Anchoring Bias, Diagnosis Momentum, Search Satisficing (Springer, 2019)</a></li>
+<li><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9032995/">Cognitive bias and diagnostic errors among physicians in Japan: self-reflection survey (2022)</a></li>
+<li><a href="https://www.tandfonline.com/doi/full/10.1080/09593985.2024.2315255">Writing for the role: new graduate physiotherapists' transition to clinical documentation (2024)</a></li>
+</ul>
+<p><strong>APIs and evidence sources</strong></p>
+<ul>
+<li><a href="https://dev.europepmc.org/developers">Europe PMC — Developers</a></li>
+<li><a href="https://www.nice.org.uk/reusing-our-content/nice-syndication-api">NICE syndication API</a> · <a href="https://www.nice.org.uk/corporate/ecd10">syndication and API guide</a></li>
+<li><a href="https://icd.who.int/docs/icd-api/APIDoc-Version2">WHO ICD-11 API documentation</a> · <a href="https://icd.who.int/docs/icd-api/license/">licence</a></li>
+<li><a href="https://pedro.org.au/">PEDro — Physiotherapy Evidence Database</a></li>
+<li><a href="https://github.com/wger-project/wger">wger — open source fitness/exercise database with REST API (GitHub)</a> · <a href="https://wger.readthedocs.io/">docs</a></li>
+<li><a href="https://www.mdcalc.com/calc/1670/ottawa-ankle-rule">MDCalc — Ottawa Ankle Rule</a> · <a href="https://www.mdcalc.com/calc/696/canadian-c-spine-rule">Canadian C-Spine Rule</a></li>
+<li><a href="https://www.apta.org/patient-care/evidence-based-practice-resources/test-measures/ottawa-ankle-rules-oar">APTA — Ottawa Ankle Rules test &amp; measure</a></li>
+<li><a href="https://www.jospt.org/doi/10.2519/jospt.2021.0304">JOSPT — Interventions for Acute and Chronic Low Back Pain: Revision 2021 (ICF-linked CPG)</a></li>
+</ul>
+<p><strong>Existing products</strong></p>
+<ul>
+<li><a href="https://www.physiotutors.com/tools/clinical-assistant/">Physiotutors Clinical Assistant / ChatCPG</a></li>
+<li><a href="https://www.digitalhealth.net/2025/10/ai-powered-physiotherapist-approved-to-make-autonomous-decisions/">AI physiotherapist approved to make autonomous decisions — Digital Health, October 2025</a></li>
+<li><a href="https://thenextweb.com/news/flok-health-12-5m-series-a-ai-physiotherapist">Flok Health raises $12.5M Series A</a> · <a href="https://www.flok.health/">Flok Health</a></li>
+<li><a href="https://arxiv.org/pdf/2512.04118">Patient Safety Risks from AI Scribes: Signals from End-User Feedback (arXiv 2512.04118)</a></li>
+<li><a href="https://www.heidihealth.com/en-ca/use-case/physio">Heidi Health — AI medical scribe for physiotherapists</a> · <a href="https://www.patientnotes.app/professions/physiotherapist">PatientNotes</a></li>
+<li><a href="https://glass.health/resources/medical-ai-tools">Glass Health — clinical decision support and differential generation</a></li>
+<li><a href="https://news.microsoft.com/source/2025/03/03/microsoft-dragon-copilot-provides-the-healthcare-industrys-first-unified-voice-ai-assistant-that-enables-clinicians-to-streamline-clinical-documentation-surface-information-and-automate-task/">Microsoft Dragon Copilot launch, March 2025</a></li>
+<li><a href="https://doi.org/10.3390/app16031165">AI-Powered Physiotherapy: Evaluating LLMs Against Students in Clinical Rehabilitation Scenarios (2026)</a></li>
+<li><a href="https://www.sciencedirect.com/science/article/pii/S0031940626004633">Usefulness of ChatGPT in physiotherapy practice: a scoping review</a></li>
+<li><a href="https://ac-health.com/reduce-after-hours-documentation-in-physical-therapy/">Reduce after-hours documentation in physical therapy (WebPT State of Rehab Therapy 2024 figures, secondary)</a></li>
+</ul>
+  </main>
+</div>

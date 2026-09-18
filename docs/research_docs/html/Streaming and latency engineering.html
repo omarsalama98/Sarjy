@@ -1,0 +1,389 @@
+<title>Document</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --ink:       #14171c;
+    --ink-2:     #474e5a;
+    --ink-3:     #767e8b;
+    --line:      #e2e5ea;
+    --line-2:    #eef0f4;
+    --accent:    #2d4a7c;
+    --accent-bg: #edf1f8;
+    --warn:      #a6421f;
+    --warn-bg:   #fbf0eb;
+    --code-bg:   #f0f2f6;
+    --shadow:    0 1px 2px rgba(20,23,28,.05), 0 8px 24px -12px rgba(20,23,28,.15);
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #101317;
+      --surface:   #171b21;
+      --ink:       #e7eaef;
+      --ink-2:     #a8b0bc;
+      --ink-3:     #7b838f;
+      --line:      #2a2f38;
+      --line-2:    #22262d;
+      --accent:    #8fb0e6;
+      --accent-bg: #1a2130;
+      --warn:      #e2916d;
+      --warn-bg:   #2a1d17;
+      --code-bg:   #1d222a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #101317;
+    --surface:   #171b21;
+    --ink:       #e7eaef;
+    --ink-2:     #a8b0bc;
+    --ink-3:     #7b838f;
+    --line:      #2a2f38;
+    --line-2:    #22262d;
+    --accent:    #8fb0e6;
+    --accent-bg: #1a2130;
+    --warn:      #e2916d;
+    --warn-bg:   #2a1d17;
+    --code-bg:   #1d222a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .5rem 2.25rem; margin: 0; }
+  dl.meta div { display: flex; flex-direction: column; gap: .1rem; }
+  dl.meta dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  dl.meta dd { margin: 0; font-size: .9rem; color: var(--ink-2); }
+
+  /* ---- toc ---- */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 3rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--ink-3);
+    margin: 0 0 .75rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: flex;
+    gap: .7rem;
+    font-size: .92rem;
+    border-radius: 2px;
+  }
+  .toc a:hover { color: var(--accent); }
+  .tocnum, .secnum {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: .8em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- headings ---- */
+  h2, h3, h4 { font-family: var(--serif); letter-spacing: -.01em; text-wrap: balance; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    font-weight: 600;
+    margin: 3.5rem 0 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .75rem;
+    align-items: baseline;
+  }
+  h3 { font-size: 1.14rem; font-weight: 600; margin: 2.25rem 0 .7rem; display: flex; gap: .6rem; align-items: baseline; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; color: var(--ink-2); }
+  h2 .secnum, h3 .secnum { flex: none; }
+
+  p { margin: 0 0 1.05rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line-2); margin: 2.5rem 0; }
+
+  ul, ol { margin: 0 0 1.15rem; padding-left: 1.35rem; max-width: 68ch; }
+  li { margin-bottom: .38rem; }
+  li::marker { color: var(--ink-3); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+  .codewrap { overflow-x: auto; margin: 0 0 1.4rem; }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 0;
+    min-width: min-content;
+  }
+  pre code { background: none; padding: 0; font-size: .845rem; line-height: 1.6; }
+
+  blockquote {
+    margin: 0 0 1.4rem;
+    padding: .1rem 0 .1rem 1.15rem;
+    border-left: 3px solid var(--line);
+    color: var(--ink-2);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+  }
+  .callout p { margin-bottom: .6rem; color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--warn); }
+
+  .tablewrap { overflow-x: auto; margin: 0 0 1.6rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  th, td { padding: .6rem .85rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <h1>Document</h1>
+    
+  </header>
+  <nav class="toc" aria-label="Contents"><p class="eyebrow">Contents</p><ol><li><a href="#streaming-asr-partial-hypotheses-lookahead-and-chunked-atten">Streaming ASR: Partial Hypotheses, Lookahead, and Chunked Attention</a></li><li><a href="#streaming-llm-generation-and-early-tts-start">Streaming LLM Generation and Early TTS Start</a></li><li><a href="#streaming-tts-time-to-first-byte-and-chunked-synthesis">Streaming TTS: Time-to-First-Byte and Chunked Synthesis</a></li><li><a href="#overlapping-stages-the-non-negotiable-pattern">Overlapping Stages: The Non-Negotiable Pattern</a></li><li><a href="#barge-in-handling-detection-cancellation-and-echo-cancellati">Barge-In Handling: Detection, Cancellation, and Echo Cancellation</a></li><li><a href="#real-system-architectures">Real System Architectures</a></li><li><a href="#key-takeaways">Key Takeaways</a></li></ol></nav>
+  <main>
+<h2 id="streaming-asr-partial-hypotheses-lookahead-and-chunked-atten"><span class="htext">Streaming ASR: Partial Hypotheses, Lookahead, and Chunked Attention</span></h2>
+<h3 id="why-whisper-is-non-streaming"><span class="htext">Why Whisper Is Non-Streaming</span></h3>
+<p><strong>Whisper</strong> (OpenAI, 2022) uses a <strong>full-sequence encoder-decoder</strong> architecture with self-attention over the entire audio input. It cannot emit partial transcripts because:</p>
+<ul>
+<li>Encoder attends to all frames simultaneously (no causal masking)</li>
+<li>Decoder requires complete encoder output before generating first token</li>
+<li>No incremental decoding support; must buffer entire utterance <a href="https://smallest.ai/blog/designing-voice-assistants-stt-llm-tts-tools-and-latency-budget">smallest</a></li>
+</ul>
+<p>This makes Whisper unsuitable for real-time voice agents unless wrapped in a sliding-window hack (which adds latency and loses long-range context). <a href="https://smallest.ai/blog/designing-voice-assistants-stt-llm-tts-tools-and-latency-budget">smallest</a></p>
+<h3 id="streaming-asr-architectures"><span class="htext">Streaming ASR Architectures</span></h3>
+<p>Modern streaming ASR systems (Deepgram Scribe v2 Realtime, Google Streaming Speech-to-Text, NVIDIA Riva) use:</p>
+<ol>
+<li><strong>Chunked attention</strong>: Encoder processes audio in overlapping 1–2 second chunks with limited right-context (e.g., 500 ms lookahead). Each chunk emits partial transcripts with confidence scores. <a href="https://smallest.ai/blog/designing-voice-assistants-stt-llm-tts-tools-and-latency-budget">smallest</a></li>
+</ol>
+<ol>
+<li><strong>Emitting-state transducers (RNN-T)</strong>: Jointly models acoustic, transcription, and blank states; emits tokens incrementally as audio arrives without waiting for utterance end. <a href="https://smallest.ai/blog/designing-voice-assistants-stt-llm-tts-tools-and-latency-budget">smallest</a></li>
+</ol>
+<ol>
+<li><strong>Partial hypothesis streaming</strong>: Emits partial transcripts every 100–200 ms while user speaks. Example: Deepgram Scribe v2 Realtime returns partials in ~150 ms with PCM 8–48 kHz support. <a href="https://smallest.ai/blog/designing-voice-assistants-stt-llm-tts-tools-and-latency-budget">smallest</a></li>
+</ol>
+<div class="codewrap"><pre><code>Audio stream → Chunked encoder → Partial transcript 1 (confidence 0.7)
+                              → Partial transcript 2 (confidence 0.85)
+                              → Final transcript (confidence 0.95)</code></pre></div>
+<p><strong>Endpointing latency</strong> (deciding when user finished) is the real cost, not transcription itself. Waiting 700 ms for silence adds 700 ms to every turn. Optimizations:</p>
+<ul>
+<li>Fine-tune silence threshold to smallest value without truncating natural pauses</li>
+<li>Use <strong>semantic VAD</strong> that predicts end-of-turn from linguistic content (see prior section)</li>
+<li>Feed stable partials to LLM early, revise if final transcript differs (speculative execution) <a href="https://smallest.ai/blog/designing-voice-assistants-stt-llm-tts-tools-and-latency-budget">smallest</a></li>
+</ul>
+<h2 id="streaming-llm-generation-and-early-tts-start"><span class="htext">Streaming LLM Generation and Early TTS Start</span></h2>
+<h3 id="token-by-token-streaming"><span class="htext">Token-by-Token Streaming</span></h3>
+<p>LLMs (GPT-4, Claude, Llama 3) generate tokens autoregressively. Streaming LLM output allows TTS to begin synthesis on the <strong>first sentence</strong> rather than waiting for complete response. <a href="https://smallest.ai/blog/designing-voice-assistants-stt-llm-tts-tools-and-latency-budget">smallest</a></p>
+<p><strong>Key pattern</strong>: Buffer LLM tokens until a sentence boundary (period, question mark, exclamation point), then flush that sentence to TTS while the LLM continues generating the next sentence. <a href="https://www.bland.ai/blog/streaming-text-to-speech">bland</a></p>
+<div class="codewrap"><pre><code class="lang-python">SENTENCE_END = /(?&lt;=[.!?])\s+/
+
+async function* speakLlmStream(tokens):
+    buffer = &quot;&quot;
+    for token in tokens:
+        buffer += token
+        parts = buffer.split(SENTENCE_END)
+        buffer = parts.pop() ?? &quot;&quot;  # keep incomplete fragment
+        for sentence in parts:
+            if sentence.trim():
+                yield* synthesize(sentence.trim())  # stream to TTS
+    if buffer.trim():
+        yield* synthesize(buffer.trim())</code></pre></div>
+<p><strong>Latency recovery</strong>: Overlapping LLM generation with TTS synthesis recovers 300–600 ms compared to batch TTS. User hears sentence 1 while LLM generates sentences 2–4. <a href="https://smallest.ai/blog/designing-voice-assistants-stt-llm-tts-tools-and-latency-budget">smallest</a></p>
+<h3 id="clause-level-chunking"><span class="htext">Clause-Level Chunking</span></h3>
+<p>Some systems (OpenAI Realtime API, LocalAI) use <strong>clause chunking</strong> instead of full sentences:</p>
+<ul>
+<li>Split on commas, conjunctions (&quot;and&quot;, &quot;but&quot;), or length thresholds (50–80 chars)</li>
+<li>First chunk: 24-token limit for fast time-to-first-chunk</li>
+<li>Subsequent chunks: up to 96 tokens waiting for natural boundaries <a href="https://github.com/pipecat-ai/nemotron-january-2026/blob/main/docs/streaming-pipeline-architecture.md">github</a></li>
+</ul>
+<p><strong>Trade-off</strong>: Smaller chunks reach player sooner (lower first-byte latency) but risk choppy prosody. Larger chunks sound more natural but delay first audio. Production systems bias toward smaller chunks early in the utterance (user is waiting) and larger chunks later (audio already playing). <a href="https://elevenlabs.io/blog/voice-agent-latency-optimization">elevenlabs</a></p>
+<h2 id="streaming-tts-time-to-first-byte-and-chunked-synthesis"><span class="htext">Streaming TTS: Time-to-First-Byte and Chunked Synthesis</span></h2>
+<h3 id="time-to-first-byte-ttfb-architecture"><span class="htext">Time-to-First-Byte (TTFB) Architecture</span></h3>
+<p><strong>TTFB</strong> measures time from text arriving at TTS API to first audio byte returned. Modern streaming TTS (ElevenLabs Flash v2.5, Deepgram Aura-2, Cartesia Sonic) achieve 75–120 ms TTFB for short inputs. <a href="https://www.bland.ai/blog/streaming-text-to-speech">bland</a></p>
+<p><strong>How it works:</strong></p>
+<ol>
+<li><strong>Predict-ahead mechanism</strong>: TTS model begins phoneme synthesis from first few tokens using lookahead (e.g., 120 chars = ~75 ms on Flash v2.5) <a href="https://www.usesherlock.ai/blog/time-to-first-byte-voice-ai">usesherlock</a></li>
+<li><strong>WebSocket streaming</strong>: Persistent bi-directional connection eliminates per-request handshake overhead; audio chunks flow back as generated <a href="https://www.bland.ai/blog/streaming-text-to-speech">bland</a></li>
+<li><strong>Chunked transfer encoding</strong>: HTTP/1.1 chunked responses or WebSocket frames deliver audio incrementally; playback starts before synthesis completes <a href="https://www.bland.ai/blog/streaming-text-to-speech">bland</a></li>
+</ol>
+<h3 id="sentenceclause-chunking-strategies"><span class="htext">Sentence/Clause Chunking Strategies</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Strategy</th><th style="text-align:left">Chunk Size</th><th style="text-align:left">First-Byte Latency</th><th style="text-align:left">Prosody Quality</th><th style="text-align:left">Use Case</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Sentence boundary</strong></td><td style="text-align:left">10–50 words</td><td style="text-align:left">100–200 ms</td><td style="text-align:left">Natural (complete intonation)</td><td style="text-align:left">Default for most agents  <a href="https://elevenlabs.io/blog/voice-agent-latency-optimization">elevenlabs</a></td></tr><tr><td style="text-align:left"><strong>Clause boundary</strong></td><td style="text-align:left">5–15 words</td><td style="text-align:left">75–150 ms</td><td style="text-align:left">Slightly choppy</td><td style="text-align:left">Low-latency agents  <a href="https://localai.io/docs/features/openai-realtime/">localai</a></td></tr><tr><td style="text-align:left"><strong>Fixed token count</strong></td><td style="text-align:left">24–96 tokens</td><td style="text-align:left">50–100 ms</td><td style="text-align:left">Robotic (mid-clause breaks)</td><td style="text-align:left">Experimental; not recommended  <a href="https://github.com/pipecat-ai/nemotron-january-2026/blob/main/docs/streaming-pipeline-architecture.md">github</a></td></tr></tbody></table></div>
+<p><strong>Optimization steps:</strong></p>
+<ol>
+<li>Use streaming WebSocket TTS endpoint, not synchronous HTTP <a href="https://callsphere.ai/blog/vw8c-tts-chunked-streaming-time-to-first-audio-2026">callsphere</a></li>
+<li>Set <code>chunk_length_schedule</code> first value to 50–80 chars for sub-100 ms TTFB <a href="https://callsphere.ai/blog/vw8c-tts-chunked-streaming-time-to-first-audio-2026">callsphere</a></li>
+<li>Stream LLM output into TTS at sentence boundaries—do not wait for full reply <a href="https://elevenlabs.io/blog/voice-agent-latency-optimization">elevenlabs</a></li>
+</ol>
+<h3 id="player-buffer-tuning"><span class="htext">Player Buffer Tuning</span></h3>
+<p>Audio players buffer 100–500 ms by default to avoid stuttering on network jitter. This buffer adds directly to perceived latency. <a href="https://elevenlabs.io/blog/voice-agent-latency-optimization">elevenlabs</a></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Connection Type</th><th style="text-align:left">Recommended Buffer</th><th style="text-align:left">Rationale</th></tr></thead><tbody><tr><td style="text-align:left">Stable (co-located server)</td><td style="text-align:left">50–150 ms</td><td style="text-align:left">Low jitter risk; shaves 200+ ms off TTFA  <a href="https://elevenlabs.io/blog/voice-agent-latency-optimization">elevenlabs</a></td></tr><tr><td style="text-align:left">Mobile/cross-region</td><td style="text-align:left">200–400 ms</td><td style="text-align:left">Prevents audible gaps; jitter outweighs latency cost  <a href="https://elevenlabs.io/blog/voice-agent-latency-optimization">elevenlabs</a></td></tr></tbody></table></div>
+<h2 id="overlapping-stages-the-non-negotiable-pattern"><span class="htext">Overlapping Stages: The Non-Negotiable Pattern</span></h2>
+<p><strong>Sequential pipeline</strong> (no overlap):</p>
+<div class="codewrap"><pre><code>User speaks → VAD → ASR (complete) → LLM (complete) → TTS (complete) → Playback
+TTFA = ASR + LLM_TTFT + TTS_TTFB + playback_buffer = 1,200–2,000 ms</code></pre></div>
+<p><strong>Overlapping pipeline</strong> (streaming everywhere):</p>
+<div class="codewrap"><pre><code>User speaks → VAD → ASR partials → LLM starts on stable partials → TTS starts on first sentence → Playback
+TTFA = endpointing + LLM_TTFT_partial + TTS_TTFB = 400–700 ms</code></pre></div>
+<p><strong>Key overlaps:</strong></p>
+<ul>
+<li><strong>ASR → LLM</strong>: Feed stable partials (confidence &gt;0.85) to LLM before user finishes; revise if final transcript differs <a href="https://smallest.ai/blog/designing-voice-assistants-stt-llm-tts-tools-and-latency-budget">smallest</a></li>
+<li><strong>LLM → TTS</strong>: Flush sentence 1 to TTS while LLM generates sentences 2–4 <a href="https://www.bland.ai/blog/streaming-text-to-speech">bland</a></li>
+<li><strong>TTS → Playback</strong>: Start playback on first audio chunk; trim player buffer to minimum safe value <a href="https://elevenlabs.io/blog/voice-agent-latency-optimization">elevenlabs</a></li>
+</ul>
+<p><strong>Latency budget example</strong> (well-optimized 2026 system): <a href="https://smallest.ai/blog/designing-voice-assistants-stt-llm-tts-tools-and-latency-budget">smallest</a></p>
+<ul>
+<li>VAD + audio capture: 50 ms</li>
+<li>ASR transcription: 150 ms</li>
+<li>LLM time-to-first-token: 400 ms</li>
+<li>TTS first chunk: 150 ms</li>
+<li>Network overhead: 50 ms</li>
+<li><strong>Total TTFA</strong>: 800 ms (sub-500 ms achievable with aggressive tuning) <a href="https://smallest.ai/blog/designing-voice-assistants-stt-llm-tts-tools-and-latency-budget">smallest</a></li>
+</ul>
+<h2 id="barge-in-handling-detection-cancellation-and-echo-cancellati"><span class="htext">Barge-In Handling: Detection, Cancellation, and Echo Cancellation</span></h2>
+<h3 id="detecting-user-speech-during-playback"><span class="htext">Detecting User Speech During Playback</span></h3>
+<p><strong>Barge-in</strong> (interruption handling) allows users to speak while the agent is talking, causing the agent to stop and process new input. This requires:</p>
+<ol>
+<li><strong>Continuous VAD monitoring</strong>: Run VAD on microphone input even during agent playback. Neural VAD (Silero v5) detects speech onset in &lt;20 ms with 6.8% false-positive rate. </li>
+</ol>
+<ol>
+<li><strong>Acoustic Echo Cancellation (AEC)</strong>: Remove agent's audio from microphone input to prevent self-triggering. NLMS (Normalized Least Mean Squares) adaptive filters subtract the known playback signal from the mic stream. <a href="https://smallest.ai/blog/designing-voice-assistants-stt-llm-tts-tools-and-latency-budget">smallest</a></li>
+</ol>
+<div class="codewrap"><pre><code>Mic input → AEC (subtract speaker output) → VAD → Barge-in detection</code></pre></div>
+<h3 id="cancelling-in-flight-generation"><span class="htext">Cancelling In-Flight Generation</span></h3>
+<p>When barge-in is detected:</p>
+<ol>
+<li><strong>Flush audio buffer</strong>: Immediately stop TTS playback; discard any buffered audio chunks not yet played <a href="https://smallest.ai/blog/designing-voice-assistants-stt-llm-tts-tools-and-latency-budget">smallest</a></li>
+<li><strong>Cancel LLM generation</strong>: Abort in-progress token generation; clear KV cache to free memory <a href="https://smallest.ai/blog/designing-voice-assistants-stt-llm-tts-tools-and-latency-budget">smallest</a></li>
+<li><strong>Restart ASR pipeline</strong>: Reset streaming ASR state; begin transcribing new utterance without losing initial frames <a href="https://smallest.ai/blog/designing-voice-assistants-stt-llm-tts-tools-and-latency-budget">smallest</a></li>
+</ol>
+<p><strong>State machine example</strong> (Multigrid SDK):</p>
+<div class="codewrap"><pre><code>State: SPEAKING
+  on barge-in detected → flush_audio_buffer()
+                         cancel_llm_generation()
+                         reset_asr_stream()
+                         transition to LISTENING</code></pre></div>
+<h3 id="full-duplex-vs-half-duplex"><span class="htext">Full-Duplex vs. Half-Duplex</span></h3>
+<ul>
+<li><strong>Half-duplex</strong> (traditional): Agent must finish speaking before listening; barge-in requires explicit cancellation logic <a href="https://smallest.ai/blog/designing-voice-assistants-stt-llm-tts-tools-and-latency-budget">smallest</a></li>
+<li><strong>Full-duplex</strong> (Moshi, OpenAI Realtime): Two simultaneous audio streams (user + agent); model processes both concurrently without turn-taking mechanism </li>
+</ul>
+<p><strong>Trade-off</strong>: Full-duplex enables natural overlap (backchannels, interruptions) but complicates tool calling and guardrails mid-turn. Most production systems use half-duplex with aggressive barge-in detection. <a href="https://smallest.ai/blog/designing-voice-assistants-stt-llm-tts-tools-and-latency-budget">smallest</a></p>
+<h2 id="real-system-architectures"><span class="htext">Real System Architectures</span></h2>
+<h3 id="openai-realtime-api"><span class="htext">OpenAI Realtime API</span></h3>
+<ul>
+<li><strong>Streaming ASR</strong>: Partial transcripts every 100–200 ms; semantic VAD for endpointing </li>
+<li><strong>Streaming LLM</strong>: Token-by-token generation; function calling mid-stream </li>
+<li><strong>Streaming TTS</strong>: Clause-level chunking; 75–150 ms TTFB with Flash model <a href="https://callsphere.ai/blog/vw8c-tts-chunked-streaming-time-to-first-audio-2026">callsphere</a></li>
+<li><strong>Barge-in</strong>: Continuous VAD + AEC; cancels in-flight generation on speech onset </li>
+</ul>
+<h3 id="elevenlabs-llm-pipeline"><span class="htext">ElevenLabs + LLM Pipeline</span></h3>
+<ul>
+<li><strong>ASR</strong>: Deepgram Scribe v2 Realtime (150 ms partials) <a href="https://smallest.ai/blog/designing-voice-assistants-stt-llm-tts-tools-and-latency-budget">smallest</a></li>
+<li><strong>LLM</strong>: Stream tokens to TTS at sentence boundaries <a href="https://elevenlabs.io/blog/voice-agent-latency-optimization">elevenlabs</a></li>
+<li><strong>TTS</strong>: Flash v2.5 with WebSocket streaming; 75 ms inference + 50–100 ms network = 125–175 ms TTFB <a href="https://www.bland.ai/blog/streaming-text-to-speech">bland</a></li>
+<li><strong>Chunking</strong>: First chunk 24 tokens; subsequent chunks 96 tokens <a href="https://github.com/pipecat-ai/nemotron-january-2026/blob/main/docs/streaming-pipeline-architecture.md">github</a></li>
+</ul>
+<h3 id="deepgram-aura-pipeline"><span class="htext">Deepgram Aura Pipeline</span></h3>
+<ul>
+<li><strong>Integrated STT + TTS</strong>: Single WebSocket connection for both directions; co-located inference reduces network hops <a href="https://www.bland.ai/blog/streaming-text-to-speech">bland</a></li>
+<li><strong>Semantic endpointing</strong>: Multi-horizon inactivity prediction (0.5s, 1s, 2s, 3s) </li>
+<li><strong>TTFB</strong>: &lt;200 ms for Aura-2; sentence-level chunking for natural prosody <a href="https://lukeocodes.dev/inside-the-voice-agent-pipeline">lukeocodes</a></li>
+</ul>
+<h3 id="blandai-co-located-stack"><span class="htext">Bland.ai Co-Located Stack</span></h3>
+<ul>
+<li><strong>Voice model + inference + delivery</strong>: Single pipeline eliminates inter-service round trips <a href="https://www.bland.ai/blog/streaming-text-to-speech">bland</a></li>
+<li><strong>Sub-400 ms TTFA</strong>: Achieved by co-locating all layers; no third-party TTS hop <a href="https://www.bland.ai/blog/streaming-text-to-speech">bland</a></li>
+<li><strong>Telephony-optimized</strong>: μ-law 8 kHz codec matches PSTN; no transcoding latency <a href="https://www.bland.ai/blog/streaming-text-to-speech">bland</a></li>
+</ul>
+<h2 id="key-takeaways"><span class="htext">Key Takeaways</span></h2>
+<ol>
+<li><strong>Stream everywhere</strong>: ASR partials → LLM tokens → TTS chunks; overlap stages to recover 300–600 ms <a href="https://smallest.ai/blog/designing-voice-assistants-stt-llm-tts-tools-and-latency-budget">smallest</a></li>
+<li><strong>Chunk at sentence boundaries</strong>: Balance first-byte latency (smaller chunks) vs. prosody quality (larger chunks) <a href="https://elevenlabs.io/blog/voice-agent-latency-optimization">elevenlabs</a></li>
+<li><strong>Tune endpointing aggressively</strong>: Silence threshold 300–500 ms for snappy agents; use semantic VAD to reduce dead air </li>
+<li><strong>Barge-in requires AEC</strong>: Subtract agent audio from mic input; flush buffers and cancel generation on speech onset <a href="https://smallest.ai/blog/designing-voice-assistants-stt-llm-tts-tools-and-latency-budget">smallest</a></li>
+<li><strong>Measure P50 and P95 TTFA</strong>: Tail latency (P95) is what users feel; benchmark per region against your deployment <a href="https://www.bland.ai/blog/streaming-text-to-speech">bland</a></li>
+</ol>
+<p>Production systems in 2026 target <strong>P50 TTFA &lt;800 ms, P95 &lt;1.5 s</strong> for natural conversational feel. Aggressive streaming and overlap optimizations are non-negotiable for sub-second latency. <a href="https://smallest.ai/blog/designing-voice-assistants-stt-llm-tts-tools-and-latency-budget">smallest</a></p>
+  </main>
+</div>

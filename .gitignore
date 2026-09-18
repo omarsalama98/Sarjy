@@ -1,0 +1,38 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Specs are working documents, not deliverables
+*.spec.md
+
+# Dependencies / build
+node_modules/
+dist/
+build/
+.next/
+__pycache__/
+*.pyc
+.venv/
+
+# Claude Code local state
+.claude/settings.local.json
+.claude/projects/
+
+# OS
+.DS_Store
+
+# Strategic working notes — not for the submitted repo.
+# Research documents ship (they show the rigor); decision sheets stay local.
+docs/decisions/
+
+# Python
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Local data caches (vendored reference data IS committed — see data/README)
+data/cache/

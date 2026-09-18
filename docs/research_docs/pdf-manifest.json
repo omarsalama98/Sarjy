@@ -1,0 +1,67 @@
+[
+  {
+    "input": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/html/ASR architectures.html",
+    "output": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/pdf/ASR architectures.pdf",
+    "format": "a4"
+  },
+  {
+    "input": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/html/Cascaded vs. end-to-end speech-to-speech.html",
+    "output": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/pdf/Cascaded vs. end-to-end speech-to-speech.pdf",
+    "format": "a4"
+  },
+  {
+    "input": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/html/Evaluating voice agents.html",
+    "output": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/pdf/Evaluating voice agents.pdf",
+    "format": "a4"
+  },
+  {
+    "input": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/html/Full-duplex conversation modelling.html",
+    "output": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/pdf/Full-duplex conversation modelling.pdf",
+    "format": "a4"
+  },
+  {
+    "input": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/html/How audio becomes something a model can consume.html",
+    "output": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/pdf/How audio becomes something a model can consume.pdf",
+    "format": "a4"
+  },
+  {
+    "input": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/html/SOURCES.html",
+    "output": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/pdf/SOURCES.pdf",
+    "format": "a4"
+  },
+  {
+    "input": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/html/Streaming and latency engineering.html",
+    "output": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/pdf/Streaming and latency engineering.pdf",
+    "format": "a4"
+  },
+  {
+    "input": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/html/TTS architectures.html",
+    "output": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/pdf/TTS architectures.pdf",
+    "format": "a4"
+  },
+  {
+    "input": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/html/Turn detection and endpointing.html",
+    "output": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/pdf/Turn detection and endpointing.pdf",
+    "format": "a4"
+  },
+  {
+    "input": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/html/arabic-voice-research.html",
+    "output": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/pdf/arabic-voice-research.pdf",
+    "format": "a4"
+  },
+  {
+    "input": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/html/notebooklm-audio-prompts.html",
+    "output": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/pdf/notebooklm-audio-prompts.pdf",
+    "format": "a4"
+  },
+  {
+    "input": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/html/travel-api-research.html",
+    "output": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/pdf/travel-api-research.pdf",
+    "format": "a4"
+  },
+  {
+    "input": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/html/voice-stack-research.html",
+    "output": "/Users/omarsalama/Projects/Sarjy/docs/research_docs/pdf/voice-stack-research.pdf",
+    "format": "a4"
+  }
+]
