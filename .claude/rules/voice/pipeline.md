@@ -19,6 +19,20 @@ mic → VAD/endpoint → STT → [TEXT CHECKPOINT] → LLM + tools → [GROUNDIN
 
 **Cascaded by design, not by convenience.** The two bracketed checkpoints are why. An end-to-end speech-to-speech model gives neither — you cannot validate a citation that never exists as text. If a change would erase a checkpoint, it is changing the deep dive, not the plumbing.
 
+## The turn speaks before the lookup returns
+
+```
+LLM call 1 ── update("Let me check that") → TTS #1 → speaking
+            └─ get_visa_requirements(...)  → lookup ─┐  (hidden under the audio)
+LLM call 2 ── NDJSON segments → gate → TTS #2 ──────┘→ speaking
+```
+
+`step.start` delivers a function call's **name and id before its arguments generate**, so the HTTP lookup fires mid-stream. The vendor round trip and the whole of call 2 run underneath audio already playing.
+
+**Two TTS requests per turn — one opener, one whole answer. Never one per segment.** Gemini TTS has no continuity primitive (no session, no acoustic context, no working seed) and the docs warn that output *"may not always strictly match the selected speaker."* Across five clips that becomes an audible seam mid-sentence. The opener/answer boundary is a natural prosodic pause, where a seam is inaudible.
+
+**Keep per-segment gating; drop per-segment synthesis.** Validate incrementally, speak once.
+
 ## Instrument every stage, from the first working turn
 
 Retrofitted timing tells you nothing about what you already built. Every turn emits:
@@ -27,9 +41,11 @@ Retrofitted timing tells you nothing about what you already built. Every turn em
 
 Voice-to-voice is the headline; the breakdown is the answer to "where does the time go," which gets asked regardless of deep-dive track. Record the model id and conditions with every run — a latency figure without its configuration is not a measurement.
 
+⚠️ **Measure TTFT to the first `delta.type == "text"`, not the first SSE event.** A `thought` step is always emitted, even at `thinking_level: "minimal"`. Timing to the first event records a fiction — a number that looks excellent and describes nothing the user experienced.
+
 **Report median and p95, against the deployment.** A single local run is an anecdote, and the reviewer gets one try.
 
-Target ≤ 1.5 s p50. Adding a stage, a round trip, or a blocking await to this path without instrumenting it is a blocking review issue.
+Target ≤ 1.8 s to **first audio out** — which is the opener, not the answer. Adding a stage, a round trip, or a blocking await to this path without instrumenting it is a blocking review issue.
 
 ## Endpointing is the largest controllable term
 

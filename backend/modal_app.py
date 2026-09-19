@@ -1,12 +1,42 @@
 """Modal deployment entrypoint.
 
-Two settings are load-bearing and easy to miss:
+Four settings here are load-bearing. Three of them are easy to miss and one of
+them is the single most likely way this app shape breaks in front of a reviewer.
 
-  timeout=        bounds the WebSocket lifetime. The 300 s default kills a
-                  ten-minute conversation at five minutes.
-  min_containers= keeps one container warm so the reviewer never waits on a
-                  cold start. Costs ~$14/mo at 24/7; flip it on for the demo
-                  window instead if that matters.
+  @modal.concurrent   Modal treats ONE WEBSOCKET AS ONE INPUT. Without this,
+                      every concurrent connection gets its own container — and
+                      `min_containers=1` does not prevent that, because it is a
+                      floor, not a cap. Two reviewers on the URL at once would
+                      be two containers with two separate in-memory states.
+                      Verified in Modal's own WebSocket launch post.
+
+  timeout=            Bounds the WebSocket lifetime. Modal does NOT document
+                      this directly — see the note below. The 300 s default
+                      would cut a ten-minute conversation at five minutes.
+
+  min_containers=     A floor, not a cap. Keeps one container warm so the
+                      reviewer never waits on a cold start.
+
+  routing_region=     CANNOT BE CHANGED AFTER THE FIRST DEPLOY. A new Function
+                      has to be created instead. Default is us-east; there is
+                      no Middle East routing region.
+
+## On the timeout, honestly
+
+Modal documents no maximum WebSocket duration and no sentence saying `timeout=`
+governs one. The inference chains two documented facts:
+
+  1. "WebSockets on Modal maintain a single function call per connection."
+  2. "The timeout duration is a measure of a Function's execution time."
+
+One connection = one call = one execution, so `timeout` bounds it. Modal's own
+reference voice app (QuiLLMan) sets `timeout=600` on its WebSocket functions,
+which is consistent.
+
+Separately, Modal documents a 150 s HTTP request timeout and never says whether
+it survives a WebSocket upgrade. Evidence suggests it does not — the documented
+workaround is a 303 redirect, impossible for a WebSocket — but that is
+circumstantial. **Hold an idle connection past 150 s before building on this.**
 """
 
 import modal
@@ -21,10 +51,14 @@ app = modal.App("sarjy", image=image)
 
 
 @app.function(
-    timeout=3600,          # WebSocket lifetime. Do not leave at the default.
-    min_containers=1,      # No cold start in front of the reviewer.
+    timeout=30 * 60,       # WebSocket lifetime. Never leave at the 300 s default.
+    min_containers=1,      # Floor, not a cap. No cold start in front of the reviewer.
+    max_containers=2,      # The actual cap.
+    scaledown_window=300,  # Default is 60 s; too eager for a conversational app.
     secrets=[modal.Secret.from_name("sarjy-secrets")],
+    # routing_region="eu-west",  # Decide BEFORE the first deploy — it is immutable after.
 )
+@modal.concurrent(max_inputs=8, target_inputs=4)
 @modal.asgi_app()
 def fastapi_app():
     from app.main import app as fastapi

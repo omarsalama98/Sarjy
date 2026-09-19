@@ -48,6 +48,10 @@ Every entry in `colour-legend.json` ships with the `VisaRequirements` response t
 
 Known artifact: a passport appears in its own `red` bucket. Self-reference, not a claim — filter it.
 
+## Barge-in costs quota
+
+Interrupting while a lookup is in flight may have already spent a request. Fire live calls **only on a cache miss**, and count spent-but-interrupted requests in the ledger so the remaining-quota number stays honest.
+
 ## Failure is part of the contract
 
 Every call has a timeout and a defined result for failure, timeout, empty, and malformed. A hang is worse than an error. On any failure the next layer down answers, and the user is told.
@@ -55,7 +59,6 @@ Every call has a timeout and a defined result for failure, timeout, empty, and m
 ## Other sources
 
 - **Wikipedia REST** — set a compliant `User-Agent` (`Sarjy/0.1 (<repo>; <email>)`) on every call. Wikimedia rate-limits generic agents and may block them outright. Cache aggressively; place data barely changes.
-- **Aladhan** — **by-coordinate endpoint only.** `timingsByCity` returns placeholder coordinates for every city, so its response cannot be traced to a location. Take coordinates from the Wikipedia lookup.
 
 ## Anti-patterns
 

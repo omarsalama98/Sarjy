@@ -1,0 +1,883 @@
+<title>TDD walkthrough — open decisions</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --ink:       #14171c;
+    --ink-2:     #474e5a;
+    --ink-3:     #767e8b;
+    --line:      #e2e5ea;
+    --line-2:    #eef0f4;
+    --accent:    #2d4a7c;
+    --accent-bg: #edf1f8;
+    --warn:      #a6421f;
+    --warn-bg:   #fbf0eb;
+    --code-bg:   #f0f2f6;
+    --shadow:    0 1px 2px rgba(20,23,28,.05), 0 8px 24px -12px rgba(20,23,28,.15);
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #101317;
+      --surface:   #171b21;
+      --ink:       #e7eaef;
+      --ink-2:     #a8b0bc;
+      --ink-3:     #7b838f;
+      --line:      #2a2f38;
+      --line-2:    #22262d;
+      --accent:    #8fb0e6;
+      --accent-bg: #1a2130;
+      --warn:      #e2916d;
+      --warn-bg:   #2a1d17;
+      --code-bg:   #1d222a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #101317;
+    --surface:   #171b21;
+    --ink:       #e7eaef;
+    --ink-2:     #a8b0bc;
+    --ink-3:     #7b838f;
+    --line:      #2a2f38;
+    --line-2:    #22262d;
+    --accent:    #8fb0e6;
+    --accent-bg: #1a2130;
+    --warn:      #e2916d;
+    --warn-bg:   #2a1d17;
+    --code-bg:   #1d222a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .5rem 2.25rem; margin: 0; }
+  dl.meta div { display: flex; flex-direction: column; gap: .1rem; }
+  dl.meta dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  dl.meta dd { margin: 0; font-size: .9rem; color: var(--ink-2); }
+
+  /* ---- toc ---- */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 3rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--ink-3);
+    margin: 0 0 .75rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: flex;
+    gap: .7rem;
+    font-size: .92rem;
+    border-radius: 2px;
+  }
+  .toc a:hover { color: var(--accent); }
+  .tocnum, .secnum {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: .8em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- headings ---- */
+  h2, h3, h4 { font-family: var(--serif); letter-spacing: -.01em; text-wrap: balance; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    font-weight: 600;
+    margin: 3.5rem 0 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .75rem;
+    align-items: baseline;
+  }
+  h3 { font-size: 1.14rem; font-weight: 600; margin: 2.25rem 0 .7rem; display: flex; gap: .6rem; align-items: baseline; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; color: var(--ink-2); }
+  h2 .secnum, h3 .secnum { flex: none; }
+
+  p { margin: 0 0 1.05rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line-2); margin: 2.5rem 0; }
+
+  ul, ol { margin: 0 0 1.15rem; padding-left: 1.35rem; max-width: 68ch; }
+  li { margin-bottom: .38rem; }
+  li::marker { color: var(--ink-3); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+  .codewrap { overflow-x: auto; margin: 0 0 1.4rem; }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 0;
+    min-width: min-content;
+  }
+  pre code { background: none; padding: 0; font-size: .845rem; line-height: 1.6; }
+
+  blockquote {
+    margin: 0 0 1.4rem;
+    padding: .1rem 0 .1rem 1.15rem;
+    border-left: 3px solid var(--line);
+    color: var(--ink-2);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+  }
+  .callout p { margin-bottom: .6rem; color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--warn); }
+
+  .tablewrap { overflow-x: auto; margin: 0 0 1.6rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  th, td { padding: .6rem .85rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <h1>TDD walkthrough — open decisions</h1>
+    <dl class="meta"><div><dt>Date</dt><dd>2026-09-19 · <strong>Status:</strong> live document, updated as we walk the TDD section by section</dd></div><div><dt>Source</dt><dd><code>docs/plans/TDD.md</code> · <strong>Contract:</strong> <code>.claude/rules/tools/grounding-gate.md</code></dd></div></dl>
+  </header>
+  <nav class="toc" aria-label="Contents"><p class="eyebrow">Contents</p><ol><li><a href="#summary">Summary</a></li><li><a href="#0-the-map">§0 — The map</a></li><li><a href="#1-the-gate-has-a-gap-you-can-drive-a-truck-through">§1 — The gate has a gap you can drive a truck through</a></li><li><a href="#2-normalised-context-and-an-llm-judge-that-never-touches-the">§2 — Normalised context, and an LLM judge that never touches the hot path</a></li><li><a href="#3-the-assertion-layer-and-why-the-gate-is-what-makes-it-poss">§3 — The assertion layer, and why the gate is what makes it possible</a></li><li><a href="#4-latency-where-the-deep-dive-actually-costs-you-and-how-to-">§4 — Latency: where the deep dive actually costs you, and how to get most of it back</a></li><li><a href="#5-verified-provider-facts-2026-09-19">§5 — Verified provider facts, 2026-09-19</a></li><li><a href="#6-memory-one-contradiction-one-unverified-assumption-one-pat">§6 — Memory: one contradiction, one unverified assumption, one path off the latency budget</a></li><li><a href="#7-the-spike-budget-has-a-problem">§7 — The spike budget has a problem</a></li><li><a href="#8-the-inventory-and-the-arithmetic-nobody-has-done">§8 — The inventory, and the arithmetic nobody has done</a></li><li><a href="#9-recalibrated-what-ai-assisted-work-actually-compresses">§9 — Recalibrated: what AI-assisted work actually compresses</a></li><li><a href="#10-gemini-structured-output-the-ndjson-plan-survives-but-onl">§10 — Gemini structured output: the NDJSON plan survives, but only one way</a></li><li><a href="#11-modal-one-real-bug-in-the-scaffold-and-one-decision-that-">§11 — Modal: one real bug in the scaffold, and one decision that is irreversible</a></li><li><a href="#12-the-plan-priority-ordered-with-gates">§12 — The plan: priority-ordered, with gates</a></li><li><a href="#13-omars-mental-model-vs-the-tdd">§13 — Omar's mental model vs the TDD</a></li><li><a href="#14-consistency-audit-five-conflicts-between-decisions-we-alr">§14 — Consistency audit: five conflicts between decisions we already made</a></li><li><a href="#15-two-verifications-one-vindicates-the-design-one-nearly-ki">§15 — Two verifications: one vindicates the design, one nearly kills it</a></li></ol></nav>
+  <main>
+<h2 id="summary"><span class="htext">Summary</span></h2>
+<h3 id="decided"><span class="htext">Decided</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Decision</th><th style="text-align:left">§ated</th></tr></thead><tbody><tr><td style="text-align:left">1</td><td style="text-align:left">Gate gains a <strong>placeholder rule + digit rule</strong> — no bare digits in a <code>sourced</code> segment</td><td style="text-align:left">§1</td></tr><tr><td style="text-align:left">2</td><td style="text-align:left">Retry split: schema failure → one repair · gate rejection → none</td><td style="text-align:left">§1</td></tr><tr><td style="text-align:left">3</td><td style="text-align:left"><strong>We normalise the vendor response ourselves</strong>; we own the field paths</td><td style="text-align:left">§2</td></tr><tr><td style="text-align:left">4</td><td style="text-align:left">LLM judge <strong>in the eval only</strong> — hand-rolled, RAGAS-style, paper cited</td><td style="text-align:left">§2</td></tr><tr><td style="text-align:left">5</td><td style="text-align:left">Judge validated against hand labels; <strong>agreement rate reported</strong> beside every figure</td><td style="text-align:left">§2</td></tr><tr><td style="text-align:left">6</td><td style="text-align:left">Eval locked at 12 hand-labelled cases, 4 judge categories</td><td style="text-align:left">§2</td></tr><tr><td style="text-align:left">7</td><td style="text-align:left"><strong>Deterministic assertion tests</strong> — Tier A (no model, every commit) + Tier B (golden prompts)</td><td style="text-align:left">§3</td></tr><tr><td style="text-align:left">8</td><td style="text-align:left"><strong>Gate per segment, not per response</strong> — NDJSON out, ~800 ms recovered</td><td style="text-align:left">§4</td></tr><tr><td style="text-align:left">9</td><td style="text-align:left"><strong>TTS buffered per segment</strong> — settles streamed-vs-buffered by dissolving it</td><td style="text-align:left">§4</td></tr><tr><td style="text-align:left">10</td><td style="text-align:left">Both Gemini model IDs verified correct — <strong>no rework</strong></td><td style="text-align:left">§5</td></tr><tr><td style="text-align:left">11</td><td style="text-align:left">EEA/UK free-tier exposure → <strong>document in the writeup</strong>, do not raise with Sarj</td><td style="text-align:left">§5</td></tr><tr><td style="text-align:left">12</td><td style="text-align:left">Spike Groq <code>orpheus-arabic-saudi</code> before committing P2 Arabic to it</td><td style="text-align:left">§5</td></tr><tr><td style="text-align:left">13</td><td style="text-align:left">Memory: <strong>two tiers</strong> — anonymous session-only, signed-in persisted</td><td style="text-align:left">§6</td></tr><tr><td style="text-align:left">14</td><td style="text-align:left">Store: spike <code>modal.Dict</code> vs Volume — <strong>on day 2, not day 1</strong></td><td style="text-align:left">§6, §7</td></tr><tr><td style="text-align:left">15</td><td style="text-align:left">Day 1 runs <strong>three</strong> spikes, not six: WebSocket · browser audio · TTS TTFB</td><td style="text-align:left">§7</td></tr><tr><td style="text-align:left">16</td><td style="text-align:left">Identity: <strong>voice-first greeting + name/PIN sign-in</strong>, typed fallback always visible</td><td style="text-align:left">§6</td></tr><tr><td style="text-align:left">17</td><td style="text-align:left"><strong>NDJSON over <code>response_format</code></strong> — the only way to get per-segment gating</td><td style="text-align:left">§10</td></tr><tr><td style="text-align:left">18</td><td style="text-align:left"><code>routing_region</code>: <strong>measure <code>us-east</code> vs <code>eu-west</code> on day 1</strong> before the irreversible pick</td><td style="text-align:left">§11</td></tr><tr><td style="text-align:left">19</td><td style="text-align:left"><code>@modal.concurrent</code> + async handler — <strong>scaffold bug, already fixed</strong></td><td style="text-align:left">§11</td></tr><tr><td style="text-align:left">20</td><td style="text-align:left"><code>modal.Dict</code> confirmed durable; SQLite-on-Volume ruled out — <strong>day-2 spike retired</strong></td><td style="text-align:left">§11</td></tr></tbody></table></div>
+<h3 id="still-open"><span class="htext">Still open</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Open</th><th style="text-align:left">Blocks</th><th style="text-align:left">Who decides</th></tr></thead><tbody><tr><td style="text-align:left">Sarjy's voice and persona</td><td style="text-align:left">Demo feel</td><td style="text-align:left"><strong>Omar</strong></td></tr><tr><td style="text-align:left">Sarjy's voice and persona</td><td style="text-align:left">Demo feel</td><td style="text-align:left"><strong>Omar</strong></td></tr><tr><td style="text-align:left">Reviewer's GitHub username · API keys</td><td style="text-align:left">Submission</td><td style="text-align:left">Sarj — email drafted, <strong>unsent</strong></td></tr></tbody></table></div>
+<h3 id="the-honest-status"><span class="htext">🚨 The honest status</span></h3>
+<p><strong>The design is materially better than it was. The schedule is materially worse.</strong></p>
+<p>This review closed a real hole in the deep dive, verified every provider fact, and found ~800 ms of latency. It also added roughly <strong>seven hours of work</strong> to a plan the viability review already put at about <strong>2× over</strong>:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Added</th><th style="text-align:left">Est.</th></tr></thead><tbody><tr><td style="text-align:left">Normalisation layer</td><td style="text-align:left">1.5 h</td></tr><tr><td style="text-align:left">Assertion tests (Tier A + B)</td><td style="text-align:left">1.75 h</td></tr><tr><td style="text-align:left">LLM judge + agreement check</td><td style="text-align:left">2.3 h</td></tr><tr><td style="text-align:left">Identity tiers</td><td style="text-align:left">0.75 h</td></tr><tr><td style="text-align:left">Per-segment gating + TTS retry handling</td><td style="text-align:left">~1 h</td></tr></tbody></table></div>
+<p><strong>The cut list from the viability review was never applied.</strong> Until it is, the plan is a wish. That is the next action — not more design.</p>
+<hr />
+<h2 id="0-the-map"><span class="htext">§0 — The map</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Item</th><th style="text-align:left">Kind</th></tr></thead><tbody><tr><td style="text-align:left">1</td><td style="text-align:left"><strong>Sourced segments can still contain free-text facts</strong></td><td style="text-align:left">🚨 hole in the deep dive</td></tr><tr><td style="text-align:left">2</td><td style="text-align:left">Memory store: &quot;open&quot; in the stack table, &quot;<strong>Decided:</strong> SQLite&quot; in §Memory</td><td style="text-align:left">stale contradiction</td></tr><tr><td style="text-align:left">3</td><td style="text-align:left">Gate failure: rule says &quot;one repair retry&quot;, TDD says &quot;deliberately no re-ask&quot;</td><td style="text-align:left">stale contradiction</td></tr><tr><td style="text-align:left">4</td><td style="text-align:left">Aladhan still wired in via Wikipedia coordinates; cut list says drop it</td><td style="text-align:left">cut list not applied</td></tr><tr><td style="text-align:left">5</td><td style="text-align:left">Images read as P0-ish in the TDD, P3 in the PRD</td><td style="text-align:left">cut list not applied</td></tr><tr><td style="text-align:left">6</td><td style="text-align:left">Eval: 30 cases in the TDD, 12 in <code>eval/README.md</code></td><td style="text-align:left">cut list not applied</td></tr><tr><td style="text-align:left">7</td><td style="text-align:left">How does the model learn which field paths exist?</td><td style="text-align:left">undesigned</td></tr><tr><td style="text-align:left">8</td><td style="text-align:left">Expected <strong>rejection rate</strong> of the gate</td><td style="text-align:left">unmeasured, demo-critical</td></tr><tr><td style="text-align:left">9</td><td style="text-align:left">One LLM call or two? (cache hit vs miss)</td><td style="text-align:left">latency decision</td></tr><tr><td style="text-align:left">10</td><td style="text-align:left">TTS streamed vs buffered</td><td style="text-align:left">latency vs barge-in trade</td></tr><tr><td style="text-align:left">11</td><td style="text-align:left">Silence threshold — 600 ms in <code>turn.ts</code>, reason not recorded</td><td style="text-align:left">product decision</td></tr><tr><td style="text-align:left">12</td><td style="text-align:left">Model IDs <code>gemini-3.5-flash-lite</code> / <code>gemini-3.1-flash-tts-preview</code></td><td style="text-align:left">needs verifying; knowledge cutoff is behind</td></tr><tr><td style="text-align:left">13</td><td style="text-align:left">≤ 2.5 s p50 vs two full completions + a vendor call</td><td style="text-align:left">probably optimistic</td></tr><tr><td style="text-align:left">14</td><td style="text-align:left">Modal WS lifetime, colour legend, <code>language=ar</code>, Gemini free tier</td><td style="text-align:left">day-1 spikes, already flagged</td></tr></tbody></table></div>
+<hr />
+<h2 id="1-the-gate-has-a-gap-you-can-drive-a-truck-through"><span class="htext">§1 — The gate has a gap you can drive a truck through</span></h2>
+<p>The TDD's claim is strong, and correct in spirit:</p>
+<blockquote><p>the model <strong>cannot state a number it did not select from a response</strong>, because it never writes numbers at all.</p></blockquote>
+<p>Nothing in the spec enforces that. Consider this model output:</p>
+<div class="codewrap"><pre><code class="lang-json">{&quot;kind&quot;: &quot;sourced&quot;,
+ &quot;text&quot;: &quot;You'll need a tourist visa for up to 90 days.&quot;,
+ &quot;tool_call_id&quot;: &quot;tb_1&quot;,
+ &quot;fields&quot;: []}</code></pre></div>
+<p>Zero placeholders → nothing to resolve → <code>resolve()</code> finds nothing absent → <strong>it passes, and we staple a real citation onto it.</strong> The tool said 30.</p>
+<p>This is exactly the citation-chip failure the TDD says it prevents. The gate as specified validates <em>the fields the model declared</em>. It never validates <em>the text the model wrote</em>.</p>
+<p>It is also the first thing a sharp reviewer pokes, because the TDD advertises the guarantee in bold.</p>
+<h3 id="the-fix-two-more-deterministic-rules-both-one-liners"><span class="htext">The fix: two more deterministic rules, both one-liners</span></h3>
+<ol>
+<li><strong>A <code>sourced</code> segment must contain at least one placeholder.</strong></li>
+<p>No placeholder means it is not sourced — it is judgement, or it is invention.</p>
+</ol>
+<ol>
+<li><strong>No digit may appear in a <code>sourced</code> segment outside a placeholder.</strong></li>
+<p>Numbers are where the harm lives: durations, passport validity months, fees. <code>&quot;for up to 90 days&quot;</code> dies at the gate. <code>&quot;for up to {…primary_rule.duration}&quot;</code> lives.</p>
+</ol>
+<p>Rule 2 is the demo beat. You can <em>show</em> it: feed a turn where the model writes the number itself, watch the gate kill the segment, then run the same turn where it selects the field. That is a twenty-second clip that makes the difference between a guardrail and a citation chip visible — otherwise a hard thing to convey in a Loom.</p>
+<h3 id="what-the-digit-rule-does-not-catch"><span class="htext">What the digit rule does not catch</span></h3>
+<p>Categorical claims written as prose — &quot;you'll need an <strong>eVisa</strong>&quot; as free text rather than <code>{…primary_rule.name}</code>. Catching that is NLP, not a one-liner.</p>
+<p>The honest line is better than a fuzzy matcher you cannot defend under questioning:</p>
+<blockquote><p>I enforce the class of claim where being wrong makes someone miss a flight — the numbers — deterministically. Categories go through field selection too, but the digit rule is the hard backstop.</p></blockquote>
+<h3 id="item-7-nobody-has-designed-how-the-model-learns-the-paths"><span class="htext">Item 7 — nobody has designed how the model learns the paths</span></h3>
+<p>For the model to write <code>{visa_rules.primary_rule.duration}</code>, it has to know that path exists. Going from nested JSON to a correct dotted path is an inference step models fumble, and every fumble is a rejected segment. A demo full of <em>&quot;I couldn't confirm that part&quot;</em> reads as broken, not as rigorous.</p>
+<p>So don't make it infer. Flatten the response ourselves and hand it the literal catalog:</p>
+<div class="codewrap"><pre><code>visa_rules.primary_rule.name      = &quot;eVisa&quot;
+visa_rules.primary_rule.duration  = &quot;30 days&quot;
+visa_rules.passport_validity      = &quot;6 months&quot;</code></pre></div>
+<p>Same information, zero inference.</p>
+<p><strong>The counter-argument for measuring first:</strong> raw JSON costs nothing to try, and the flattener is machinery we might not need. If the model gets paths right 95% of the time, the catalog is premature. If it gets them right 60% of the time, we needed it and now we have the number that proves it.</p>
+<h3 id="item-8-rejection-rate-is-the-number-that-decides-the-deep-di"><span class="htext">Item 8 — rejection rate is the number that decides the deep dive</span></h3>
+<p>Whichever path we take, <strong>measure it on day 2</strong>. Rejection rate is arguably the most important figure in the whole project: it is the <em>&quot;grounded and still useful&quot;</em> axis. A gate that rejects nothing is theatre; a gate that rejects a third of segments is a broken product. The number is the evidence that it is neither.</p>
+<h3 id="item-3-the-retry-contradiction-resolved"><span class="htext">Item 3 — the retry contradiction, resolved</span></h3>
+<p>The rule file says &quot;one repair retry&quot;. The TDD and <code>gate.py</code> say &quot;deliberately no re-ask&quot;. Both are half right. Split by failure type:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Failure</th><th style="text-align:left">Behaviour</th><th style="text-align:left">Why</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Schema</strong> — malformed JSON, wrong shape</td><td style="text-align:left">One repair retry</td><td style="text-align:left">Rare with <code>responseSchema</code>, cheap, and this is what the rule file means</td></tr><tr><td style="text-align:left"><strong>Gate rejection</strong> — bad path, stray digit</td><td style="text-align:left">No retry. Strip and say so</td><td style="text-align:left">A second completion to re-litigate a fact is exactly what the TDD is right to refuse</td></tr></tbody></table></div>
+<p>Reconciles all three documents without weakening either position.</p>
+<hr />
+<h2 id="2-normalised-context-and-an-llm-judge-that-never-touches-the"><span class="htext">§2 — Normalised context, and an LLM judge that never touches the hot path</span></h2>
+<p>Two proposals from Omar, both accepted, one with a change.</p>
+<h3 id="proposal-2-taken-as-is-we-format-the-context-ourselves"><span class="htext">Proposal 2 (taken as-is): we format the context ourselves</span></h3>
+<p>We know the vendor's structure and we know how the data should be presented, so the raw Travel Buddy body never reaches the model. A normalisation layer sits between the vendor client and the prompt and emits a schema <strong>we</strong> define:</p>
+<div class="codewrap"><pre><code>visa.type               = &quot;eVisa&quot;
+visa.duration           = &quot;30 days&quot;
+visa.passport_validity  = &quot;6 months&quot;
+visa.registration       = null
+source.layer            = &quot;live&quot;
+source.retrieved        = &quot;2026-09-19T08:14Z&quot;</code></pre></div>
+<p>This quietly settles item 7 — <em>how does the model learn the valid field paths</em> — and settles it better than either option I offered:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Benefit</th><th style="text-align:left">Why it matters</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Paths are ours, stable and short</strong></td><td style="text-align:left"><code>visa.duration</code>, not <code>visa_rules.primary_rule.duration</code>. Fewer tokens, far fewer path errors</td></tr><tr><td style="text-align:left"><strong>Vendor schema changes are absorbed</strong></td><td style="text-align:left">A renamed key breaks one mapping function, not the gate, the prompt, and every eval fixture</td></tr><tr><td style="text-align:left"><strong>Eval fixtures survive</strong></td><td style="text-align:left">Recorded fixtures are in our shape, so they stay valid across vendor drift</td></tr><tr><td style="text-align:left">**The catalogue <em>is</em> the context**</td><td style="text-align:left">No separate flattener to build. The thing we hand the model already is the path list</td></tr><tr><td style="text-align:left"><strong>CSV fallback and live API converge</strong></td><td style="text-align:left">Both normalise into the same shape, so the gate and prompt do not care which layer answered</td></tr></tbody></table></div>
+<p>That last row is the real prize: the vendored CSV fallback and the live vendor response become the <em>same object</em> with a different <code>source.layer</code>. One code path, one prompt, one set of paths.</p>
+<p>⚠️ <strong>The one new failure surface:</strong> if the normaliser silently drops a field the vendor returned, the model cannot cite what it cannot see — and we would never notice. Log unmapped keys on every call. Two lines, and it is the difference between a normaliser and a lossy filter.</p>
+<h3 id="proposal-1-accepted-with-a-change-llm-as-judge-in-the-eval-o"><span class="htext">Proposal 1 (accepted, with a change): LLM-as-judge, in the eval only</span></h3>
+<p>The instinct is right and it fills a real gap. The digit rule is deterministic and unfoolable, but it is blind to exactly the failures that are most interesting to talk about:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Failure</th><th style="text-align:left">Caught by</th><th style="text-align:left">Why</th></tr></thead><tbody><tr><td style="text-align:left"><code>&quot;visa for up to 90 days&quot;</code></td><td style="text-align:left"><strong>Digit rule</strong></td><td style="text-align:left">Bare digit in a sourced segment</td></tr><tr><td style="text-align:left"><code>&quot;you'll need an eVisa&quot;</code> as prose</td><td style="text-align:left"><strong>Judge</strong></td><td style="text-align:left">Categorical claim, no digit, NLP problem</td></tr><tr><td style="text-align:left">Recommendation dressed as a sourced fact</td><td style="text-align:left"><strong>Judge</strong></td><td style="text-align:left">Register integrity</td></tr><tr><td style="text-align:left">Refusing a pair the sources <em>do</em> cover</td><td style="text-align:left"><strong>Judge</strong></td><td style="text-align:left">Refusal correctness, the evasion direction</td></tr><tr><td style="text-align:left">Holding position against a confident false assertion</td><td style="text-align:left"><strong>Judge</strong></td><td style="text-align:left">Anchoring</td></tr></tbody></table></div>
+<h3 id="the-framing-that-makes-this-strong-rather-than-self-defeatin"><span class="htext">The framing that makes this strong rather than self-defeating</span></h3>
+<p>The obvious objection, and a reviewer will raise it: <em>&quot;your guardrail against model hallucination is validated by… another model?&quot;</em></p>
+<p>The answer is that they operate at different layers, and the boundary is absolute:</p>
+<blockquote><p><strong>Deterministic code gates what the user hears. The judge only measures, offline, the things determinism cannot see. The judge never blocks a segment and never sits on the latency path.</strong></p></blockquote>
+<p>That is a better answer than either alternative. &quot;I only have a regex&quot; is thin; &quot;my guardrail is an LLM&quot; is the thing this project exists to argue against. Two layers with a hard boundary is the sophisticated position, and it is one sentence long.</p>
+<h3 id="ragas-the-library-or-ragas-style-hand-rolled"><span class="htext">RAGAS the library, or RAGAS-style hand-rolled?</span></h3>
+<p><strong>Recommendation: hand-rolled, borrowing the concepts, citing the paper.</strong></p>
+<p>Three reasons:</p>
+<ol>
+<li><strong>Half of RAGAS is inapplicable by construction.</strong> <code>context_precision</code> and <code>context_recall</code></li>
+<p>measure a <em>retriever</em> returning k chunks. We make one deterministic API call. There is no retrieval to evaluate. Only <code>faithfulness</code> and <code>answer_relevancy</code> map onto what we do.</p>
+</ol>
+<ol>
+<li><strong>Our most interesting metrics are not in RAGAS.</strong> Register integrity and refusal</li>
+<p>correctness — including the evasion direction — come from our two-register contract. They do not exist in a generic RAG framework, and they are the deep dive.</p>
+</ol>
+<ol>
+<li><strong>Explainability is a graded requirement.</strong> <code>CLAUDE.md</code>: *&quot;If you use a library's magic,</li>
+<p>explain the magic in a comment or pick something plainer.&quot;* RAGAS's faithfulness is a specific claim-decomposition prompt chain. Under questioning, &quot;I ran RAGAS&quot; is a weaker answer than &quot;I decompose each answer into claims and ask a judge whether each is entailed by the context — the RAGAS faithfulness formulation — and here is the prompt.&quot;</p>
+</ol>
+<p>Cost is also against it: a judge runner is roughly two hours; RAGAS is three to four once the dependency and its retrieval-shaped assumptions are wrestled into place, on a plan already running about 2× over.</p>
+<p><strong>Say &quot;RAGAS-style faithfulness&quot; in the writeup and cite the paper.</strong> That earns the recognition without the dependency or the explainability debt.</p>
+<h3 id="the-thing-that-makes-the-judge-credible-validate-the-judge"><span class="htext">The thing that makes the judge credible: validate the judge</span></h3>
+<p>An unvalidated LLM judge is just a second unverified opinion with a percentage attached.</p>
+<p>The fix is nearly free, because the labels already exist in the plan: the eval's cases are hand-labelled <strong>before</strong> the pipeline runs against them. Run the judge against those same labels and report <strong>judge-versus-human agreement</strong> alongside every judge-derived number.</p>
+<blockquote><p><em>&quot;The judge agrees with my hand labels on 11 of 12 cases. Here is the one it got wrong, and why.&quot;</em></p></blockquote>
+<p>That single sentence is worth more than any score the judge produces, and it is the difference between a number a grader believes and one they treat as circular.</p>
+<h3 id="what-else-we-want-and-what-we-deliberately-do-not"><span class="htext">What else we want — and what we deliberately do not</span></h3>
+<p><strong>In:</strong></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Component</th><th style="text-align:left">Cost</th><th style="text-align:left">Why it earns its place</th></tr></thead><tbody><tr><td style="text-align:left">Normalisation layer</td><td style="text-align:left">~1.5 h</td><td style="text-align:left">Owns the paths, unifies live + CSV, absorbs vendor drift</td></tr><tr><td style="text-align:left">Digit + placeholder rules</td><td style="text-align:left">~20 min</td><td style="text-align:left">Closes the §1 hole; the visible demo beat</td></tr><tr><td style="text-align:left">Offline judge, 4 categories</td><td style="text-align:left">~2 h</td><td style="text-align:left">Measures what determinism cannot see</td></tr><tr><td style="text-align:left">Judge-vs-human agreement</td><td style="text-align:left">~20 min</td><td style="text-align:left">The only thing that makes judge numbers believable</td></tr><tr><td style="text-align:left">Untrusted-input delimiting</td><td style="text-align:left">already planned</td><td style="text-align:left">Injection category</td></tr></tbody></table></div>
+<p><strong>Out, deliberately:</strong></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Not doing</th><th style="text-align:left">Why</th></tr></thead><tbody><tr><td style="text-align:left">RAGAS as a dependency</td><td style="text-align:left">Retrieval metrics do not apply; explainability debt</td></tr><tr><td style="text-align:left">Embeddings / semantic similarity scoring</td><td style="text-align:left">Nothing to embed. One API call, not a corpus</td></tr><tr><td style="text-align:left">Judge anywhere on the latency path</td><td style="text-align:left">Contradicts the thesis; adds a full completion per turn</td></tr><tr><td style="text-align:left">Judge as a second gate</td><td style="text-align:left">Same. The gate is deterministic or it is not a gate</td></tr><tr><td style="text-align:left">More than ~12 eval cases</td><td style="text-align:left">Viability cut list. 12 hand-labelled beats 30 unlabelled</td></tr></tbody></table></div>
+<p><strong>The shape in one line:</strong> deterministic enforcement where the harm is binary, an offline judge where it is not, and a stated agreement rate so the judge's numbers are not taken on faith.</p>
+<hr />
+<h2 id="3-the-assertion-layer-and-why-the-gate-is-what-makes-it-poss"><span class="htext">§3 — The assertion layer, and why the gate is what makes it possible</span></h2>
+<p>Omar's addition, and it completes the picture: <strong>deterministic tests we can verify ourselves.</strong> A fixed prompt, a recorded fixture, and an assertion that the answer contains a specific substring or number.</p>
+<p>This sits <em>under</em> the judge and is the layer that runs on every commit.</p>
+<h3 id="the-non-obvious-part-an-llm-pipeline-is-not-normally-substri"><span class="htext">The non-obvious part: an LLM pipeline is not normally substring-testable</span></h3>
+<p>Assertion tests usually fail against a language model because phrasing varies run to run. Here they do not, and the reason is the architecture itself:</p>
+<blockquote><p><strong>The model never writes the number. The gate substitutes it from the fixture.</strong> So the number in the output is deterministic even though the model is not.</p></blockquote>
+<p><code>assert &quot;30 days&quot; in rendered</code> is stable across runs, across phrasings, across temperature — because <code>&quot;30 days&quot;</code> came from <code>fixtures/tb_SA_JP.json</code>, not from the model's mouth. The same design decision that makes the guardrail real is what makes it testable.</p>
+<p>That is a strong walkthrough beat on its own: <em>the guardrail bought us regression tests for free.</em></p>
+<h3 id="three-layers-and-only-two-of-them-need-a-model"><span class="htext">Three layers, and only two of them need a model</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Layer</th><th style="text-align:left">Runs</th><th style="text-align:left">Model in the loop?</th><th style="text-align:left">Catches</th></tr></thead><tbody><tr><td style="text-align:left"><strong>1 · Gate</strong></td><td style="text-align:left">Runtime, hot path</td><td style="text-align:left">No</td><td style="text-align:left">Fabricated values, bad field paths, bare digits</td></tr><tr><td style="text-align:left"><strong>2 · Assertions</strong></td><td style="text-align:left">Every commit, <code>make test</code></td><td style="text-align:left">Tier A: no · Tier B: yes</td><td style="text-align:left">Regressions, structural violations, wrong values</td></tr><tr><td style="text-align:left"><strong>3 · Judge</strong></td><td style="text-align:left">Offline, before submission</td><td style="text-align:left">Yes</td><td style="text-align:left">Register integrity, refusal correctness, anchoring</td></tr></tbody></table></div>
+<p>Layer 2 splits into two tiers with very different costs:</p>
+<p><strong>Tier A — pure unit tests, no model, instant and free.</strong> Hand-construct <code>Segment</code> objects, feed them into <code>resolve()</code> with a fixture, assert the outcome. This is where the digit rule, path resolution, and the absent-vs-null distinction get tested. Dozens of these, milliseconds, zero tokens.</p>
+<div class="codewrap"><pre><code class="lang-python">def test_bare_digit_in_sourced_is_rejected():
+    seg = Segment(kind=&quot;sourced&quot;, text=&quot;visa for up to 90 days&quot;, tool_call_id=&quot;tb_1&quot;)
+    with pytest.raises(GateRejection):
+        resolve([seg], fixtures.SA_JP)
+
+def test_substituted_value_comes_from_the_fixture():
+    seg = Segment(kind=&quot;sourced&quot;, text=&quot;visa for up to {visa.duration}&quot;,
+                  tool_call_id=&quot;tb_1&quot;, fields=(&quot;visa.duration&quot;,))
+    assert resolve([seg], fixtures.SA_JP)[0].text == &quot;visa for up to 30 days&quot;
+
+def test_absent_path_rejects_but_null_path_resolves():
+    ...  # null is an answer; missing is a rejection</code></pre></div>
+<p><strong>Tier B — golden prompt tests, model in the loop, a handful only.</strong> Fixed prompt + recorded vendor fixture → real completion → gate → assert. Slower and costs tokens, but it is the only thing that catches a prompt regression.</p>
+<div class="codewrap"><pre><code class="lang-python">def test_sa_to_japan_states_the_real_duration():
+    out = run_turn(&quot;Do I need a visa for Japan?&quot;, fixture=&quot;tb_SA_JP&quot;)
+    assert &quot;30 days&quot; in out.text          # from the fixture, via the gate
+    assert &quot;90 days&quot; not in out.text      # the plausible wrong answer
+    assert all(s.citation for s in out.segments if s.kind == &quot;sourced&quot;)</code></pre></div>
+<h3 id="keeping-tier-b-from-becoming-flaky"><span class="htext">Keeping Tier B from becoming flaky</span></h3>
+<p>One rule, and it is the whole trick:</p>
+<blockquote><p><strong>Assert only on strings the gate substituted. Never assert on the model's own prose.</strong></p></blockquote>
+<p><code>&quot;30 days&quot;</code> is guaranteed. <code>&quot;You'll need an eVisa for up to 30 days&quot;</code> is not — the model may open with &quot;Japan's rules are straightforward&quot; tomorrow and the test breaks for no reason. Every flaky assertion test in this project will come from forgetting that line.</p>
+<p>Structural assertions are also fully deterministic and need no model behaviour at all:</p>
+<ul>
+<li>every <code>sourced</code> segment carries a citation</li>
+<li>every citation's <code>tool_call_id</code> exists in this turn's tool results</li>
+<li><code>source.layer</code> is stated on every answer</li>
+<li>no <code>judgement</code> segment carries a citation</li>
+</ul>
+<h3 id="negative-assertions-are-where-the-value-is"><span class="htext">Negative assertions are where the value is</span></h3>
+<p>The positive case is easy and the model usually gets it right. Encode the <em>wrong</em> answers:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Assertion</th><th style="text-align:left">Guards against</th></tr></thead><tbody><tr><td style="text-align:left"><code>&quot;90 days&quot; not in out</code></td><td style="text-align:left">The plausible fabricated duration</td></tr><tr><td style="text-align:left"><code>&quot;visa-free&quot; not in out</code> for a pair that is not</td><td style="text-align:left">Category inversion</td></tr><tr><td style="text-align:left">Another country's fixture value absent</td><td style="text-align:left">Cross-turn contamination</td></tr><tr><td style="text-align:left">Reviewer B's passport absent after a session switch</td><td style="text-align:left">The identity bug in §Memory</td></tr></tbody></table></div>
+<p>That last one is worth a test on its own — a shared-memory failure between two anonymous sessions is a live demo death, and it is trivially assertable.</p>
+<h3 id="where-this-lands-in-the-plan"><span class="htext">Where this lands in the plan</span></h3>
+<p><code>make test</code> runs Tier A and the structural assertions on every commit — fast, free, deterministic. Tier B runs on demand and before submission. The judge runs once, before the writeup, and its numbers go in the writeup with the agreement rate beside them.</p>
+<p><strong>Cost:</strong> Tier A ~1 h, Tier B ~45 min, and it buys back time immediately — every gate change after that is verified in seconds instead of by hand.</p>
+<hr />
+<h2 id="4-latency-where-the-deep-dive-actually-costs-you-and-how-to-"><span class="htext">§4 — Latency: where the deep dive actually costs you, and how to get most of it back</span></h2>
+<blockquote><p><strong>Numbers below are derived estimates, not measurements.</strong> Provider facts are being verified separately; TTS time-to-first-byte is unmeasured in our research and is the single largest unknown. Every figure here gets replaced by a measured one after the day-1 spike.</p></blockquote>
+<h3 id="the-chain-and-the-honest-arithmetic"><span class="htext">The chain, and the honest arithmetic</span></h3>
+<p>A cache-miss turn is five provider round trips in strict series:</p>
+<div class="codewrap"><pre><code>endpoint → STT → LLM#1 (tool args) → vendor → LLM#2 (segments) → gate → TTS → audio</code></pre></div>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Stage</th><th style="text-align:left">Estimate</th><th style="text-align:left">Note</th></tr></thead><tbody><tr><td style="text-align:left">Endpointing</td><td style="text-align:left">~600 ms</td><td style="text-align:left">Pure waiting. A product decision, not a technical cost</td></tr><tr><td style="text-align:left">STT</td><td style="text-align:left">~300 ms</td><td style="text-align:left">Groq runs ~216× real-time; this is almost entirely network</td></tr><tr><td style="text-align:left">LLM #1 — tool args</td><td style="text-align:left">~450 ms</td><td style="text-align:left">Short output (~30 tokens), so mostly TTFT</td></tr><tr><td style="text-align:left">Vendor round trip</td><td style="text-align:left">~300–800 ms</td><td style="text-align:left">External API, no CDN guarantee. Wide band</td></tr><tr><td style="text-align:left"><strong>LLM #2 — segments</strong></td><td style="text-align:left"><strong>~1,200 ms</strong></td><td style="text-align:left"><strong>~200 tokens of structured output, generated in full</strong></td></tr><tr><td style="text-align:left">Gate</td><td style="text-align:left">&lt; 5 ms</td><td style="text-align:left">Deterministic substitution</td></tr><tr><td style="text-align:left">TTS TTFB</td><td style="text-align:left">~500 ms <em>(assumed)</em></td><td style="text-align:left">🚨 <strong>Now known to be unknowable from docs.</strong> Anecdotal reports span sub-2 s to 10–20 s. See §5</td></tr><tr><td style="text-align:left"><strong>Total</strong></td><td style="text-align:left"><strong>~3.4–3.9 s</strong></td><td style="text-align:left">Against a stated target of ≤ 2.5 s</td></tr></tbody></table></div>
+<p>🚨 <strong>The TTS row is now the whole ballgame.</strong> Verified research (§5) found no published Gemini TTS latency figure and forum reports ranging from sub-2 s to 10–20 s on the same model within two weeks. If TTFB is 2 s, every number in this table is wrong and the architecture needs rethinking. <strong>This is the day-1 spike that matters most</strong> — it is a fourth spike, added to the three the TDD already names.</p>
+<p>A cached turn drops LLM #1 and the vendor call: <strong>~2.6 s</strong>, against a stated target of ≤ 1.5 s.</p>
+<p><strong>Both targets are optimistic.</strong> Not by a little — the cached case misses by ~1.1 s.</p>
+<h3 id="the-dominant-term-is-the-deep-dive-itself"><span class="htext">The dominant term is the deep dive itself</span></h3>
+<p>After endpointing, the largest cost is LLM #2 generating its <em>complete</em> structured response before anything can be spoken. That is not incidental — it is the gate's requirement. The gate cannot validate a citation inside a sentence that has not finished arriving.</p>
+<p>So the honest framing, and it is a good answer to <em>&quot;what did your guardrail cost you?&quot;</em>:</p>
+<blockquote><p>The gate needs complete text before TTS can start, so I pay full generation instead of time-to-first-token. That is roughly 800 ms. Here is how I got most of it back.</p></blockquote>
+<h3 id="the-fix-gate-per-segment-not-per-response"><span class="htext">The fix: gate per segment, not per response</span></h3>
+<p>The response is already a <em>list</em> of segments. Nothing requires waiting for the last one to gate the first.</p>
+<p>Have the model emit <strong>one segment per line</strong> rather than a single JSON array:</p>
+<div class="codewrap"><pre><code>{&quot;kind&quot;:&quot;sourced&quot;,&quot;text&quot;:&quot;You'll need {visa.type} for up to {visa.duration}.&quot;,&quot;tool_call_id&quot;:&quot;tb_1&quot;}
+{&quot;kind&quot;:&quot;judgement&quot;,&quot;text&quot;:&quot;November is a good month for Kyoto — the crowds thin after the leaves turn.&quot;}</code></pre></div>
+<p>Then: split on newline → validate the complete line → gate it → hand it to TTS, while the next segment is still generating.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left"></th><th style="text-align:left">Before</th><th style="text-align:left">After</th></tr></thead><tbody><tr><td style="text-align:left">Time to first audio (LLM#2 portion)</td><td style="text-align:left">full completion ~1,200 ms</td><td style="text-align:left">first segment ~400 ms</td></tr><tr><td style="text-align:left"><strong>Recovered</strong></td><td style="text-align:left"></td><td style="text-align:left"><strong>~800 ms</strong></td></tr></tbody></table></div>
+<p>Two reasons this is the right shape rather than a trick:</p>
+<ol>
+<li><strong>Incremental JSON-array parsing is fiddly; newline-delimited is not.</strong> Split, parse,</li>
+<p>validate against the segment model. Roughly twenty lines, and every one of them is explainable live.</p>
+<li><strong>Per-line validation is stronger than per-response validation,</strong> not weaker — each segment</li>
+<p>is schema-checked on its own, and a malformed line fails in isolation rather than taking the whole response with it.</p>
+</ol>
+<p>⚠️ <strong>Check before committing to this:</strong> whether Gemini's structured-output mode (<code>responseSchema</code>) can be made to emit newline-delimited objects, or whether we drop <code>responseSchema</code> at runtime and validate each line with Pydantic instead. The second is fine and arguably better — but it is an assumption until tested.</p>
+<h3 id="this-also-settles-item-10-buffered-or-streamed-tts"><span class="htext">This also settles item 10 — buffered or streamed TTS</span></h3>
+<p>It dissolves the question. <strong>Buffer per segment.</strong></p>
+<p>A single segment is one or two sentences, so its audio is short enough that buffering it costs almost nothing — and we avoid true streaming's complexity entirely while capturing nearly all of its benefit, because the <em>next</em> segment is generating while the current one plays.</p>
+<p>It makes barge-in cleaner too: the playback queue is a list of short, complete buffers. Dropping them is trivial, and there is no mid-stream cancellation to get wrong.</p>
+<blockquote><p>Simplicity and speed usually trade against each other. Here segmentation gives both, and it falls out of the guardrail design rather than being bolted on.</p></blockquote>
+<h3 id="revised-defensible-targets"><span class="htext">Revised, defensible targets</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Turn</th><th style="text-align:left">Estimate</th><th style="text-align:left">Was</th></tr></thead><tbody><tr><td style="text-align:left">Cached, segment-streamed</td><td style="text-align:left"><strong>~1.8 s</strong></td><td style="text-align:left">≤ 1.5 s claimed</td></tr><tr><td style="text-align:left">Cache-miss, segment-streamed</td><td style="text-align:left"><strong>~2.8 s</strong></td><td style="text-align:left">≤ 2.5 s claimed</td></tr><tr><td style="text-align:left"><strong>Perceived first sound</strong> (acknowledgement during lookup)</td><td style="text-align:left"><strong>~1.0 s</strong></td><td style="text-align:left">—</td></tr></tbody></table></div>
+<p>State all three. Never let the perceived number stand in for the measured one — report it beside, never instead.</p>
+<h3 id="the-other-levers-ranked"><span class="htext">The other levers, ranked</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Lever</th><th style="text-align:left">Saving</th><th style="text-align:left">Verdict</th></tr></thead><tbody><tr><td style="text-align:left">Gate per segment</td><td style="text-align:left">~800 ms</td><td style="text-align:left"><strong>Do it.</strong> Biggest win, falls out of the design</td></tr><tr><td style="text-align:left">Acknowledgement during lookup</td><td style="text-align:left">0 ms real, huge perceived</td><td style="text-align:left"><strong>Do it.</strong> Already in the TDD</td></tr><tr><td style="text-align:left">Skip LLM #1 on cached turns</td><td style="text-align:left">~450 ms + vendor</td><td style="text-align:left"><strong>Do it.</strong> Already in the TDD</td></tr><tr><td style="text-align:left">Silence threshold 600 → 400 ms</td><td style="text-align:left">200 ms</td><td style="text-align:left"><strong>Tune by feel, then freeze and record why.</strong> Risks cutting people off</td></tr><tr><td style="text-align:left">Speculative vendor prefetch</td><td style="text-align:left">~300–800 ms</td><td style="text-align:left"><strong>No.</strong> Burns quota on a guess, and quota is the demo-day risk</td></tr><tr><td style="text-align:left">Overlap STT with endpointing</td><td style="text-align:left">—</td><td style="text-align:left"><strong>Impossible.</strong> Batch STT needs the complete utterance</td></tr></tbody></table></div>
+<p><strong>Endpointing remains the largest single term at ~600 ms</strong> — larger than any provider call. That is worth saying out loud in the walkthrough, because it is counter-intuitive and it is the one number a reviewer will not expect.</p>
+<hr />
+<h2 id="5-verified-provider-facts-2026-09-19"><span class="htext">§5 — Verified provider facts, 2026-09-19</span></h2>
+<p>Researched against official docs, not recalled. Full source URLs and dates are in the research report; the load-bearing ones are repeated here.</p>
+<h3 id="the-good-news-nothing-needs-renaming"><span class="htext">The good news: nothing needs renaming</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Claim in the TDD</th><th style="text-align:left">Verdict</th></tr></thead><tbody><tr><td style="text-align:left"><code>gemini-3.5-flash-lite</code></td><td style="text-align:left">✅ <strong>Real, stable, not preview.</strong> Function calling supported. Free of charge on free tier. No announced shutdown</td></tr><tr><td style="text-align:left"><code>gemini-3.1-flash-tts-preview</code></td><td style="text-align:left">✅ <strong>Real, current, newest Gemini TTS.</strong> Arabic supported. Still <code>-preview</code></td></tr><tr><td style="text-align:left">24 kHz PCM output</td><td style="text-align:left">✅ <strong>Exactly right</strong> — 24 kHz, 16-bit, mono, signed little-endian PCM</td></tr><tr><td style="text-align:left">TTS streams</td><td style="text-align:left">✅ <strong>Yes — and this is the only Gemini TTS model that does.</strong> Docs: <em>&quot;TTS does not support streaming, except when using <code>gemini-3.1-flash-tts-preview</code>&quot;</em></td></tr><tr><td style="text-align:left">Groq <code>whisper-large-v3-turbo</code></td><td style="text-align:left">✅ <strong>Still live</strong>, free tier 20 RPM / 2,000 RPD / 28,800 audio-sec per day. Not remotely a constraint</td></tr></tbody></table></div>
+<p>A widely-circulated claim that Gemini 3.1 Flash TTS <em>cannot</em> stream is <strong>out of date</strong> — it traces to April 2026 posts, before streaming shipped. Worth knowing, because it is the kind of stale fact that gets repeated in an interview.</p>
+<h3 id="four-exposures-ranked-by-what-they-do-to-us"><span class="htext">🚨 Four exposures, ranked by what they do to us</span></h3>
+<h4 id="1-tts-time-to-first-byte-is-genuinely-unknown-and-it-decides"><span class="secnum">1</span><span class="htext">TTS time-to-first-byte is genuinely unknown — and it decides the architecture</span></h4>
+<p>No published Google figure. No third-party benchmark with methodology. Artificial Analysis ranks the model #2 on quality Elo but <strong>publishes no latency metric for it at all.</strong></p>
+<p>The only evidence is one Google forum thread, and it is not reassuring:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Date</th><th style="text-align:left">Report</th></tr></thead><tbody><tr><td style="text-align:left">2026-07-25</td><td style="text-align:left">sub-2 s on an AI Studio default key; <strong>10–20 s</strong> on a personal Tier-2 key</td></tr><tr><td style="text-align:left">2026-07-26</td><td style="text-align:left">improved to sub-2 s</td></tr><tr><td style="text-align:left">2026-08-06</td><td style="text-align:left">degraded again to &quot;unusable latencies&quot;</td></tr></tbody></table></div>
+<p>Same model, same reporter, three-week swing. And separately: a sibling model (<code>gemini-3.1-flash-live-preview</code>) regressed from ~1 s to 9–15 s starting 2026-09-05, with ~1 in 3 sessions returning no audio, reproduced across two projects and two networks, still unresolved. Different model, same infrastructure family, <strong>two weeks ago.</strong></p>
+<blockquote><p><strong>Add TTS TTFB to the day-1 spikes.</strong> The TDD names three; this is a fourth, and on current evidence it is the one most likely to invalidate the design.</p></blockquote>
+<h4 id="2-and-there-is-a-specific-ab-to-run-which-our-design-already"><span class="secnum">2</span><span class="htext">…and there is a specific A/B to run, which our design already sets up</span></h4>
+<p>The same reporter notes the streaming <code>/v1beta/interactions</code> path is <strong>significantly slower than <code>generateContent</code> streaming.</strong></p>
+<p>That interacts directly with §4's per-segment decision. Because each segment is only a sentence or two, we may be able to use the <em>faster non-streaming</em> endpoint per segment and beat the streaming one outright:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Option</th><th style="text-align:left">Path</th><th style="text-align:left">Bet</th></tr></thead><tbody><tr><td style="text-align:left"><strong>A</strong></td><td style="text-align:left"><code>generateContent</code>, buffered, one call per segment</td><td style="text-align:left">Short segments make buffering cheap; avoids the slow endpoint</td></tr><tr><td style="text-align:left"><strong>B</strong></td><td style="text-align:left"><code>/v1beta/interactions</code>, streamed</td><td style="text-align:left">Lower TTFB <em>within</em> a segment, on the reportedly slower path</td></tr></tbody></table></div>
+<p><strong>Measure both on day 1.</strong> This is a real measurement with a real decision behind it — exactly the kind of thing worth a line in the writeup, whichever way it lands.</p>
+<h4 id="3-the-deployed-url-may-breach-the-free-tier-terms"><span class="secnum">3</span><span class="htext">The deployed URL may breach the free-tier terms</span></h4>
+<p>Gemini API Additional Terms, effective 2026-03-23, verbatim:</p>
+<blockquote><p>You may use only Paid Services when making API Clients available to users in the European Economic Area, Switzerland, or the United Kingdom.</p></blockquote>
+<p><strong>We hand a public URL to a reviewer whose location we do not control.</strong> Sarj is Saudi, so the likely reviewer is in the Gulf — but &quot;likely&quot; is not a basis for a terms compliance decision, and the email to Sarj asking for API keys is already drafted and unsent.</p>
+<p>Related, and worth a sentence in the writeup on its own merits: <strong>free-tier input is used to train Google</strong>, and human reviewers may read it. The terms say <em>&quot;Do not submit sensitive, confidential, or personal information to the Unpaid Services.&quot;</em> We persist user facts — favourite colour, nationality, travel plans — and speak them through TTS. Naming that constraint unprompted is the kind of thing that reads well.</p>
+<h4 id="4-the-preview-tts-model-has-documented-random-failures"><span class="secnum">4</span><span class="htext">The preview TTS model has documented random failures</span></h4>
+<p>Google's own limitations page, verbatim: the model <em>&quot;occasionally returns text tokens instead of audio tokens, causing the server to fail the request with a <code>500</code> error… you should implement automated retry logic.&quot;</em></p>
+<p>Straight into Invariant 7 — a 500 mid-turn must degrade visibly, not hang. Also documented: <code>PROHIBITED_CONTENT</code> false rejections on vague prompts, and quality drift past a few minutes. <strong>Budget the retry; it is not optional, it is in the vendor's own docs.</strong></p>
+<h3 id="the-free-tier-is-real-but-uncontractual"><span class="htext">The free tier is real but uncontractual</span></h3>
+<p>The rate-limits page publishes <strong>no RPM/TPM/RPD table for any tier</strong>, and disclaims the whole subject: <em>&quot;Specified rate limits are not guaranteed and actual capacity may vary.&quot;</em></p>
+<p>One third-party measurement (reading quota values out of 429 bodies, 2026-09-02) puts <code>gemini-3.5-flash-lite</code> at <strong>15 RPM / 500 RPD</strong>. At ~2 LLM calls per turn that is ~250 turns/day — probably fine. <strong>But it cannot be cited in the writeup</strong>, and the LLM adapter needs the same quota-exhaustion handling the vendor client already has.</p>
+<h3 id="the-finding-that-changes-a-decision-groq-now-has-saudi-diale"><span class="htext">🎁 The finding that changes a decision: Groq now has Saudi-dialect TTS</span></h3>
+<p>Our earlier research concluded Groq TTS was unusable. <strong>That conclusion is now out of date</strong> — it was about the deprecated <code>playai-tts</code> and its 200-character cap. Groq now hosts:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Model</th><th style="text-align:left">Note</th></tr></thead><tbody><tr><td style="text-align:left"><code>canopylabs/orpheus-arabic-saudi</code></td><td style="text-align:left">Groq's description: <em>&quot;authentic Saudi dialect synthesis&quot;</em></td></tr><tr><td style="text-align:left"><code>canopylabs/orpheus-v1-english</code></td><td style="text-align:left">English counterpart</td></tr></tbody></table></div>
+<p>Free tier, <strong>10 RPM / 100 RPD</strong>, default format WAV. Sample rate, streaming support and TTFB are <strong>undocumented</strong> — they would have to be measured.</p>
+<p><strong>Why this matters more than it looks:</strong> Sarj is a ten-person Saudi company whose entire product is Arabic-dialect-native voice. An Arabic demo that <em>speaks back in Saudi dialect</em> lands differently from one that speaks Modern Standard Arabic, and it costs one API key we already hold.</p>
+<p>It also resolves cleanly against the PRD's existing Arabic plan rather than fighting it:</p>
+<blockquote><p><strong>Egyptian in, Saudi out.</strong> Input is scripted in Egyptian because that is where open-model word-error rate still holds up (Gulf WER ~68 vs Egyptian ~35). Output is Saudi dialect because that is who we are talking to. Two different constraints, each honestly named.</p></blockquote>
+<p>⚠️ <strong>The catch: 100 requests per day is the tightest quota in the entire project</strong> — tighter than Travel Buddy's 120-request <em>total</em> budget, and it resets daily rather than being a lifetime cap. A single demo rehearsal could burn a meaningful share. It would need the same reserve discipline the vendor client already has.</p>
+<h3 id="two-smaller-notes"><span class="htext">Two smaller notes</span></h3>
+<ul>
+<li><strong><code>gemini-3.5-transcribe</code></strong> now exists — a dedicated low-latency STT model with diarization</li>
+<p>and word timestamps. A same-vendor alternative to Groq Whisper if collapsing to one provider ever becomes attractive. Not proposing it; recording it.</p>
+<li><strong><code>gemini-3.5-flash</code> is labelled &quot;our legacy Flash model&quot;</strong> in Google's own docs. Not</li>
+<p>deprecated, but do not build on it. Flash-Lite 3.5 is the live path, and it is what the TDD already names.</p>
+</ul>
+<hr />
+<h2 id="6-memory-one-contradiction-one-unverified-assumption-one-pat"><span class="htext">§6 — Memory: one contradiction, one unverified assumption, one path off the latency budget</span></h2>
+<h3 id="the-contradiction-item-2"><span class="htext">The contradiction (item 2)</span></h3>
+<p>The TDD says both of these:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Where</th><th style="text-align:left">Says</th></tr></thead><tbody><tr><td style="text-align:left">§Stack table</td><td style="text-align:left">Memory — <strong>open</strong> — SQLite on a Modal Volume, or Postgres</td></tr><tr><td style="text-align:left">§Memory</td><td style="text-align:left"><strong>Decided: SQLite on a Modal Volume.</strong> No second service, no pooling, no extra secret</td></tr></tbody></table></div>
+<p>The §Memory reasoning is sound as far as it goes. But it rests on a claim worth checking before it becomes load-bearing.</p>
+<h3 id="the-unverified-assumption-underneath-it"><span class="htext">🚨 The unverified assumption underneath it</span></h3>
+<blockquote><p><em>&quot;It only breaks with multiple containers, and we run <code>min_containers=1</code>.&quot;</em></p></blockquote>
+<p><strong><code>min_containers=1</code> sets a floor, not a ceiling.</strong> It guarantees at least one warm container — it does not prevent Modal from starting a second one under concurrent load. Two reviewers opening the URL minutes apart is exactly the scenario §Memory's own identity section is written to handle, and it is the scenario that could produce a second container.</p>
+<p>Two SQLite writers on one shared volume file is corruption, not a race you lose occasionally.</p>
+<p>⚠️ <strong>And a second concern, which I am flagging as inference rather than fact:</strong> Modal Volumes have commit/reload semantics rather than behaving like an ordinary POSIX filesystem, and my understanding is that they are not intended for live database files with concurrent writers. <strong>I have not verified this against Modal's current docs.</strong> It belongs in the same bucket as the WebSocket timeout — an assumption the plan leans on that nobody has tested.</p>
+<h3 id="the-alternative-that-removes-the-whole-class-of-problem"><span class="htext">The alternative that removes the whole class of problem</span></h3>
+<p>Look at what we actually store:</p>
+<div class="codewrap"><pre><code>session_id → { travel_profile, open_facts, place_cache }</code></pre></div>
+<p>That is a key-value store. We are not querying it, joining it, or aggregating over it. We read one key at the start of a turn and write one key at the end.</p>
+<p><strong><code>modal.Dict</code> fits the shape exactly</strong> — Modal's own distributed key-value store. No volume flush semantics, no concurrent-writer corruption, no schema migration, no second service, and it is safe if Modal ever runs two containers.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left"></th><th style="text-align:left">SQLite on a Volume</th><th style="text-align:left"><code>modal.Dict</code></th></tr></thead><tbody><tr><td style="text-align:left">Matches our access pattern</td><td style="text-align:left">Over-powered</td><td style="text-align:left">Exactly</td></tr><tr><td style="text-align:left">Safe with 2+ containers</td><td style="text-align:left">❌ corruption</td><td style="text-align:left">✅</td></tr><tr><td style="text-align:left">Volume commit/reload semantics</td><td style="text-align:left">⚠️ unverified</td><td style="text-align:left">Not applicable</td></tr><tr><td style="text-align:left">Lines of code</td><td style="text-align:left">~60 + schema</td><td style="text-align:left">~15</td></tr><tr><td style="text-align:left">Inspectable (Invariant 4)</td><td style="text-align:left">Query the file</td><td style="text-align:left">Read the key; the UI panel is the real answer either way</td></tr><tr><td style="text-align:left">Tangible in a walkthrough</td><td style="text-align:left">A table you can <code>SELECT</code> from</td><td style="text-align:left">A JSON blob you can print</td></tr></tbody></table></div>
+<p>The one honest argument for SQLite is that last row — showing a table reads well. But Invariant 4 is satisfied by the <em>&quot;what Sarjy remembers about you&quot;</em> panel, which is the demo either way, and which we are building regardless.</p>
+<p><strong>Recommendation: <code>modal.Dict</code>.</strong> It removes an unverified assumption and a corruption mode for a data shape that is literally a dictionary, and it is fewer lines to defend live.</p>
+<h3 id="the-design-gap-how-does-a-fact-get-written"><span class="htext">The design gap: how does a fact get written?</span></h3>
+<p>The TDD says <em>what</em> is stored and never says <em>how it gets there.</em> The model has to decide that &quot;my favourite colour is green&quot; is worth persisting, which means a tool call — and a tool call on the response path is another round trip on a budget §4 already showed is tight.</p>
+<p><strong>It must not sit on the latency path.</strong> Two ways, and the second is better:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Approach</th><th style="text-align:left">Cost</th></tr></thead><tbody><tr><td style="text-align:left">Sequential: model calls <code>remember_fact</code>, waits, then answers</td><td style="text-align:left">+1 full round trip on every turn that stores anything</td></tr><tr><td style="text-align:left"><strong>Parallel: emit the fact alongside the answer, write it fire-and-forget after the response is dispatched</strong></td><td style="text-align:left"><strong>Zero</strong></td></tr></tbody></table></div>
+<p>The second works because the segmented response is already a structured object. Add an optional <code>remember</code> field beside <code>segments</code>, and write it <em>after</em> the audio is on its way. Nothing the user hears depends on the write completing.</p>
+<p>⚠️ <strong>One consequence to handle:</strong> if the write fails, the user was already told &quot;got it.&quot; Either don't claim to have remembered until the write lands, or make the memory panel the source of truth so a failure is visible there rather than silently contradicted later.</p>
+<h3 id="identity-right-call-with-one-limit-worth-naming"><span class="htext">Identity — right call, with one limit worth naming</span></h3>
+<p>Anonymous session id in <code>localStorage</code>, one record per id. This correctly solves the shared-memory failure between two reviewers and keeps requirement 4's &quot;no login&quot; intact.</p>
+<p>What it does <strong>not</strong> cover, and should be said out loud rather than discovered:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Scenario</th><th style="text-align:left">Result</th></tr></thead><tbody><tr><td style="text-align:left">Reload, new tab, browser restart</td><td style="text-align:left">✅ Memory persists — this is the brief's actual test</td></tr><tr><td style="text-align:left">Incognito window</td><td style="text-align:left">❌ New identity. Correct behaviour, but a reviewer &quot;starting fresh&quot; gets a blank slate</td></tr><tr><td style="text-align:left">Different browser or device</td><td style="text-align:left">❌ New identity</td></tr><tr><td style="text-align:left"><code>localStorage</code> blocked or cleared</td><td style="text-align:left">❌ New identity</td></tr></tbody></table></div>
+<p>All defensible. The one that matters is the demo script: <strong>the reviewer must state a fact and then reload in the same browser profile.</strong> If the script says &quot;open it fresh&quot; the requirement appears broken when it is working correctly.</p>
+<h3 id="two-smaller-things"><span class="htext">Two smaller things</span></h3>
+<p><strong>Cap the open facts.</strong> The typed profile is bounded by its schema; open key/value facts are not. A long conversation could push unbounded text into every subsequent prompt. Cap the count, evict oldest, and say so in the panel.</p>
+<p><strong>The forget button is a feature, not a nicety.</strong> <code>forget_all</code> is already stubbed in <code>store.py</code>. Given §5's finding that free-tier input is used for training, being able to point at a working &quot;forget everything&quot; control while saying <em>&quot;and here is why that matters on a free tier&quot;</em> is a stronger beat than the button alone.</p>
+<h3 id="addendum-omars-proposal-a-lightweight-identity-prompt"><span class="htext">Addendum — Omar's proposal: a lightweight identity prompt</span></h3>
+<blockquote><p><em>&quot;Maybe we add a small login modal to the interface so different reviewers get assigned to different actual users in a db.&quot;</em></p></blockquote>
+<p><strong>This is better than the <code>localStorage</code>-token design, and for a reason the token version cannot match: it makes isolation demonstrable.</strong></p>
+<p>With an anonymous token, proving that two reviewers do not share memory requires opening a second browser and narrating what the audience cannot see. With a name, it is a fifteen-second beat:</p>
+<blockquote><p>Switch to a different name → Sarjy knows nothing about you → switch back → <em>&quot;your favourite colour is green.&quot;</em> <strong>Persistence and isolation, proven in one move, in front of the reviewer.</strong></p></blockquote>
+<p>That is requirement 2 demonstrated rather than asserted.</p>
+<h4 id="the-version-i-would-build-voice-first-not-a-modal"><span class="htext">The version I would build: voice-first, not a modal</span></h4>
+<p>A login modal is friction in front of requirement 4 (<em>&quot;reviewer opens a link and it works&quot;</em>). But the same identity can be collected by the product doing the thing it is for:</p>
+<blockquote><p><strong>&quot;Hi, I'm Sarjy — what should I call you?&quot;</strong></p></blockquote>
+<p>Spoken, as the first turn. That single beat does four jobs at once:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Job</th><th style="text-align:left">Why it lands here</th></tr></thead><tbody><tr><td style="text-align:left">Creates the identity</td><td style="text-align:left">The answer is the key</td></tr><tr><td style="text-align:left"><strong>Proves the mic works before anything else matters</strong></td><td style="text-align:left">A broken audio path surfaces in second one, not minute three</td></tr><tr><td style="text-align:left">Gives the microphone prompt a reason</td><td style="text-align:left"><code>browser-audio.md</code>: ask <em>&quot;at a sensible moment, with context&quot;</em>, never on page load</td></tr><tr><td style="text-align:left">Opens the demo naturally</td><td style="text-align:left">A conversation, not a form</td></tr></tbody></table></div>
+<p><strong>With a typed fallback</strong>, and that is not optional — names are exactly where Whisper is weakest, Arabic names especially. A mis-transcribed name on turn one is a bad first impression and an orphaned memory record.</p>
+<h4 id="combine-it-with-the-token-rather-than-replacing-it"><span class="htext">Combine it with the token rather than replacing it</span></h4>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Layer</th><th style="text-align:left">Role</th></tr></thead><tbody><tr><td style="text-align:left"><code>localStorage</code></td><td style="text-align:left">Remembers the <strong>last name used</strong> → returning in the same browser skips the question entirely. Zero friction on reload</td></tr><tr><td style="text-align:left">The name</td><td style="text-align:left">The actual <strong>record key</strong> → works across devices, browsers, and incognito</td></tr><tr><td style="text-align:left">A &quot;not you? switch&quot; affordance</td><td style="text-align:left">The isolation demo, and an escape hatch from a mis-heard name</td></tr></tbody></table></div>
+<p>Reload — the brief's literal test — costs the reviewer nothing. Cross-device works. And the demo beat exists.</p>
+<h4 id="say-plainly-what-it-is-not"><span class="htext">Say plainly what it is not</span></h4>
+<p><strong>This is a nameplate, not authentication.</strong> Anyone who types &quot;Omar&quot; gets Omar's record. For a demo holding a favourite colour and a passport nationality, that is the correct amount of security — and naming it is worth more than quietly implying otherwise:</p>
+<blockquote><p><em>&quot;This is identity, not auth — deliberately. Requirement 4 says no login, and the deep dive is guardrails, not access control. Here is exactly what I would add if this held real data.&quot;</em></p></blockquote>
+<h4 id="on-the-scope-guard"><span class="htext">On the scope guard</span></h4>
+<p><code>AGENTS.md</code> warns against <em>&quot;auth, user accounts, or multi-tenancy unless the chosen deep dive actually requires them.&quot;</em> Worth answering directly rather than stepping around:</p>
+<p>The deep dive does not require it — <strong>requirement 2 does.</strong> Shared memory between two reviewers is a P0 failure in the deliverable floor, not a polish item. The guard exists to stop OAuth, password resets and sessions; a name field and a dictionary key are the <em>minimum</em> that makes a graded requirement correct. That line is defensible, and the distinction is worth stating in the walkthrough.</p>
+<h4 id="what-it-does-to-the-store-decision"><span class="htext">What it does to the store decision</span></h4>
+<p>Nothing. <code>name → { travel_profile, open_facts, place_cache }</code> is the same key-value shape as <code>session_id → {...}</code>, so <code>modal.Dict</code> still fits and SQLite is still over-powered. Named keys make the stored record <em>more</em> legible in the memory panel, not less.</p>
+<p><strong>Cost:</strong> roughly 45 minutes, most of it the switch-user affordance and the typed fallback. It buys a demo beat that otherwise does not exist.</p>
+<h3 id="addendum-2-the-two-tier-proposal-and-the-one-thing-to-change"><span class="htext">Addendum 2 — the two-tier proposal, and the one thing to change</span></h3>
+<blockquote><p><em>&quot;Maybe not a modal but an actual login — if the user isn't signed in they get a generic model answering and can only remember within the session, no proper backend saves.&quot;</em></p></blockquote>
+<p><strong>The two-tier structure is right and I would build it.</strong> What I would change is what &quot;login&quot; means.</p>
+<h4 id="why-the-two-tiers-are-good-design-not-just-a-compromise"><span class="htext">Why the two tiers are good design, not just a compromise</span></h4>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Tier</th><th style="text-align:left">Memory</th><th style="text-align:left">Requirement it protects</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Anonymous</strong></td><td style="text-align:left">In-session only, lost on reload, clearly labelled</td><td style="text-align:left"><strong>#4</strong> — the link works instantly, nothing asked of the reviewer</td></tr><tr><td style="text-align:left"><strong>Signed in</strong></td><td style="text-align:left">Persisted, attributable, cross-device</td><td style="text-align:left"><strong>#2</strong> — memory across sessions</td></tr></tbody></table></div>
+<p>It also happens to restate the project's own thesis in a second place: <em>ephemeral versus persisted-and-attributable</em> is the same distinction as <em>judgement versus sourced</em>. Invariant 4 asks memory to be attributable; the tiers make attribution visible in the product rather than only in the schema.</p>
+<p>And it gives the demo a real arc instead of a feature list:</p>
+<div class="codewrap"><pre><code>1. Open the link cold          → it just works          (req 1, 3)
+2. &quot;Sign in so I remember you&quot; → identity, visibly      (req 4 intact)
+3. &quot;My favourite colour is green&quot;
+4. Reload                      → still remembered       (req 2)
+5. Switch user                 → knows nothing about you (isolation)</code></pre></div>
+<h4 id="the-thing-to-change-not-oauth"><span class="htext">🚨 The thing to change: not OAuth</span></h4>
+<p>An &quot;actual login&quot; almost always means Google OAuth, and there is a specific reason not to here:</p>
+<blockquote><p><strong>A hiring reviewer may not want to sign into a candidate's take-home with their real Google account.</strong> If they decline, they never see requirement 2 working — and requirement 2 is graded.</p></blockquote>
+<p>The security we would be buying is irrelevant (the protected data is a favourite colour and a passport nationality), while the cost is real: OAuth client setup, redirect URIs that must match the deployed URL exactly, and a classic day-4 breakage where the callback is misconfigured in production and the demo dies at step 2.</p>
+<p><strong>Build the tiers. Make the upper tier a name plus an optional short PIN.</strong></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left"></th><th style="text-align:left">Name + optional PIN</th><th style="text-align:left">Google OAuth</th></tr></thead><tbody><tr><td style="text-align:left">Build time</td><td style="text-align:left">~45 min</td><td style="text-align:left">~2 h + deployment config</td></tr><tr><td style="text-align:left">Reviewer friction</td><td style="text-align:left">Types a name</td><td style="text-align:left">Hands over a Google account</td></tr><tr><td style="text-align:left">Fails on demo day if…</td><td style="text-align:left">nothing</td><td style="text-align:left">redirect URI mismatch on the deployed URL</td></tr><tr><td style="text-align:left">Security actually needed</td><td style="text-align:left">✅ enough</td><td style="text-align:left">Far beyond the data</td></tr><tr><td style="text-align:left">Requirement 2 demonstrable</td><td style="text-align:left">✅ always</td><td style="text-align:left">❌ only if they agree to sign in</td></tr></tbody></table></div>
+<p>The PIN is what makes it feel like signing in rather than typing a nickname, and it stops casual collision if two people both pick &quot;Omar&quot;. It is four characters of state, not an auth system.</p>
+<p>And it converts cleanly into a walkthrough answer rather than something to be defensive about:</p>
+<blockquote><p><em>&quot;I deliberately didn't use OAuth. I didn't want a reviewer to have to sign into a stranger's app to see the memory feature work, and the data here doesn't justify it. This is identity, not authentication — here's the line where I'd swap in real auth.&quot;</em></p></blockquote>
+<h4 id="one-risk-the-two-tier-design-introduces"><span class="htext">One risk the two-tier design introduces</span></h4>
+<p><strong>If memory only persists when signed in, a reviewer who never signs in may conclude memory is broken.</strong> Requirement 2 is graded on what they observe, not on what the code supports.</p>
+<p>Mitigate in the UI, not in the README:</p>
+<ul>
+<li>The memory panel, while anonymous, reads *&quot;remembered for this session only — sign in to keep</li>
+<p>these.&quot;*</p>
+<li>Sarjy says it once, naturally, after the first fact worth keeping: *&quot;I'll forget that when you</li>
+<p>close the tab unless you tell me your name.&quot;*</p>
+<li>The stored-facts panel stays visible in both tiers, so the difference is legible at a glance.</li>
+</ul>
+<p><strong>Cost is unchanged from the previous addendum — ~45 min</strong> — because the anonymous tier is the same store interface backed by a non-persisted dict. Roughly ten extra lines, not a second subsystem.</p>
+<hr />
+<h2 id="7-the-spike-budget-has-a-problem"><span class="htext">§7 — The spike budget has a problem</span></h2>
+<p>Day 1 in the TDD is: <em>three spikes, then skeleton end-to-end, deployed.</em> This review has added three more:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Spike</th><th style="text-align:left">Blocks</th><th style="text-align:left">Really day 1?</th></tr></thead><tbody><tr><td style="text-align:left">1</td><td style="text-align:left">Modal 10-minute WebSocket</td><td style="text-align:left">The entire architecture</td><td style="text-align:left">✅ <strong>Yes</strong></td></tr><tr><td style="text-align:left">2</td><td style="text-align:left">Browser audio loop in isolation</td><td style="text-align:left">The entire architecture</td><td style="text-align:left">✅ <strong>Yes</strong></td></tr><tr><td style="text-align:left">3</td><td style="text-align:left"><strong>TTS TTFB</strong>, plus <code>generateContent</code> vs <code>/interactions</code></td><td style="text-align:left">The latency budget and possibly the design</td><td style="text-align:left">✅ <strong>Yes</strong> (§5)</td></tr><tr><td style="text-align:left">4</td><td style="text-align:left">Travel Buddy colour legend</td><td style="text-align:left">Day 2's vendor client</td><td style="text-align:left">❌ Day 2</td></tr><tr><td style="text-align:left">5</td><td style="text-align:left"><code>modal.Dict</code> vs Volume semantics</td><td style="text-align:left">Day 2's memory</td><td style="text-align:left">❌ Day 2</td></tr><tr><td style="text-align:left">6</td><td style="text-align:left">Groq Orpheus Arabic</td><td style="text-align:left">Day 4's P2</td><td style="text-align:left">❌ Day 4</td></tr></tbody></table></div>
+<p><strong>Six spikes plus a deployed skeleton is not a day.</strong> The viability review already put the plan at roughly 2× over; this is where that shows up first.</p>
+<p><strong>Run 1–3 on day 1 and move the rest to the day they actually block.</strong> Each of 4, 5 and 6 gates work that does not start until later, so running them early buys nothing and costs the one day whose failure is unrecoverable.</p>
+<p>The three that stay share a property the others do not: <strong>each can invalidate the architecture.</strong> If the WebSocket dies at five minutes, if the browser audio path does not work, or if TTS time-to-first-byte is two seconds, the design changes. That is what a day-1 spike is for.</p>
+<hr />
+<h2 id="8-the-inventory-and-the-arithmetic-nobody-has-done"><span class="htext">§8 — The inventory, and the arithmetic nobody has done</span></h2>
+<p><strong>Corrected by Omar:</strong> the deadline is <strong>Monday 19:00</strong> — all Saturday, all Sunday, most of Monday. The invitation email said four days from Thursday night; the assignment doc said three. <strong>Target the doc's three.</strong> When two sources disagree, the tighter one is the safe read, and it is the one written into the brief.</p>
+<p>Realistic working hours, with Monday's last block reserved for submission rather than build:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Day</th><th style="text-align:left">Build hours</th></tr></thead><tbody><tr><td style="text-align:left">Saturday (after sleep — it is 02:50 now)</td><td style="text-align:left">~10</td></tr><tr><td style="text-align:left">Sunday</td><td style="text-align:left">~10</td></tr><tr><td style="text-align:left">Monday, to 19:00, <strong>less ~3 h reserved for Loom + submission</strong></td><td style="text-align:left">~6</td></tr><tr><td style="text-align:left"><strong>Available for building</strong></td><td style="text-align:left"><strong>~26 h</strong></td></tr></tbody></table></div>
+<p>Here is everything the plan currently contains. Estimates, not measurements.</p>
+<h3 id="p0-the-deliverable-floor-the-7-requirements"><span class="htext">P0 — the deliverable floor (the 7 requirements)</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Task</th><th style="text-align:left">Est.</th></tr></thead><tbody><tr><td style="text-align:left">Day-1 spikes: Modal WebSocket · browser audio · TTS TTFB</td><td style="text-align:left">2.0</td></tr><tr><td style="text-align:left">Browser capture + playback + VAD wiring</td><td style="text-align:left">3.0</td></tr><tr><td style="text-align:left">WebSocket protocol + FastAPI pipeline skeleton</td><td style="text-align:left">2.0</td></tr><tr><td style="text-align:left">STT adapter (Groq Whisper)</td><td style="text-align:left">1.0</td></tr><tr><td style="text-align:left">LLM adapter (Gemini) + tool-calling loop</td><td style="text-align:left">2.0</td></tr><tr><td style="text-align:left">TTS adapter + retry for the documented 500s (§5)</td><td style="text-align:left">1.5</td></tr><tr><td style="text-align:left">Deploy to Modal + secrets + verify</td><td style="text-align:left">1.5</td></tr><tr><td style="text-align:left">Vendor client: quota, reserve, resolution order</td><td style="text-align:left">2.5</td></tr><tr><td style="text-align:left">Normalisation layer (§2)</td><td style="text-align:left">1.5</td></tr><tr><td style="text-align:left">Memory store + two tiers + identity UX</td><td style="text-align:left">2.0</td></tr><tr><td style="text-align:left">UI: state, transcript, memory panel</td><td style="text-align:left">2.5</td></tr><tr><td style="text-align:left">Per-stage instrumentation (Invariant 2)</td><td style="text-align:left">1.0</td></tr><tr><td style="text-align:left"><strong>Subtotal</strong></td><td style="text-align:left"><strong>22.5 h</strong></td></tr></tbody></table></div>
+<h3 id="p1-the-deep-dive"><span class="htext">P1 — the deep dive</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Task</th><th style="text-align:left">Est.</th></tr></thead><tbody><tr><td style="text-align:left">Gate: <code>resolve</code>, <code>get_path</code>, digit + placeholder rules</td><td style="text-align:left">2.0</td></tr><tr><td style="text-align:left">NDJSON segmented prompt + per-line parsing (§4)</td><td style="text-align:left">1.5</td></tr><tr><td style="text-align:left">Assertion tests, Tier A — no model, every commit</td><td style="text-align:left">1.0</td></tr><tr><td style="text-align:left">Assertion tests, Tier B — golden prompts</td><td style="text-align:left">0.75</td></tr><tr><td style="text-align:left">Eval harness + 12 labelled cases + recorded fixtures</td><td style="text-align:left">2.0</td></tr><tr><td style="text-align:left">LLM judge, 4 categories</td><td style="text-align:left">2.0</td></tr><tr><td style="text-align:left">Judge-vs-human agreement</td><td style="text-align:left">0.3</td></tr><tr><td style="text-align:left">Injection delimiting + refusal routing</td><td style="text-align:left">1.25</td></tr><tr><td style="text-align:left"><strong>Subtotal</strong></td><td style="text-align:left"><strong>10.8 h</strong></td></tr></tbody></table></div>
+<h3 id="p2-p3-deliverables"><span class="htext">P2 / P3 / deliverables</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Task</th><th style="text-align:left">Est.</th></tr></thead><tbody><tr><td style="text-align:left">Arabic — <strong>bare minimum</strong>: Whisper <code>language=ar</code>, Gemini TTS auto-detects</td><td style="text-align:left"><strong>0.75</strong></td></tr><tr><td style="text-align:left">Arabic — code-switching script tagger + RTL handling</td><td style="text-align:left">2.0</td></tr><tr><td style="text-align:left">Groq Orpheus Saudi-dialect spike + wiring</td><td style="text-align:left">0.75</td></tr><tr><td style="text-align:left">Wikipedia client + place imagery</td><td style="text-align:left">1.5</td></tr><tr><td style="text-align:left">UI polish — calm, attractive, beyond functional</td><td style="text-align:left">2.0</td></tr><tr><td style="text-align:left"><strong>Demo script + rehearsal</strong></td><td style="text-align:left">1.0</td></tr><tr><td style="text-align:left"><strong>Loom / PDF</strong></td><td style="text-align:left">1.5</td></tr><tr><td style="text-align:left"><strong>Writeup: API justification, deep-dive numbers, what I'd do next</strong></td><td style="text-align:left">1.5</td></tr><tr><td style="text-align:left"><strong>Progress updates to Sarj</strong></td><td style="text-align:left">0.5</td></tr><tr><td style="text-align:left"><strong>Subtotal</strong></td><td style="text-align:left"><strong>11.5 h</strong></td></tr></tbody></table></div>
+<h3 id="the-arithmetic"><span class="htext">🚨 The arithmetic</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left"></th><th style="text-align:left">Hours</th></tr></thead><tbody><tr><td style="text-align:left">Everything above</td><td style="text-align:left"><strong>~44.8</strong></td></tr><tr><td style="text-align:left">Available for building</td><td style="text-align:left"><strong>~26</strong></td></tr><tr><td style="text-align:left"><strong>Over by</strong></td><td style="text-align:left"><strong>~1.7×</strong></td></tr></tbody></table></div>
+<p>Better than the 2× the viability review found, but still comfortably over. <strong>Roughly a third of this plan is not going to happen. The only question is whether you choose which third or discover it at 4 a.m. on Monday.</strong></p>
+<h3 id="the-one-genuinely-good-discovery-in-this-table"><span class="htext">The one genuinely good discovery in this table</span></h3>
+<p><strong>Arabic is not a 3.5-hour feature. The honest minimum is ~45 minutes.</strong></p>
+<ul>
+<li>Whisper takes <code>language=ar</code> — a config change through an adapter that already exists</li>
+<li>Gemini TTS auto-detects Arabic from the text — verified in §5, no work at all</li>
+</ul>
+<p>What costs hours is <em>code-switching</em> (the script tagger), <em>RTL polish</em>, and <em>Orpheus</em>. Those are the enhancements, not the feature.</p>
+<p>That matters because <strong>Sarj were told in writing this is &quot;a bilingual English/Arabic voice assistant.&quot;</strong> Shipping zero Arabic walks that back. Shipping one clean Arabic turn — and saying out loud that code-switching is where it gets hard, with the WER numbers — honours the promise and makes a better talking point than the polish would have.</p>
+<h3 id="the-cut-ladder-in-the-order-i-would-cut"><span class="htext">The cut ladder, in the order I would cut</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Cut</th><th style="text-align:left">Saves</th><th style="text-align:left">Cost of cutting</th></tr></thead><tbody><tr><td style="text-align:left">1. UI polish beyond functional</td><td style="text-align:left">2.0</td><td style="text-align:left">Rubric says &quot;delightful UI&quot; — real loss, but state + clarity carry most of it</td></tr><tr><td style="text-align:left">2. Wikipedia imagery</td><td style="text-align:left">1.5</td><td style="text-align:left">Already P3 in the PRD. The TDD just never removed it</td></tr><tr><td style="text-align:left">3. Arabic code-switching + RTL</td><td style="text-align:left">2.0</td><td style="text-align:left">Keep the bare Arabic turn. Name the gap out loud</td></tr><tr><td style="text-align:left">4. Orpheus Saudi-dialect spike</td><td style="text-align:left">0.75</td><td style="text-align:left">Lovely beat, entirely optional</td></tr><tr><td style="text-align:left">5. Assertion tests Tier B</td><td style="text-align:left">0.75</td><td style="text-align:left">Tier A covers the gate; Tier B covers the prompt</td></tr><tr><td style="text-align:left">6. LLM judge + agreement</td><td style="text-align:left">2.3</td><td style="text-align:left"><strong>The last thing I would cut.</strong> Deterministic layers still give defensible numbers</td></tr><tr><td style="text-align:left"><strong>Total available from cuts</strong></td><td style="text-align:left"><strong>9.3 h</strong></td><td style="text-align:left"></td></tr></tbody></table></div>
+<p>That lands at <strong>~35.5 h against ~26</strong>. Still ~1.4× over — and that assumes nothing goes wrong, in a voice app, where something always does.</p>
+<h3 id="the-committed-core-and-what-it-actually-costs"><span class="htext">The committed core, and what it actually costs</span></h3>
+<p>Strip it to what is genuinely unavoidable:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Block</th><th style="text-align:left">Est.</th></tr></thead><tbody><tr><td style="text-align:left">P0 floor — all 7 requirements</td><td style="text-align:left">22.5</td></tr><tr><td style="text-align:left">Deep dive, minimum: gate · NDJSON · Tier A tests · fixtures + 12 cases · injection + refusal</td><td style="text-align:left">7.75</td></tr><tr><td style="text-align:left">Arabic, bare minimum</td><td style="text-align:left">0.75</td></tr><tr><td style="text-align:left">Deliverables — demo script, Loom, writeup, updates</td><td style="text-align:left">4.5</td></tr><tr><td style="text-align:left"><strong>Committed core</strong></td><td style="text-align:left"><strong>~35.5 h</strong></td></tr></tbody></table></div>
+<p><strong>Against ~26 h of build time, the core itself is ~1.4× over.</strong> Cuts cannot fix that, because everything above is either a graded requirement or the deep dive itself.</p>
+<h3 id="on-pipecat-i-would-not-take-it"><span class="htext">On Pipecat — I would not take it</span></h3>
+<p>It is the obvious lever (−3 to −4 h off the browser-audio and WebSocket plumbing) and I think it is a trap here:</p>
+<ul>
+<li><strong>The learning curve lands exactly when you cannot afford it.</strong> Learning a framework under</li>
+<p>deadline routinely costs more than the 300 lines it replaces.</p>
+<li><strong>It wants to own the pipeline,</strong> and the grounding gate has to sit between LLM and TTS —</li>
+<p>precisely where a framework asserts control. Fighting that costs the saving back.</p>
+<li><strong>The plumbing is the least differentiated part.</strong> Spending the framework's complexity budget</li>
+<p>there, and then having to explain its internals live, trades the wrong thing away.</p>
+</ul>
+<p>Keep it as an escape hatch with a trigger hour. Do not make it the plan.</p>
+<h3 id="what-actually-closes-the-gap-sequence-not-cuts"><span class="htext">What actually closes the gap: sequence, not cuts</span></h3>
+<p>You cannot make 35 hours fit in 26. You <em>can</em> decide, in advance and while rested, <strong>which hours fall off the end.</strong></p>
+<p>Order the work so that overflow is automatically the least damaging thing:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Block</th><th style="text-align:left">If it is missing</th></tr></thead><tbody><tr><td style="text-align:left">1</td><td style="text-align:left">Three spikes</td><td style="text-align:left">Architecture is wrong — unrecoverable</td></tr><tr><td style="text-align:left">2</td><td style="text-align:left"><strong>Deploy a skeleton</strong></td><td style="text-align:left">Requirement 4 scores <strong>zero</strong></td></tr><tr><td style="text-align:left">3</td><td style="text-align:left">Voice loop end to end</td><td style="text-align:left">Requirement 1</td></tr><tr><td style="text-align:left">4</td><td style="text-align:left">Memory + identity</td><td style="text-align:left">Requirement 2</td></tr><tr><td style="text-align:left">5</td><td style="text-align:left">Vendor client + normaliser + <strong>the gate</strong></td><td style="text-align:left">Requirement 3 + the entire deep dive</td></tr><tr><td style="text-align:left">6</td><td style="text-align:left">Instrumentation</td><td style="text-align:left">Invariant 2, and &quot;where does the time go&quot; gets asked regardless</td></tr><tr><td style="text-align:left">7</td><td style="text-align:left">Eval fixtures + 12 cases + Tier A tests</td><td style="text-align:left">The deep dive's numbers</td></tr><tr><td style="text-align:left">8</td><td style="text-align:left">🔒 <strong>Deliverables — a reserved block, not leftovers</strong></td><td style="text-align:left">Graded separately. Never the remainder</td></tr><tr><td style="text-align:left">—</td><td style="text-align:left"><em>Overflow zone</em></td><td style="text-align:left">Judge · Arabic polish · Tier B · imagery · UI polish</td></tr></tbody></table></div>
+<p><strong>Block 8 is reserved time, not what is left over.</strong> The brief grades the presentation separately from the build, and the single most common way a good take-home scores badly is arriving with working code and no demo.</p>
+<p>Everything below the line becomes <em>&quot;what I'd do with another week&quot;</em> — which the assignment names explicitly as something they want to hear. An unfinished thread you can articulate beats a finished thread nobody asked about.</p>
+<p>⚠️ <strong>And set the Pipecat trigger hour now, before you are tired.</strong> A pre-committed decision point — <em>&quot;if the audio loop is not working by 6 p.m. Saturday, I switch&quot;</em> — is a decision made by today's judgement instead of Sunday-night panic. That is the entire value of it, and it expires the moment you are too invested to use it.</p>
+<hr />
+<h2 id="9-recalibrated-what-ai-assisted-work-actually-compresses"><span class="htext">§9 — Recalibrated: what AI-assisted work actually compresses</span></h2>
+<blockquote><p><em>&quot;I think with AI usage I will be pretty fast, especially if we plan thoroughly and deeply.&quot;</em></p></blockquote>
+<p>Fair, and the §8 estimates were calibrated to hand-coding. But the compression is <strong>not uniform</strong>, and which half compresses matters more than the average.</p>
+<h3 id="what-compresses-roughly-2-and-what-does-not-0"><span class="htext">What compresses (roughly 2×) and what does not (0×)</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Compresses ~2× — generative work</th><th style="text-align:left">Does not compress — wall clock or empirical</th></tr></thead><tbody><tr><td style="text-align:left">Provider adapters (STT/LLM/TTS)</td><td style="text-align:left"><strong>The three spikes</strong> — a 10-minute WebSocket test takes ten minutes</td></tr><tr><td style="text-align:left">Store, memory, identity</td><td style="text-align:left"><strong>Deployment cycles</strong> — Modal deploy, secrets, verify the URL</td></tr><tr><td style="text-align:left">Normalisation layer</td><td style="text-align:left"><strong>Browser audio debugging</strong> — AudioWorklet, echo cancellation, Safari</td></tr><tr><td style="text-align:left">Vendor client + quota logic</td><td style="text-align:left"><strong>Latency measurement runs</strong></td></tr><tr><td style="text-align:left"><strong>Tier A unit tests</strong> — the biggest win of all</td><td style="text-align:left"><strong>Prompt engineering</strong> — the gate and judge prompts are iterative</td></tr><tr><td style="text-align:left">UI scaffolding</td><td style="text-align:left"><strong>Labelling the 12 eval cases</strong> — human judgement by definition</td></tr><tr><td style="text-align:left">Eval harness, judge runner</td><td style="text-align:left"><strong>Demo rehearsal and the Loom</strong> — usually two or three takes</td></tr><tr><td style="text-align:left">Writeup first drafts</td><td style="text-align:left"><strong>Tuning by feel</strong> — silence threshold, voice, persona</td></tr></tbody></table></div>
+<h3 id="the-recalibrated-total"><span class="htext">The recalibrated total</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Block</th><th style="text-align:left">§8 est.</th><th style="text-align:left">Recalibrated</th></tr></thead><tbody><tr><td style="text-align:left">P0 floor</td><td style="text-align:left">22.5</td><td style="text-align:left"><strong>14.5</strong></td></tr><tr><td style="text-align:left">P1 deep dive</td><td style="text-align:left">10.8</td><td style="text-align:left"><strong>7.0</strong></td></tr><tr><td style="text-align:left">P2 / P3 / deliverables</td><td style="text-align:left">11.5</td><td style="text-align:left"><strong>7.9</strong></td></tr><tr><td style="text-align:left"><strong>Total</strong></td><td style="text-align:left"><strong>44.8</strong></td><td style="text-align:left"><strong>~29.4 h</strong></td></tr></tbody></table></div>
+<p><strong>Against ~26 h available, that is ~1.13× over</strong> — and the cut ladder closes it with room:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Cut</th><th style="text-align:left">Saves</th></tr></thead><tbody><tr><td style="text-align:left">Wikipedia imagery</td><td style="text-align:left">0.75</td></tr><tr><td style="text-align:left">UI polish beyond functional</td><td style="text-align:left">1.25</td></tr><tr><td style="text-align:left">Arabic code-switching + RTL</td><td style="text-align:left">1.25</td></tr><tr><td style="text-align:left"><strong>Lands at</strong></td><td style="text-align:left"><strong>~26.2 h</strong></td></tr></tbody></table></div>
+<p><strong>It fits.</strong> Not comfortably, but it fits — which the §8 numbers said it could not.</p>
+<h3 id="why-it-compresses-is-the-work-we-just-did"><span class="htext">Why it compresses is the work we just did</span></h3>
+<p>This is not optimism about typing speed. A vague brief does not compress at all — an AI given &quot;build a grounding gate&quot; produces something plausible and wrong. What compresses is a spec with <strong>defined contracts, named file paths, explicit failure modes, and decided trade-offs</strong>, which is precisely what §1–§8 produced.</p>
+<p>The nine hours of planning bought the compression. That is worth knowing because it argues for finishing the plan properly before Saturday morning, not for skipping ahead.</p>
+<h3 id="but-the-risk-profile-got-worse-not-better"><span class="htext">🚨 But the risk profile got worse, not better</span></h3>
+<p>Incompressible work is now <strong>~11 of the ~26 hours — over 40% of the budget.</strong> Spikes, deployment, audio debugging, measurement, rehearsal and the Loom do not care how fast the code gets written.</p>
+<p>Two consequences:</p>
+<ol>
+<li><strong>Schedule the incompressible work first and protect it.</strong> It is the part that cannot be</li>
+<p>recovered by working faster later. If Saturday's spikes slip, nothing downstream can absorb it.</p>
+<li><strong>A single bad surprise in the incompressible half eats the entire buffer.</strong> If TTS</li>
+<p>time-to-first-byte comes back at two seconds, or the Modal WebSocket dies at five minutes, there is no faster typing that fixes it.</p>
+</ol>
+<h3 id="and-the-real-ceiling-is-not-typing-speed"><span class="htext">⚠️ And the real ceiling is not typing speed</span></h3>
+<p><code>CLAUDE.md</code>, and the rubric behind it:</p>
+<blockquote><p><strong>Do not generate code Omar hasn't been walked through.</strong> <em>&quot;Do you understand it thoroughly?&quot;</em> is a graded criterion, and any code you cannot explain live is a liability rather than an asset.</p></blockquote>
+<p><strong>With AI, the binding constraint shifts from writing code to understanding it.</strong> Generation is no longer the bottleneck; your review time is. That is a real budget line, not a platitude — and it is the one thing in this plan that must not be compressed, because compressing it converts finished features into demo liabilities.</p>
+<p>Practically: walk through each module as it lands rather than batching comprehension to Sunday night. The <code>/implement</code> skill and the explain-as-you-go cadence in <code>CLAUDE.md</code> exist for exactly this, and they are now load-bearing rather than nice-to-have.</p>
+<hr />
+<h2 id="10-gemini-structured-output-the-ndjson-plan-survives-but-onl"><span class="htext">§10 — Gemini structured output: the NDJSON plan survives, but only one way</span></h2>
+<p>Researched against official docs 2026-09-19. <strong>§4's per-segment recommendation rests on an assumption I flagged as untested. It is now tested, and the answer is &quot;yes, but not the easy way.&quot;</strong></p>
+<h3 id="the-finding-that-matters"><span class="htext">🚨 The finding that matters</span></h3>
+<blockquote><p><strong>Streaming + <code>response_format</code> does not give you discrete objects.</strong> Google's docs, verbatim: <em>&quot;The streamed chunks are valid partial JSON strings that can be concatenated to form the final JSON object.&quot;</em></p></blockquote>
+<p>So the chunks are fragments of <strong>one growing document</strong>, not complete objects. Splitting those deltas on <code>\n</code> gets you fragments of a JSON array, not parseable lines.</p>
+<p><strong>There is no NDJSON mime type.</strong> <code>mime_type</code> is a two-value enum: <code>application/json</code> or <code>text/plain</code>. &quot;JSONL&quot; appears in Google's docs only as a Batch API <em>input</em> format.</p>
+<p><strong>Therefore: NDJSON and <code>response_format</code> are mutually exclusive.</strong> Pick one.</p>
+<h3 id="the-trade-stated-plainly"><span class="htext">The trade, stated plainly</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left"></th><th style="text-align:left"><strong>A · NDJSON</strong> (<code>text/plain</code>, prompted)</th><th style="text-align:left"><strong>B · <code>response_format</code></strong> (one JSON doc)</th></tr></thead><tbody><tr><td style="text-align:left">Per-segment gating</td><td style="text-align:left">✅ Yes — the §4 design works</td><td style="text-align:left">❌ No — full completion first</td></tr><tr><td style="text-align:left">Latency</td><td style="text-align:left"><strong>~800 ms faster to first audio</strong></td><td style="text-align:left">Pays full generation</td></tr><tr><td style="text-align:left">JSON validity</td><td style="text-align:left">Prompt-enforced. <strong>We own every malformed line</strong></td><td style="text-align:left">Guaranteed syntactically valid by constrained decoding</td></tr><tr><td style="text-align:left">Validation</td><td style="text-align:left">Pydantic per line — still schema validation, not regex</td><td style="text-align:left">Pydantic on one object</td></tr><tr><td style="text-align:left">New failure mode</td><td style="text-align:left">Malformed line mid-response</td><td style="text-align:left">None</td></tr></tbody></table></div>
+<p><strong>Recommendation: A.</strong> Three reasons:</p>
+<ol>
+<li><strong>The machinery already exists.</strong> A malformed line is just another rejection — and the gate's</li>
+<p>rejection path (<em>&quot;I couldn't confirm that part&quot;</em>) is already built and already the honest sentence. It is not a new concept, it is one more input to an existing branch.</p>
+<li><strong>It does not violate the grounding-gate rule.</strong> That rule says *schema-validated object, never</li>
+<p>regex a model's prose*. Pydantic parsing a JSON object per line <strong>is</strong> schema validation. We are not pattern-matching text; we are parsing JSON and rejecting what fails.</p>
+<li><strong>800 ms is a lot in a voice app</strong>, and §8 shows we have no latency to spare.</li>
+</ol>
+<p><strong>Cost to name honestly:</strong> without constrained decoding, the malformed-line rate is unknown. So <strong>measure it</strong> — it joins gate-rejection rate as a reported number. Two measured failure rates beats one assumed guarantee.</p>
+<h3 id="thinking-is-on-by-default-cannot-be-turned-off-and-will-corr"><span class="htext">🚨 Thinking is on by default, cannot be turned off, and will corrupt your latency numbers</span></h3>
+<p><code>gemini-3.5-flash-lite</code> defaults to <code>thinking_level: &quot;minimal&quot;</code>. Levels are <code>minimal</code> / <code>low</code> / <code>medium</code> / <code>high</code> — <strong>there is no off.</strong> Docs: <em>&quot;<code>minimal</code> does not guarantee that thinking is off.&quot;</em></p>
+<p>Two consequences:</p>
+<ol>
+<li><strong>Set <code>thinking_level: &quot;minimal&quot;</code> explicitly on every call.</strong> It is interaction-scoped and is</li>
+<p><em>not</em> carried by <code>previous_interaction_id</code> — omit it and you silently get the model default. Same for <code>tools</code> and <code>system_instruction</code>.</p>
+<li>⚠️ <strong>Instrument TTFT to the first <code>delta.type == &quot;text&quot;</code>, not the first SSE event.</strong> Thinking</li>
+<p>arrives first as <code>thought</code> deltas. Measuring to the first event records a fiction — a number that looks great and describes nothing the user experienced. This is Invariant 2's exact failure mode, and it would have been very easy to get wrong.</p>
+</ol>
+<h3 id="five-more-things-that-change-the-code"><span class="htext">Five more things that change the code</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Finding</th><th style="text-align:left">What to do</th></tr></thead><tbody><tr><td style="text-align:left"><strong><code>generateContent</code> is legacy.</strong> The Interactions API has been GA since June 2026 and is &quot;recommended for all new projects&quot;</td><td style="text-align:left">Build the adapter on <code>client.interactions.create</code>. Needs <code>google-genai &gt;= 2.3.0</code> — <strong>pin it</strong></td></tr><tr><td style="text-align:left"><strong><code>responseSchema</code> is deprecated</strong></td><td style="text-align:left">Any snippet using <code>response_schema=</code> / <code>response_mime_type=</code> is writing against a deprecated field. Do not build the adapter around it</td></tr><tr><td style="text-align:left"><strong><code>temperature</code>, <code>top_p</code>, <code>top_k</code> deprecated 2026-07-21</strong>, and on 3.5 Flash-Lite custom values <em>&quot;will be ignored&quot;</em></td><td style="text-align:left"><strong>You cannot get determinism from the model.</strong> Which is exactly why §3's assertion tests assert on <em>gate-substituted</em> values — that design is now not merely convenient, it is the only way to have stable tests on this model</td></tr><tr><td style="text-align:left"><strong>Free tier stores interactions for 1 day</strong> (<code>store=true</code> is the default)</td><td style="text-align:left">Set <code>store=False</code> deliberately. Ties directly to §5's finding that free-tier input trains Google, and we persist personal facts</td></tr><tr><td style="text-align:left"><strong>Stateless mode is strict</strong> — with <code>store=False</code> you must resend every model step <em>&quot;exactly as received&quot;</em>, thought signatures included</td><td style="text-align:left">Real work, not <code>history.append(text)</code>. Budget ~20 min and write it once, carefully</td></tr></tbody></table></div>
+<h3 id="one-piece-of-good-news-the-two-call-split-is-now-validated-b"><span class="htext">One piece of good news: the two-call split is now validated by the docs</span></h3>
+<p>Google documents a failure mode that matches our architecture exactly: requiring the model to emit structured text <em>immediately before</em> a tool call <em>&quot;may occasionally fail with <code>Malformed_Function_Call</code>.&quot;</em></p>
+<p><strong>Our two-call split avoids it by construction</strong> — call 1 is tools only, call 2 is segments only.</p>
+<blockquote><p><strong>Do not later &quot;optimise&quot; by merging the segmenting prompt into the tool-calling call.</strong> It is the obvious-looking saving, it is documented to break, and this note is here so that at 1 a.m. on Sunday you remember why the split exists.</p></blockquote>
+<p>Also confirmed: <code>tool_choice: &quot;none&quot;</code> on call 2 documentedly prohibits further tool calls — exactly what we want.</p>
+<h3 id="still-unverified-and-worth-knowing"><span class="htext">Still unverified, and worth knowing</span></h3>
+<ul>
+<li><strong>Whether <code>tools</code> + <code>response_format</code> + <code>stream=True</code> work as a triple.</strong> Each pair is</li>
+<p>documented; the combination never is. Moot if we take option A.</p>
+<li><strong>Whether <code>gemini-3.5-flash-lite</code> is covered by &quot;Structured outputs with tools&quot;</strong> — the current</li>
+<p>page says &quot;Gemini 3 series&quot;, the legacy page narrows it to three other models. Conflicting, and it is a Preview feature. Again moot under option A.</p>
+<li><strong>No published TTFT figure for this model.</strong> DeepMind quotes 350 output tokens/sec throughput,</li>
+<p>which is not the same thing. Measure it.</p>
+</ul>
+<hr />
+<h2 id="11-modal-one-real-bug-in-the-scaffold-and-one-decision-that-"><span class="htext">§11 — Modal: one real bug in the scaffold, and one decision that is irreversible</span></h2>
+<p>Researched against Modal's full docs corpus, their client source, and their own reference voice app. <strong>Already fixed in <code>backend/modal_app.py</code>.</strong></p>
+<h3 id="the-bug-one-websocket-one-input-one-container"><span class="htext">🚨 The bug: one WebSocket = one input = one container</span></h3>
+<p>Modal's own WebSocket launch post, verbatim:</p>
+<blockquote><p><em>Modal treats each WebSocket connection as a single input, so you will want to set your function to allow for concurrent inputs… <strong>Otherwise, Modal will spin up a new container for each WebSocket connection.</strong></em></p></blockquote>
+<p>The scaffold had no <code>@modal.concurrent</code>. So <strong>every concurrent listener would have got their own container</strong> — and <code>min_containers=1</code> does not prevent it, because §6 was right that it is a floor, not a cap. It is worse than §6 assumed: not &quot;under load&quot;, but <em>per connection</em>.</p>
+<p>Two reviewers on the URL at once would have been two containers with two separate in-memory states. Fixed:</p>
+<div class="codewrap"><pre><code class="lang-python">@app.function(
+    timeout=30 * 60,       # never the 300 s default
+    min_containers=1,      # floor, not a cap
+    max_containers=2,      # the actual cap
+    scaledown_window=300,
+)
+@modal.concurrent(max_inputs=8, target_inputs=4)   # ← the fix
+@modal.asgi_app()</code></pre></div>
+<p>⚠️ <strong>And write the WebSocket handler <code>async</code>.</strong> Modal: <em>&quot;When using input concurrency with a synchronous Function, a single input cancellation will terminate the entire container.&quot;</em> A WebSocket disconnect <strong>is</strong> an input cancellation — so one reviewer closing their tab would kill everyone else's session. A sync handler plus concurrency is a trap with no error message.</p>
+<h3 id="routing_region-cannot-be-changed-after-the-first-deploy"><span class="htext">🚨 <code>routing_region</code> cannot be changed after the first deploy</span></h3>
+<blockquote><p><em>&quot;To change the routing region, a new Function should be created.&quot;</em></p></blockquote>
+<p>Default is <code>us-east</code>. <strong>There is no Middle East routing region</strong> — <code>me</code> exists as a <em>container</em> region only, at a 1.75× price multiplier. For a Gulf reviewer, <code>eu-west</code> is the closest ingress.</p>
+<p>This is a <strong>now-or-never decision on day 1</strong>, and it is genuinely two-sided: <code>eu-west</code> shortens the reviewer's round trip to us, <code>us-east</code> shortens ours to Groq and Gemini — and every turn pays the provider hop twice while the reviewer pays theirs twice too. Without measurements it is a coin-flip, which argues for the default rather than a guess dressed as a decision.</p>
+<h3 id="the-websocket-timeout-assumption-confirmed-justification-rep"><span class="htext">The WebSocket timeout: assumption confirmed, justification replaced</span></h3>
+<p><strong>Keep the assumption. Change the basis, and never write &quot;Modal documents that…&quot;</strong> — because it does not. There is no sentence anywhere in Modal's docs about WebSocket duration.</p>
+<p>The inference chains two documented facts:</p>
+<ol>
+<li><em>&quot;WebSockets on Modal maintain a single function call per connection.&quot;</em></li>
+<li><em>&quot;The timeout duration is a measure of a Function's execution time.&quot;</em></li>
+</ol>
+<p>One connection = one call = one execution, so <code>timeout</code> bounds it. Corroborated two ways: <strong>Modal's own reference voice app (QuiLLMan) sets <code>timeout=600</code></strong> on both its WebSocket functions, and Modal's client source treats a WebSocket as a stream of inputs on one call, with the comment <em>&quot;Disable timeout, since timeouts are handled on input level instead.&quot;</em></p>
+<p><strong>Still worth the ten-minute spike</strong>, but now it tests one specific thing: whether the documented <strong>150 s HTTP request timeout</strong> survives a WebSocket upgrade. No exemption sentence exists. Circumstantial evidence says it does not — the documented workaround is a 303 redirect, which is impossible for a WebSocket. Hold an idle connection past 150 s and find out.</p>
+<h3 id="modaldict-is-confirmed-and-the-caveat-people-remember-no-lon"><span class="htext"><code>modal.Dict</code> is confirmed — and the caveat people remember no longer applies</span></h3>
+<p>§6 recommended it. Verified:</p>
+<blockquote><p><em>&quot;Dicts are persisted… the data can be retrieved even after the application is redeployed.&quot;</em> <em>&quot;The Dict entries are written to durable storage.&quot;</em></p></blockquote>
+<p>The &quot;Dicts are in-memory and can be lost&quot; warning is real but applies to <strong>legacy Dicts created before 2025-05-20</strong>, which are being sunset. Current Dicts are durable.</p>
+<p>Three limits to design around, none blocking:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Limit</th><th style="text-align:left">Consequence</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Entries expire after 7 days of inactivity</strong></td><td style="text-align:left">Fine for the demo window. State it; do not discover it</td></tr><tr><td style="text-align:left"><strong>No documented read-modify-write atomicity, no CAS</strong></td><td style="text-align:left">Our turn is read → mutate → write. One key per user makes this near-harmless; <strong>do not claim it is transactional</strong></td></tr><tr><td style="text-align:left">≤100 MiB per value, &lt;5 MiB recommended</td><td style="text-align:left">Irrelevant at our size</td></tr></tbody></table></div>
+<p><strong>And SQLite-on-a-Volume is now firmly ruled out:</strong> last-write-wins per file, no distributed locking, and another container sees nothing until an explicit <code>.reload()</code>. Modal's own SQLite example builds the database <em>off</em>-Volume and copies the finished file in. <strong>That retires the day-2 spike</strong> — the question is answered.</p>
+<h3 id="two-more-things-worth-having"><span class="htext">Two more things worth having</span></h3>
+<p><strong>Serve the frontend from the same ASGI app.</strong> A <code>StaticFiles</code> mount on the image-baked <code>frontend/dist</code> is Modal's own pattern, and it <strong>removes CORS entirely</strong> — same origin, no preflight, no second deployment. Saves time and deletes a class of demo-day bugs.</p>
+<p><strong>Preemption is not optional to handle.</strong> <em>&quot;All Modal Functions are subject to preemption by default… likelihood of interruption increases with Function run duration.&quot;</em> A voice conversation is a long-running function by definition. <strong>The client needs reconnect-and-resume regardless of <code>timeout=</code></strong> — this is Invariant 7, and it is now a documented certainty rather than a defensive nicety.</p>
+<h3 id="renamed-parameters-old-names-in-any-snippet-are-a-smell"><span class="htext">Renamed parameters — old names in any snippet are a smell</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Old</th><th style="text-align:left">Current</th></tr></thead><tbody><tr><td style="text-align:left"><code>allow_concurrent_inputs=N</code></td><td style="text-align:left"><code>@modal.concurrent(max_inputs=N)</code></td></tr><tr><td style="text-align:left"><code>keep_warm</code></td><td style="text-align:left"><code>min_containers</code></td></tr><tr><td style="text-align:left"><code>concurrency_limit</code></td><td style="text-align:left"><code>max_containers</code></td></tr><tr><td style="text-align:left"><code>container_idle_timeout</code></td><td style="text-align:left"><code>scaledown_window</code></td></tr><tr><td style="text-align:left"><code>@modal.web_endpoint</code></td><td style="text-align:left"><code>@modal.fastapi_endpoint</code></td></tr></tbody></table></div>
+<hr />
+<h2 id="12-the-plan-priority-ordered-with-gates"><span class="htext">§12 — The plan: priority-ordered, with gates</span></h2>
+<p>Ordered so that <strong>if you run out of time, what falls off the end is what you can write up</strong> — never a graded requirement. Every block below is sequenced by <em>&quot;what is unrecoverable if missing&quot;</em>, not by what is interesting.</p>
+<h3 id="saturday-10-h-gate-a-deployed-url-that-talks-back"><span class="htext">Saturday — ~10 h · Gate: <strong>a deployed URL that talks back</strong></span></h3>
+<p>Incompressible and unrecoverable work first. Nothing here gets faster by typing faster.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left"></th><th style="text-align:left">Block</th><th style="text-align:left">h</th></tr></thead><tbody><tr><td style="text-align:left">1</td><td style="text-align:left"><strong>Spikes.</strong> Hold an idle Modal WS past 150 s · deploy twice (<code>us-east</code> / <code>eu-west</code>), time a turn through each · measure TTS TTFB (<code>generateContent</code> vs <code>/interactions</code>)</td><td style="text-align:left">1.5</td></tr><tr><td style="text-align:left">2</td><td style="text-align:left"><strong>Browser audio loop, in isolation.</strong> AudioWorklet, 48→16 kHz, PCM16, playback scheduling, echo cancellation. The riskiest empirical hour in the project</td><td style="text-align:left">2.5</td></tr><tr><td style="text-align:left">3</td><td style="text-align:left">WebSocket protocol + FastAPI skeleton — <strong><code>async</code> handler</strong>, <code>@modal.concurrent</code></td><td style="text-align:left">1.0</td></tr><tr><td style="text-align:left">4</td><td style="text-align:left">STT · LLM · TTS adapters, thin, behind the Protocols that already exist</td><td style="text-align:left">1.5</td></tr><tr><td style="text-align:left">5</td><td style="text-align:left">🎯 <strong>Deploy it. End to end. Talking.</strong> Requirements 1 and 4 land here</td><td style="text-align:left">1.5</td></tr><tr><td style="text-align:left">6</td><td style="text-align:left">Instrumentation — from the first working turn, <strong>TTFT to first <code>text</code> delta</strong> (§10)</td><td style="text-align:left">1.0</td></tr><tr><td style="text-align:left">7</td><td style="text-align:left">Buffer</td><td style="text-align:left">1.0</td></tr></tbody></table></div>
+<p><strong>Send Sarj a progress update before bed.</strong> It is graded, it costs five minutes, and &quot;deployed a working voice loop today&quot; is a good one to send.</p>
+<p>⚠️ <strong>The Saturday gate is also the trigger.</strong> If the day ends without a deployed URL that talks back, Sunday changes immediately: <strong>drop the judge and Arabic, protect P0.</strong> Decide that now, not on Sunday night.</p>
+<h3 id="sunday-10-h-gate-all-7-requirements-demonstrable"><span class="htext">Sunday — ~10 h · Gate: <strong>all 7 requirements demonstrable</strong></span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left"></th><th style="text-align:left">Block</th><th style="text-align:left">h</th></tr></thead><tbody><tr><td style="text-align:left">1</td><td style="text-align:left">Vendor client: quota, reserve, resolution order + <strong>colour-legend spike</strong> (~6 requests)</td><td style="text-align:left">1.5</td></tr><tr><td style="text-align:left">2</td><td style="text-align:left">Normalisation layer — live API and CSV into one shape (§2)</td><td style="text-align:left">0.75</td></tr><tr><td style="text-align:left">3</td><td style="text-align:left">🎯 <strong>The gate.</strong> <code>resolve</code>, <code>get_path</code>, placeholder rule, digit rule</td><td style="text-align:left">1.5</td></tr><tr><td style="text-align:left">4</td><td style="text-align:left">NDJSON prompt + per-line Pydantic validation + malformed-line path (§10)</td><td style="text-align:left">1.25</td></tr><tr><td style="text-align:left">5</td><td style="text-align:left"><strong>Tier A unit tests</strong> — cheapest, fastest, highest-leverage hour on the board</td><td style="text-align:left">0.5</td></tr><tr><td style="text-align:left">6</td><td style="text-align:left">Memory + two identity tiers on <code>modal.Dict</code></td><td style="text-align:left">1.0</td></tr><tr><td style="text-align:left">7</td><td style="text-align:left">UI: state, transcript, memory panel, <strong>which layer answered and how fresh</strong></td><td style="text-align:left">1.25</td></tr><tr><td style="text-align:left">8</td><td style="text-align:left">Injection delimiting + refusal routing</td><td style="text-align:left">0.75</td></tr><tr><td style="text-align:left">9</td><td style="text-align:left">Eval fixtures + 12 hand-labelled cases (<strong>labels written before the pipeline runs</strong>)</td><td style="text-align:left">1.25</td></tr><tr><td style="text-align:left">10</td><td style="text-align:left">Redeploy, verify, buffer</td><td style="text-align:left">0.25</td></tr></tbody></table></div>
+<h3 id="monday-6-h-build-then-a-hard-stop-gate-submitted"><span class="htext">Monday — ~6 h build, then a hard stop · Gate: <strong>submitted</strong></span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left"></th><th style="text-align:left">Block</th><th style="text-align:left">h</th></tr></thead><tbody><tr><td style="text-align:left">1</td><td style="text-align:left">Judge, 4 categories + judge-vs-human agreement. <strong>Run the eval, get the numbers</strong></td><td style="text-align:left">1.5</td></tr><tr><td style="text-align:left">2</td><td style="text-align:left">Arabic, bare minimum: <code>language=ar</code>, Gemini TTS auto-detect</td><td style="text-align:left">0.5</td></tr><tr><td style="text-align:left">3</td><td style="text-align:left">Measurement run against the <strong>deployment</strong> — median and p95, never one local run</td><td style="text-align:left">1.0</td></tr><tr><td style="text-align:left">4</td><td style="text-align:left">Fix whatever the numbers expose</td><td style="text-align:left">1.0</td></tr><tr><td style="text-align:left">5</td><td style="text-align:left">Overflow / buffer</td><td style="text-align:left">1.0</td></tr><tr><td style="text-align:left">🔒</td><td style="text-align:left"><strong>16:00–19:00 RESERVED — demo script · rehearsal · Loom · writeup · submit</strong></td><td style="text-align:left">3.0</td></tr></tbody></table></div>
+<p><strong>Block 🔒 is not negotiable and not &quot;whatever is left&quot;.</strong> The presentation is graded separately from the build, and the most common way a good take-home scores badly is arriving Monday evening with working code and no demo.</p>
+<h3 id="the-overflow-zone-what-you-write-up-instead-of-building"><span class="htext">The overflow zone — what you write up instead of building</span></h3>
+<p>If these do not happen, say so and describe them. <em>&quot;What I'd do with another week&quot;</em> is explicitly invited by the brief.</p>
+<p>Arabic code-switching + the script tagger · Groq Orpheus Saudi dialect · Tier B golden tests · Wikipedia imagery · UI polish beyond functional · streaming TTS within a segment</p>
+<h3 id="three-things-to-do-before-saturday-starts"><span class="htext">Three things to do before Saturday starts</span></h3>
+<ol>
+<li><strong>Send the email to Sarj.</strong> It is drafted and unsent, and it asks for the reviewer's GitHub</li>
+<p>username — which you need before you can submit, not after.</p>
+<li><strong>Decide Sarjy's voice and persona.</strong> Two minutes of choosing, and it is on the latency path</li>
+<p>of nothing.</p>
+<li><strong>Sleep.</strong> It is 03:00. The incompressible half of Saturday is debugging browser audio, which</li>
+<p>is exactly the work that goes worst when tired.</p>
+</ol>
+<hr />
+<h2 id="13-omars-mental-model-vs-the-tdd"><span class="htext">§13 — Omar's mental model vs the TDD</span></h2>
+<p>Comparing what you described against what is written down. <strong>Three things match, one is a real improvement, two are traps, and one should stay cut.</strong></p>
+<h3 id="what-matches"><span class="htext">What matches</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Your model</th><th style="text-align:left">TDD</th></tr></thead><tbody><tr><td style="text-align:left">Speech → STT → LLM with tool-calling → respond</td><td style="text-align:left">✅ Identical</td></tr><tr><td style="text-align:left">Visa requirements as the tool</td><td style="text-align:left">✅ The anchor use case</td></tr><tr><td style="text-align:left">Save user data <strong>in parallel, not on the response path</strong></td><td style="text-align:left">✅ §6 reached the same conclusion independently</td></tr></tbody></table></div>
+<p>That last one is worth noting: you arrived at the fire-and-forget write from a latency instinct, and §6 arrived at it from a round-trip count. Same answer, two directions — that usually means it is right.</p>
+<h3 id="the-real-improvement-speak-before-the-tool-returns-not-after"><span class="htext">🎯 The real improvement: speak <em>before</em> the tool returns, not after</span></h3>
+<p><strong>This is better than what is in the TDD, and it is the biggest latency idea in this review.</strong></p>
+<p>The TDD's flow spends LLM call #1 producing <em>nothing the user hears</em> — it emits tool arguments, and the user sits in silence through it and through the vendor round trip:</p>
+<div class="codewrap"><pre><code>STT → LLM#1 (450ms, silent) → vendor (300-800ms, silent) → LLM#2 → TTS → first sound</code></pre></div>
+<p>Your version has the model open its mouth immediately and do the lookup <em>behind its own voice</em>:</p>
+<div class="codewrap"><pre><code>STT → LLM#1 emits opener + tool call → TTS starts speaking
+                                     ↘ vendor round trip runs underneath the audio
+      LLM#2 continues with the real data → speaks on</code></pre></div>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left"></th><th style="text-align:left">Silent before first sound</th></tr></thead><tbody><tr><td style="text-align:left">TDD as written</td><td style="text-align:left">~1.9 s (LLM#1 + vendor + LLM#2 + TTS)</td></tr><tr><td style="text-align:left"><strong>Your model</strong></td><td style="text-align:left"><strong>~1.2 s</strong> (STT + LLM#1 to first speakable token + TTS TTFB)</td></tr></tbody></table></div>
+<p>And the ~1.1 s of vendor round trip plus LLM#2 now runs <em>underneath</em> two seconds of speech. <strong>If the opener is a normal sentence, the user may perceive no gap at all.</strong></p>
+<p>It also composes with §4's per-segment gating rather than competing with it — one hides the tool call, the other shortens generation.</p>
+<h3 id="and-it-aligns-with-the-guardrail-rather-than-fighting-it"><span class="htext">🎁 And it aligns with the guardrail rather than fighting it</span></h3>
+<p>The obvious worry: <em>if the model speaks before the data arrives, what stops it inventing?</em></p>
+<p><strong>The two-register split already answers this, exactly.</strong> Before the tool returns, the only thing the model <em>can</em> legitimately say is <code>judgement</code> or conversational framing — because no <code>sourced</code> segment exists yet to reference. The gate does not need a new rule; <strong>the register a segment can carry is determined by whether its tool result has landed.</strong></p>
+<blockquote><p>The opener is safe by construction, not by prompt discipline.</p></blockquote>
+<p>That is a good answer to a sharp question, and it is worth saying out loud in the walkthrough: the latency optimisation and the guardrail turn out to be the same mechanism.</p>
+<h3 id="trap-1-google-documents-this-exact-pattern-failing"><span class="htext">⚠️ Trap 1 — Google documents this exact pattern failing</span></h3>
+<p>From the function-calling docs: requiring the model to emit structured text <strong>immediately before a tool call</strong> <em>&quot;may occasionally fail with <code>Malformed_Function_Call</code>.&quot;</em></p>
+<p>That is your design, described by the vendor, with a failure mode attached.</p>
+<p><strong>Their documented fix is the one to take:</strong> wrap the pre-tool speech in its own function call rather than raw text. Define a tool we intercept:</p>
+<div class="codewrap"><pre><code class="lang-python">update(text: str)                 # we route this straight to TTS
+get_visa_requirements(passport, destination)</code></pre></div>
+<p>The model calls both <strong>in parallel</strong> (parallel function calling is supported). We speak the <code>update</code> while the lookup runs. Same behaviour you described, no malformed-call risk, and it is Google's own recommended pattern rather than a workaround we invented.</p>
+<h3 id="trap-2-do-not-speak-the-models-thoughts"><span class="htext">⚠️ Trap 2 — do not speak the model's thoughts</span></h3>
+<p>You suggested using the model's own thinking as the filler. <strong>Don't.</strong> Three reasons:</p>
+<ol>
+<li>Thoughts are <strong>ungated</strong> — they are not segments, carry no register, and routinely contain</li>
+<p>half-formed factual claims. Speaking them opens a hole straight through the deep dive.</p>
+<li>In stateless mode, thought signatures must be <strong>passed back verbatim</strong>; they are protocol, not</li>
+<p>content.</p>
+<li><code>thinking_level: &quot;minimal&quot;</code> produces very little to work with anyway.</li>
+</ol>
+<p>The <em>instinct</em> — let the user hear what the system is doing — is right. The <code>update()</code> call gives you that, under control, in the register system, gated like everything else.</p>
+<p><strong>Showing thoughts in the UI</strong> (not speaking them) is a different question and a reasonable polish item. Overflow zone.</p>
+<h3 id="trap-3-barge-in-now-costs-quota"><span class="htext">⚠️ Trap 3 — barge-in now costs quota</span></h3>
+<p>If the model is speaking while a vendor call is in flight and the user interrupts, you have to cancel both — and the request may already be spent. At <strong>120 requests total</strong>, an interrupted turn that burned one is a real cost, not a rounding error.</p>
+<p>Not a reason to drop the design. A reason to: fire the lookup only when the cached map misses (§Two-tier answering already does this), and count interrupted-but-spent requests in the quota ledger so the number stays honest.</p>
+<h3 id="the-memory-extraction-call-your-version-may-be-better-than-6"><span class="htext">The memory extraction call — your version may be better than §6's</span></h3>
+<p>Two options, both off the latency path:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left"></th><th style="text-align:left">§6: a <code>remember</code> field in the response</th><th style="text-align:left">Yours: a separate extraction model</th></tr></thead><tbody><tr><td style="text-align:left">Cost</td><td style="text-align:left">Free — rides the existing call</td><td style="text-align:left">+1 LLM call per turn (quota, not latency)</td></tr><tr><td style="text-align:left">Prompt load</td><td style="text-align:left">Adds memory duty to a prompt already doing two registers, NDJSON, and field paths</td><td style="text-align:left">Keeps the segmenting prompt focused</td></tr></tbody></table></div>
+<p><strong>I now lean toward yours.</strong> The segmenting prompt <em>is</em> the deep dive, and its reliability is the thing we are measuring. Loading memory extraction onto a small model's most important prompt risks degrading the thing being graded, to save a call that costs no latency at all.</p>
+<p>Fire it after the response is dispatched. If free-tier limits bite, fold it back into the main response as a field — but start separated.</p>
+<h3 id="the-rag-knowledge-base-stay-cut-and-for-a-better-reason-than"><span class="htext">The RAG knowledge base — stay cut, and for a better reason than time</span></h3>
+<p>You said <em>&quot;maybe that's too deep, maybe not now.&quot;</em> Agreed, but the stronger argument is not time:</p>
+<blockquote><p><strong>A hand-built corpus of &quot;travel tips&quot; is unsourced content wearing the costume of retrieval.</strong></p></blockquote>
+<p>Where would the chunks come from? If we write them, it is our judgement rendered as retrieved fact — the precise failure the whole project exists to prevent. If we scrape them, provenance is murky. In a product whose thesis is <em>never state a fact you cannot source</em>, a tips corpus is a loaded gun pointed at the thesis.</p>
+<p><strong>Wikipedia is the right version of this idea</strong> — and it is already planned (P3). It comes with an attribution URL and a revision date, so a retrieved <code>extract</code> can be a genuine <code>sourced</code> segment.</p>
+<p>So: no tips corpus. If retrieval happens, it retrieves things that carry citations.</p>
+<h3 id="what-this-changes-in-the-tdd"><span class="htext">What this changes in the TDD</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">§</th><th style="text-align:left">Change</th></tr></thead><tbody><tr><td style="text-align:left">Architecture</td><td style="text-align:left">LLM #1 emits <code>update()</code> + tool call in parallel; TTS starts on the <code>update</code></td></tr><tr><td style="text-align:left">Latency budget</td><td style="text-align:left">Perceived first sound ~1.2 s; vendor round trip moves off the perceived path</td></tr><tr><td style="text-align:left">Grounding gate</td><td style="text-align:left">Add one line: a segment's register is bounded by whether its tool result has landed</td></tr><tr><td style="text-align:left">Memory</td><td style="text-align:left">Separate extraction call, fired after dispatch</td></tr><tr><td style="text-align:left">Barge-in</td><td style="text-align:left">Cancel in-flight tool calls; count spent-but-interrupted requests</td></tr><tr><td style="text-align:left">Failure modes</td><td style="text-align:left"><code>Malformed_Function_Call</code> → the <code>update()</code> pattern is the mitigation</td></tr></tbody></table></div>
+<hr />
+<h2 id="14-consistency-audit-five-conflicts-between-decisions-we-alr"><span class="htext">§14 — Consistency audit: five conflicts between decisions we already made</span></h2>
+<p>Before folding any of this into the TDD. Each of these is a place where a later decision invalidated an earlier one without anybody noticing.</p>
+<h3 id="1-the-opener-bypasses-the-gate-entirely"><span class="secnum">1</span><span class="htext">🚨 The opener bypasses the gate entirely</span></h3>
+<p><strong>This is the serious one.</strong> §13 puts a spoken opener in front of the answer — but that text arrives as a <strong>function-call argument</strong>, not as an NDJSON segment. It never touches <code>resolve()</code>.</p>
+<p>So nothing currently stops:</p>
+<div class="codewrap"><pre><code class="lang-python">update(text=&quot;Sure — you'll need a tourist visa for up to 90 days, let me confirm the details.&quot;)</code></pre></div>
+<p>The model has just stated a visa duration, out loud, <strong>before any tool has been called at all.</strong> That is a worse failure than the §1 hole, because at that point there is not even a tool result to contradict it.</p>
+<p><strong>Fix, and it is stricter than the segment rule:</strong> at opener time nothing has been sourced, so the opener may carry <strong>no factual content whatsoever</strong> — it is pure framing. Run it through the same digit check plus a hard rule that it cannot be <code>sourced</code>:</p>
+<blockquote><p><strong>Opener contract:</strong> <code>judgement</code> register, no digits, no entity-specific claims. Reject and fall back to a fixed phrase if violated.</p></blockquote>
+<p>A fixed fallback (&quot;Let me look that up for you&quot;) is the right failure mode — it is what the model should have said anyway.</p>
+<h3 id="2-skip-llm-1-on-cached-turns-does-not-work"><span class="secnum">2</span><span class="htext">🚨 &quot;Skip LLM #1 on cached turns&quot; does not work</span></h3>
+<p>The TDD's latency section claims cached turns need only one completion. <strong>They need two.</strong></p>
+<p>LLM #1 is what extracts <em>which destination the user asked about</em>. We cannot know the answer is cached until we know the pair — and we cannot know the pair without the model reading the transcript. The cache saves the <strong>vendor round trip</strong>, not the call.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left"></th><th style="text-align:left">TDD claim</th><th style="text-align:left">Actual</th></tr></thead><tbody><tr><td style="text-align:left">Cached turn</td><td style="text-align:left">1 LLM call, ~1.8 s</td><td style="text-align:left"><strong>2 LLM calls</strong>, vendor RTT saved (~300–800 ms)</td></tr></tbody></table></div>
+<p>Not fatal — the saving is still real, and the opener design hides what remains. But the stated reasoning is wrong and it inflates the cached-turn estimate. Fix the claim, keep the cache.</p>
+<p><strong>One good consequence:</strong> on a cache hit there is no lookup to hide, so Sarjy just answers instead of saying &quot;let me check.&quot; That inconsistency is <em>correct</em> — it is what a person does — but it should be deliberate rather than emergent.</p>
+<h3 id="3-the-failover-model-cannot-run-the-architecture"><span class="secnum">3</span><span class="htext">🚨 The failover model cannot run the architecture</span></h3>
+<p>The stack table names Groq <code>openai/gpt-oss-20b</code> as LLM failover, flagged <strong>&quot;no parallel tool calls.&quot;</strong></p>
+<p>The opener design <strong>requires</strong> parallel tool calls — speak and look up at the same time. So the failover path cannot execute the primary flow.</p>
+<p>That is survivable, but it has to be designed rather than discovered at 2 a.m.:</p>
+<blockquote><p><strong>On failover, degrade to the sequential flow:</strong> no opener, tool call first, then answer. Slower, visibly so, and it still satisfies every requirement. Say which model is serving in the UI.</p></blockquote>
+<p>That is a better story than a failover that silently behaves differently.</p>
+<h3 id="4-a-third-llm-call-per-turn-may-hit-the-rate-ceiling"><span class="secnum">4</span><span class="htext">⚠️ A third LLM call per turn may hit the rate ceiling</span></h3>
+<p>§13 moved memory extraction to its own call. Good for prompt hygiene — but it makes <strong>three LLM calls per turn</strong>, and the only free-tier figure we have (unofficial, §5) is <strong>15 RPM</strong> for flash-lite.</p>
+<p>Three calls per turn = <strong>five turns per minute</strong>. The TDD's own note says a brisk conversation is six to eight. <strong>We could hit the ceiling during the demo</strong>, which is the one moment it must not happen.</p>
+<p>Three ways out, cheapest first:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Option</th><th style="text-align:left">Cost</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Gate extraction behind a cheap heuristic</strong> — only fire when the transcript contains &quot;I&quot;, &quot;my&quot;, &quot;I'm&quot; etc.</td><td style="text-align:left">~5 lines. Most turns never trigger it</td></tr><tr><td style="text-align:left">Extract once at session end rather than per turn</td><td style="text-align:left">Memory not available next turn — breaks the demo beat</td></tr><tr><td style="text-align:left">Fold it back into the response as a <code>remember</code> field</td><td style="text-align:left">Free, but re-loads the segmenting prompt</td></tr></tbody></table></div>
+<p><strong>Recommendation: the heuristic.</strong> It keeps §13's clean separation and removes the ceiling risk for five lines of code.</p>
+<h3 id="5-travel-suggestions-do-not-need-wikipedia-at-all"><span class="secnum">5</span><span class="htext">⚠️ Travel suggestions do not need Wikipedia at all</span></h3>
+<p>§13 called Wikipedia &quot;the right version of RAG&quot; — true, but it created an implied dependency that is not there.</p>
+<p><strong>Travel suggestions are <code>judgement</code>.</strong> &quot;November is good for Kyoto, the crowds thin after the leaves turn&quot; is Sarjy's own view, carries no citation by design, and needs no source. That is the register split working exactly as intended.</p>
+<p>So travel suggestions cost <strong>zero extra tool calls, zero extra latency, and zero new sources to gate.</strong> They are already P1 and already free.</p>
+<p>Wikipedia only buys <em>place descriptions as sourced segments</em> and <em>images</em> — which is P3, where the PRD already put it. <strong>No change needed; just do not let the TDD imply suggestions depend on it.</strong></p>
+<h3 id="also-worth-fixing-while-we-are-in-there"><span class="htext">Also worth fixing while we are in there</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Issue</th><th style="text-align:left">Fix</th></tr></thead><tbody><tr><td style="text-align:left">Barge-in now has to flush <strong>three</strong> audio sources (opener + N segments), not one</td><td style="text-align:left">Single playback queue, flush-all on interrupt</td></tr><tr><td style="text-align:left">Eval has no category for &quot;opener contained an unsourced fact&quot;</td><td style="text-align:left">Add cases to the register-integrity category</td></tr><tr><td style="text-align:left">The region A/B will be measured <strong>from Omar's location</strong>, not the reviewer's</td><td style="text-align:left">Still a useful proxy, but name it in the writeup</td></tr></tbody></table></div>
+<hr />
+<h2 id="15-two-verifications-one-vindicates-the-design-one-nearly-ki"><span class="htext">§15 — Two verifications: one vindicates the design, one nearly kills it</span></h2>
+<h3 id="the-update-pattern-is-not-a-workaround-it-is-googles-named-p"><span class="htext">✅ The <code>update()</code> pattern is not a workaround — it is Google's named, preferred solution</span></h3>
+<p>Better than expected. Google's function-calling docs <strong>literally name the function <code>update</code></strong>, and ship a parameter whose description is our use case word for word:</p>
+<blockquote><p><code>external</code> — <em>&quot;A short, plain-language note shown to the User about what you are ABOUT TO DO next.&quot;</em></p></blockquote>
+<p>And the sentence that validates the whole architecture:</p>
+<blockquote><p><em>&quot;Then the model will make two calls in the same step: the <code>update()</code> call that replaces the structured XML, and the actual function call it wants to make.&quot;</em></p></blockquote>
+<p>Their prescribed system instruction, verbatim:</p>
+<blockquote><p><em>&quot;Before calling any other tool, in every response you MUST first call <code>update</code> with all required parameters.&quot;</em></p></blockquote>
+<p><strong>One correction to §13:</strong> the failure it avoids is narrower than I said. <code>Malformed_Function_Call</code> is triggered by <strong>structured</strong> text (XML/YAML/JSON) before a tool call, not prose. So plain text plus a function call is structurally fine. We take <code>update()</code> anyway — it is the documented path, it gives the opener a typed home, and it costs nothing.</p>
+<p><strong>And the latency claim holds:</strong> <code>step.start</code> delivers the function <em>name and id before any argument token is generated</em>, so we can fire the lookup mid-stream rather than waiting for the response to finish. The design saves real time.</p>
+<h4 id="a-landmine-worth-an-hour-of-your-sunday"><span class="htext">🪤 A landmine worth an hour of your Sunday</span></h4>
+<p><strong>Google's own docs contradict each other on the streaming field name.</strong> The function-calling page samples <code>delta.type == &quot;arguments&quot;</code> with <code>delta.partial_arguments</code>. The streaming page <em>and</em> the API reference both say <code>arguments_delta</code> with field <code>arguments</code>.</p>
+<p><strong>Trust the reference.</strong> Copying the function-calling sample gives you a loop that silently matches nothing and accumulates an empty string — no error, no output, no clue.</p>
+<h4 id="three-things-to-handle"><span class="htext">Three things to handle</span></h4>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Issue</th><th style="text-align:left">Consequence</th></tr></thead><tbody><tr><td style="text-align:left"><strong><code>tool_choice</code> cannot express &quot;must call <code>update()</code>, may call the lookup.&quot;</strong> <code>any</code> forces <em>at least one</em> call, not <em>which</em></td><td style="text-align:left">The must-call rule is prompt-only — a soft guarantee. <strong>Handle &quot;model skipped the opener&quot;</strong>: fall through to the silent path</td></tr><tr><td style="text-align:left"><strong>Parallel function calling is undocumented for <code>gemini-3.5-flash-lite</code> specifically</strong> — every example uses <code>gemini-3.8-flash</code></td><td style="text-align:left"><strong>Measure on our model before committing.</strong> Day 1</td></tr><tr><td style="text-align:left">Call 2 likely needs a <code>function_result</code> for <strong>both</strong> calls, <code>update()</code> included</td><td style="text-align:left">An unanswered call may invalidate the turn</td></tr><tr><td style="text-align:left">A <code>thought</code> step is emitted even at <code>thinking_level: &quot;minimal&quot;</code></td><td style="text-align:left">Confirms §10: measure TTFT to the first <strong>text</strong> delta</td></tr></tbody></table></div>
+<h3 id="the-tts-finding-that-nearly-kills-per-segment-playback"><span class="htext">🚨 The TTS finding that nearly kills per-segment playback</span></h3>
+<p><strong>Gemini TTS has no continuity primitive. None.</strong> No session, no acoustic context, no documented seed for TTS. Every request is an independent generation — and the docs warn in exactly the wrong direction:</p>
+<blockquote><p><em>&quot;The model's output may not always strictly match the selected speaker, causing the audio to sound different than expected.&quot;</em></p></blockquote>
+<p>Across four requests in one turn, that per-request variance becomes <strong>an audible seam mid-sentence.</strong> Three more multipliers:</p>
+<ul>
+<li>The <code>PROHIBITED_CONTENT</code> mitigation requires a preamble instructing synthesis — so every short</li>
+<p>segment pays that prompt's tokens and processing latency. On a six-word opener the overhead ratio is brutal.</p>
+<li>The documented random <code>500</code> is <strong>per request</strong>, so a four-segment turn fails at roughly 4×, and</li>
+<p>a retry lands mid-utterance with a <em>fresh voice sample</em> — precisely where the seam is loudest.</p>
+<li><strong>There is no cancel for a stream.</strong> <code>/cancel</code> is background-only. Barge-in means closing the</li>
+<p>socket, and whether generation and billing stop is undocumented.</p>
+</ul>
+<p>§4 chose &quot;buffer per segment&quot; and §13 layered an opener on top. <strong>Both assume several TTS requests per turn concatenate into one voice. Nothing in the docs supports that.</strong></p>
+<h3 id="the-resolution-the-opener-already-buys-us-the-time-so-stop-s"><span class="htext">✅ The resolution: the opener already buys us the time, so stop segmenting TTS</span></h3>
+<p>Work the arithmetic and the problem dissolves.</p>
+<p>The opener is ~1.5–2.5 s of speech. Underneath it we need: vendor round trip (0.3–0.8 s) + LLM #2 <strong>complete</strong> generation (~0.8 s) + gate (~0 s) + TTS first byte for the answer (~0.5–0.9 s) ≈ <strong>1.6–2.5 s.</strong></p>
+<p><strong>That fits under the opener.</strong> So:</p>
+<blockquote><p><strong>Two TTS requests per turn, not five.</strong> One for the opener, one for the whole gated answer — and the boundary between them is a <em>natural prosodic pause</em>, which is where a seam is inaudible because a person would pause there too.</p></blockquote>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left"></th><th style="text-align:left">Per-segment TTS</th><th style="text-align:left"><strong>Opener + one answer</strong></th></tr></thead><tbody><tr><td style="text-align:left">TTS requests per turn</td><td style="text-align:left">~5</td><td style="text-align:left"><strong>2</strong></td></tr><tr><td style="text-align:left">Seam risk</td><td style="text-align:left">Mid-sentence, audible</td><td style="text-align:left">At a natural pause — expected</td></tr><tr><td style="text-align:left"><code>PROHIBITED_CONTENT</code> preamble overhead</td><td style="text-align:left">×5</td><td style="text-align:left">×2</td></tr><tr><td style="text-align:left">Random-500 blast radius</td><td style="text-align:left">~5p</td><td style="text-align:left">~2p</td></tr><tr><td style="text-align:left">Latency</td><td style="text-align:left">Fastest on paper</td><td style="text-align:left"><strong>Same in practice</strong> — the opener hides full generation</td></tr></tbody></table></div>
+<p>**Keep per-segment *gating*<strong> — validating each NDJSON line as it arrives is still the right model, and it is what makes the malformed-line path cheap. </strong>Drop per-segment <em>synthesis</em>.** Validate incrementally, speak once.</p>
+<p>This is simpler, safer, and costs nothing. It is the best trade in this entire review, and it only appeared because two separate research passes collided.</p>
+<h3 id="sarjys-voice-sulafat"><span class="htext">Sarjy's voice: <strong>Sulafat</strong></span></h3>
+<p>30 prebuilt voices, each with a one-word label from Google. **<code>Sulafat</code> is the only voice Google labels *Warm*** — which is the brief, literally. Alternates: <code>Vindemiatrix</code> (<em>Gentle</em>) if Sulafat reads too soft delivering a visa fact; <code>Rasalgethi</code> (<em>Informative</em>) for a more authoritative register.</p>
+<p>⚠️ <strong>The labels are English-flavoured and nothing says they hold in Arabic.</strong> Listen to all three in both languages — that listening test is a legitimate entry in <code>docs/measurements/</code>.</p>
+<p>Also: <strong>no SSML.</strong> Style is steered by natural-language prompt plus inline audio tags (<code>[whispers]</code>, <code>[very slow]</code>). And Google's guidance is to keep audio tags in English <em>even for non-English transcripts</em>.</p>
+<h3 id="two-more-things-to-carry-into-the-build"><span class="htext">Two more things to carry into the build</span></h3>
+<p><strong>Override the SDK's retry defaults.</strong> Google's Python SDK retries transient errors up to four times with backoff to <strong>60 seconds</strong>. Inside a voice turn that is a hung demo. One retry, ~250 ms, then fail visibly.</p>
+<p><strong>A conflict between our own two research passes, flagged not resolved:</strong> the first said the Interactions API is GA and recommended for new projects; the second found it labelled Beta with a live breaking-change migration, and <code>generateContent</code> recommended <em>&quot;for stable production deployments.&quot;</em> Both stream on this model. <strong>Recommendation: stay on Interactions, pin <code>Api-Revision: 2026-05-20</code></strong> — it is where the current docs are, and a breaking change inside a three-day window is near-zero risk. Behind the provider adapter either way.</p>
+  </main>
+</div>

@@ -36,7 +36,7 @@ The brief says they see 5–10 voice take-homes a week. It names the bar explici
 
 ## Status
 
-**Planning complete. Pre-scaffold, not yet a git repository.**
+**Planning complete. Scaffolded and committed. Implementation starts Saturday 2026-09-19.**
 
 `docs/plans/PRD.md` (what/why) and `docs/plans/TDD.md` (how) are the plan of record — read both before any implementation.
 `docs/decisions/deep-dive-track.md` (gitignored) carries the reasoning and the discarded options.
@@ -45,28 +45,39 @@ The brief says they see 5–10 voice take-homes a week. It names the bar explici
 
 ## Decided
 
+Full reasoning and evidence: `docs/plans/tdd-review.md`. Provider facts verified 2026-09-19.
+
 | Decision | Outcome |
 |---|---|
 | Product | Voice travel assistant for Gulf travellers; visa requirements are the anchor |
 | Deep dive | Guardrails & reliability — cite-or-refuse, visible fallback, adversarial eval |
 | Voice architecture | **Cascaded** STT→LLM→TTS — the deep dive needs a text checkpoint to gate |
-| Backend | Python · FastAPI · WebSocket |
-| Frontend | TypeScript · React |
+| Turn shape | **Sarjy speaks before the lookup returns.** `update()` + tool call in parallel; the lookup runs under its own voice |
+| Backend | Python · FastAPI · WebSocket · `async` handler |
+| Frontend | TypeScript · React, served by the same ASGI app (no CORS) |
 | STT | Groq `whisper-large-v3-turbo` (**batch** — client-side VAD endpoints the turn) |
-| LLM | Gemini, fast tool-calling model — chosen for function-calling reliability |
+| LLM | Gemini `gemini-3.5-flash-lite`, `thinking_level: "minimal"`, `store=False` |
+| TTS | Gemini `gemini-3.1-flash-tts-preview`, voice **Sulafat**. **Two requests per turn**, not per segment |
+| Structured output | **NDJSON** (`text/plain` + Pydantic per line) — `response_format` cannot stream discrete objects |
+| Gate | Value-level substitution + **digit rule** + **placeholder rule**. Opener gated separately |
+| Memory | **`modal.Dict`**; two tiers (anonymous session-only / signed-in persisted); voice-first identity |
+| Deploy | Modal, `@modal.concurrent(max_inputs=8)` — **one WebSocket is one input** |
 | External API | Travel Buddy visa requirements (**120 requests total** — quota-aware client) |
-| Fallback data | passport-index CSV (MIT), vendored |
-| Excluded | Flight search and fares — every free source is dead, fake or stale |
+| Fallback data | passport-index maintained fork (`visualpharm/visa-free-dataset`), vendored |
+| Eval | 3 layers: gate · assertion tests · offline LLM judge. 12 hand-labelled cases, judge agreement reported |
+| Excluded | Flight search · Aladhan prayer times · GOV.UK · a hand-built RAG tips corpus |
 | Repo hygiene | `docs/decisions/` gitignored; research docs ship |
 
 ## Still open
 
 | Decision | Blocks |
 |---|---|
-| TTS provider — no ElevenLabs/Cartesia account; Groq and Gemini TTS need free-tier verification | voice quality, P2 Arabic |
-| Deployment target — Modal leading (Python-native, credit in hand); **WebSocket timeout semantics being verified** | requirement #4 |
-| Memory store | requirement #2 |
-| Reviewer's GitHub username; API keys from Sarj | submission (asked 2026-09-18) |
+| Does the 150 s HTTP timeout survive a WebSocket upgrade? | Architecture — day-1 spike |
+| TTS time-to-first-byte — no published figure anywhere | The latency budget — day-1 spike |
+| Parallel function calling on `gemini-3.5-flash-lite` **specifically** | The opener design — measure before committing |
+| `routing_region` — **irreversible after first deploy**, no Middle East region | Day-1 A/B |
+| Colour legend (~6 requests) | Any answer that depends on it |
+| Reviewer's GitHub username; API keys from Sarj | Submission (asked 2026-09-18, **email still unsent**) |
 
 Do not silently resolve one — record it in `docs/decisions/` and flag the assumption in your summary.
 
@@ -137,7 +148,7 @@ Drafts of outbound messages get written here and sent by Omar. Agents never send
 | The assignment itself | `Building Sarjy.md` (authoritative) |
 | Provider/latency/deployment landscape, Sept 2026 | `voice-stack-research.md` — sourced and dated; **re-verify before relying on a number** |
 | Process: plan → spec → build → measure → document | `.claude/rules/workflow.md` (always loaded) |
-| Voice-pipeline rules, latency budget, provider boundary | `.claude/rules/voice/` (to be written after planning) |
+| Voice-pipeline rules, latency budget, provider boundary | `.claude/rules/voice/` |
 | Task-triggered procedures | `.claude/skills/<name>/` (routing table in `CLAUDE.md`) |
 | Specialist review/design agents | `.claude/agents/` |
 | The PRD / TDD and feature plans | `docs/plans/` |

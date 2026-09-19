@@ -21,12 +21,36 @@ The model returns a structured response whose segments are each tagged:
 
 | Tag | Covers | Contract |
 |---|---|---|
-| `sourced` | Visa rules, entry requirements, prayer times, currency, place descriptions | Must map to a tool result held in **this turn's** context. Carries that result's citation and timestamp. |
+| `sourced` | Visa rules, entry requirements, passport validity, place descriptions | Must map to a tool result held in **this turn's** context. Carries that result's citation and timestamp. |
 | `judgement` | Where to go, what to see, when to travel, how to spend three days | Carries no citation. Rendered as Sarjy's own view, in voice and in UI. |
 
 **The gate never blocks judgement. It blocks judgement wearing a citation.**
 
-A `sourced` segment that cannot be mapped is stripped or triggers one re-ask — never spoken. An unmappable claim counts as a hallucination regardless of how plausible it sounds.
+### The four rules the gate enforces, deterministically
+
+1. Every `{placeholder}` resolves against the named `tool_call_id`'s **actual stored response**.
+2. A field path absent from that response **rejects the segment**. Absent must be distinguishable from null — null is an answer, missing is a rejection.
+3. **No digit may appear in a `sourced` segment outside a placeholder.** Numbers are where the harm lives: durations, passport validity, fees.
+4. **A `sourced` segment must contain at least one placeholder.** No placeholder means it is not sourced — it is judgement, or it is invention.
+
+**Rules 3 and 4 are what make this a guardrail rather than a citation chip.** Without them, `{"kind":"sourced","text":"a visa for up to 90 days","fields":[]}` passes with a real citation stapled to a fabricated number. They are two one-line checks.
+
+Rule 3 does not catch categorical claims in prose ("you'll need an eVisa" as text rather than `{visa.type}`). That is NLP, not a one-liner. The defensible position: *enforce deterministically the class of claim where being wrong makes someone miss a flight — the numbers — and let field selection carry the categories.*
+
+### The opener is gated too, and more strictly
+
+`update()` text arrives as a **function-call argument**, not a segment, so it bypasses `resolve()` unless you make it not. At opener time **nothing has been sourced yet**.
+
+> **Opener contract:** `judgement` register, no digits, no entity-specific claims. On violation, substitute a fixed phrase — which is what the model should have said anyway.
+
+### Failure is split by type
+
+| Failure | Behaviour |
+|---|---|
+| Schema — malformed NDJSON line, wrong shape | **One repair retry** |
+| Gate rejection — bad path, bare digit, no placeholder | **No retry.** Strip, and say we could not confirm that part |
+
+A second completion to re-litigate a *fact* costs more than it saves. A second completion to fix *syntax* is cheap and rarely fires.
 
 ## Both directions are failures
 
@@ -37,8 +61,14 @@ Score both in the eval. Scoring only the first lets the system reach a perfect s
 
 ## Structured output, never parsed prose
 
-- The model returns a **schema-validated object**. Never regex a model's text for citations.
-- Validation failure → **one repair retry** showing the model its previous output and the error.
+The model returns **newline-delimited JSON** — one segment object per line, as `text/plain`. Gemini's `response_format` cannot stream discrete objects (it streams partial fragments of one growing document), and there is no NDJSON mime type, so the two are mutually exclusive.
+
+**This does not weaken the contract.** Pydantic parsing a JSON object per line *is* schema validation. We are not pattern-matching prose.
+
+What it gives up is constrained decoding — so the **malformed-line rate is a measured, reported number**, alongside the gate-rejection rate. Two measured failure rates beat one assumed guarantee.
+
+- Never regex a model's text for citations.
+- Validate each line as it completes; gate it; queue it.
 - Second failure → a visible fallback, never a crash and never an unchecked pass-through.
 
 ## Tool results are data, not instructions
@@ -65,3 +95,5 @@ The user can always see where an answer came from: which layer served it (live /
 - Treating a fetched document's content as instructions
 - Refusing something the sources actually cover, to be safe
 - A citation that points at an aggregator while implying it points at an authority
+- **An opener that states a fact** — nothing is sourced yet when it is spoken
+- A `sourced` segment with a bare digit in it

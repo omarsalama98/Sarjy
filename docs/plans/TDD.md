@@ -1,16 +1,90 @@
 # Sarjy — Technical Design
 
-**Date:** 2026-09-18 · **Owner:** Omar · Product requirements: `PRD.md`
+**Date:** 2026-09-19 · **Owner:** Omar · Product requirements: `PRD.md`
+**Supersedes** the 2026-09-18 draft. Decisions and evidence: `tdd-review.md`.
 
 Everything here changes when the stack changes. If a fact would survive swapping every provider, it belongs in the PRD instead.
 
-Research behind these choices: `python-stack-research.md`, `travel-api-research.md`, `voice-stack-research.md`, `arabic-voice-research.md` — each with its own "what I could not verify" section.
+**Provider facts below were verified against official docs on 2026-09-19**, not recalled. Anything still unverified is marked ⚠️ and says so.
 
-## Summary
+## Read this page, skip the rest
 
-Cascaded voice pipeline, hand-rolled, Python backend on Modal. Groq Whisper for STT, Gemini for both the LLM and TTS, browser-side VAD. The grounding gate between the LLM and TTS is the deep dive and the heart of the codebase.
+The rest of this document is reference. This page is the design.
 
-**Three things to test on day one, before building on top of them:** a 10-minute Modal WebSocket, the Travel Buddy colour legend, and the browser audio loop in isolation.
+### What it is
+
+A voice travel assistant that **never states a travel fact it cannot source.** Cascaded pipeline, Python on Modal, hand-rolled. The grounding gate between the LLM and TTS is the deep dive and the heart of the codebase.
+
+### The one idea
+
+**The model never writes a fact. It names a field, and our code substitutes the value.**
+
+```
+model emits:  "You'll need {visa.type} for up to {visa.duration}."
+gate renders: "You'll need an eVisa for up to 30 days."
+```
+
+If the model instead writes `"up to 90 days"` as text, the gate rejects the segment — because a `sourced` segment may not contain a digit outside a placeholder. That single rule is the difference between a guardrail and a citation chip, and it is the demo.
+
+Two registers, and both directions are failures:
+
+| Register | Example | Carries |
+|---|---|---|
+| `sourced` | entry requirements, durations, validity | a citation, a date, and which layer answered |
+| `judgement` | "November is good for Kyoto" | nothing — it is Sarjy's own view, and says so |
+
+*Judgement dressed as fact* is the harm. *A sourced fact hedged into opinion* is evasion. An assistant that refuses everything scores perfectly on hallucination and is worthless.
+
+### The one trick
+
+**Sarjy speaks before the lookup returns.** The model calls `update("Let me check that")` alongside the real tool call; we route the first straight to TTS and fire the second mid-stream. The vendor round trip and the entire second completion run **underneath audio that is already playing.**
+
+```
+first audio out       ~1.8 s      ← what the user experiences
+everything else       ~1.6-2.5 s  ← hidden under the opener
+```
+
+The opener is safe by construction: nothing has been sourced when it is spoken, so it can only be `judgement`. **The latency optimisation and the guardrail turn out to be the same mechanism.**
+
+### What the reviewer sees
+
+Page loads calm and nearly empty. Mic is asked for with a reason. Sarjy speaks first — *"Hi, I'm Sarjy, what should I call you?"* — which creates the identity, proves the audio path in second one, and opens as a conversation rather than a form. A typed fallback stays visible, because names are where Whisper is weakest.
+
+**Provenance is shown, not recited.** Every sourced segment carries its source, date and layer in the UI. Sarjy speaks it only when it changes the answer's weight — a CSV fallback, stale data, or a refusal. Reciting "according to Travel Buddy" every turn is tedious by turn four.
+
+**No source, no claim.** Chitchat and opinion are `judgement` and get answered warmly. A factual question with no tool behind it — weather, flight status — gets refused and routed. *"I don't have a weather source, so I won't guess"* is the thesis working, not a gap in it.
+
+### How it is proven
+
+Three layers, and only two need a model:
+
+| Layer | Runs | Catches |
+|---|---|---|
+| **Gate** | every turn, hot path | fabricated values, bad paths, bare digits |
+| **Assertion tests** | every commit | regressions, wrong values, cross-session leakage |
+| **LLM judge** | offline, before submission | register integrity, refusal correctness, anchoring |
+
+The judge **never gates anything the user hears** — it only measures what determinism cannot see. And it is validated against hand labels, with the agreement rate reported beside every number it produces.
+
+Substring assertions work here only *because* of the architecture: the model never writes the number, so `assert "30 days" in out` is stable even though the model is not. **The guardrail bought us regression tests for free.**
+
+### The stack, in one line each
+
+Groq `whisper-large-v3-turbo` (batch) · Gemini `gemini-3.5-flash-lite` (tools, `thinking_level: minimal`, `store=False`) · Gemini `gemini-3.1-flash-tts-preview` voice **Sulafat** · `modal.Dict` for memory · Travel Buddy for visas, **120 requests total, ever**.
+
+### The three things that can still break it
+
+1. **TTS time-to-first-byte is unknown.** No published figure anywhere; forum reports span sub-2 s to 10–20 s on this model. Day-1 spike — it can invalidate the latency budget.
+2. **Does the 150 s HTTP timeout survive a WebSocket upgrade?** Not documented either way. Day-1 spike.
+3. **Parallel function calling on `gemini-3.5-flash-lite` specifically** is documented only generically. Measure before committing to the opener.
+
+### The plan
+
+**Sat:** spikes → skeleton → adapters → **deploy** → instrumentation. Gate: *a URL that talks back.*
+**Sun:** vendor client → normaliser → **the gate** → NDJSON → tests → memory → UI → fixtures. Gate: *all 7 requirements demonstrable.*
+**Mon:** judge → Arabic → measure → fix. **16:00–19:00 reserved for demo, Loom, writeup.** Gate: *submitted.*
+
+---
 
 ## Architecture
 
@@ -22,107 +96,168 @@ mic → VAD/endpoint → STT → [TEXT CHECKPOINT] → LLM + tools → [GROUNDIN
 
 A cascaded pipeline gives two points where text can be inspected and gated mid-turn. An end-to-end model gives neither: **you cannot validate a citation that never exists as text.** The deep dive requires the checkpoints, so the architecture follows from it. This is the answer to the likeliest question in the walkthrough.
 
+### The turn, in detail
+
+```
+STT
+ └→ LLM call 1 ── update("Let me check that for you")  → TTS #1 ──→ speaking
+                └─ get_visa_requirements(...)          → lookup ─┐
+                                                                 │  (hidden under the audio)
+    LLM call 2 ── NDJSON segments ─→ gate ─→ TTS #2 ────────────┘─→ speaking
+```
+
+**Call 1 speaks and looks up at the same time.** The model is instructed to call `update()` — a function we intercept and route straight to TTS — alongside the real tool call. Google's streaming API delivers a function call's **name and id before its arguments are generated**, so the HTTP lookup fires mid-stream rather than after the response completes.
+
+This is Google's own documented pattern, not a trick we invented. Their function-calling docs name the function `update` and describe its parameter as *"A short, plain-language note shown to the User about what you are ABOUT TO DO next."*
+
+**Why it matters:** the vendor round trip and the whole of call 2 run underneath audio that is already playing. See §Latency budget.
+
 **The grounding gate is the core, and it is enforced at the value level, not the citation level.**
 
 The model never writes a fact. It **selects a field**, and our code substitutes the value:
 
-```python
-# What the model returns — it names the field, it does not state the value.
-{"segments": [
-  {"kind": "sourced",    "text": "You'll need an {visa_rules.primary_rule.name} for up to {visa_rules.primary_rule.duration}.",
-   "tool_call_id": "tb_1", "fields": ["visa_rules.primary_rule.name", "visa_rules.primary_rule.duration"]},
-  {"kind": "judgement",  "text": "November is a good month for Kyoto — the crowds thin out after the leaves turn."}
-]}
+```json
+{"kind":"sourced","text":"You'll need {visa.type} for up to {visa.duration}.","tool_call_id":"tb_1","fields":["visa.type","visa.duration"]}
+{"kind":"judgement","text":"November is a good month for Kyoto — the crowds thin out after the leaves turn."}
 ```
 
 The gate then, deterministically:
 
 1. Resolves every `{placeholder}` against the named `tool_call_id`'s **actual stored response**.
 2. **Rejects the segment if any field path is absent from that response.** Not "flags" — the segment never reaches TTS.
-3. Attaches that tool result's citation and timestamp.
-4. Passes `judgement` segments through untouched, with no citation, rendered as Sarjy's own view.
+3. **Rejects any `sourced` segment containing a digit outside a placeholder.**
+4. **Rejects any `sourced` segment containing no placeholder at all.**
+5. Attaches that tool result's citation, timestamp and layer.
+6. Passes `judgement` segments through untouched, with no citation, rendered as Sarjy's own view.
 
-**This is the difference between a guardrail and a citation chip.** If the model can write "90 days" as free text while correctly citing a tool that said 30, the gate is theatre — and that is precisely the hallucination class this project claims to prevent. Here the model *cannot state a number it did not select from a response*, because it never writes numbers at all.
+**Rules 3 and 4 are what make this a guardrail rather than a citation chip.** Without them the model can write `{"kind":"sourced","text":"a tourist visa for up to 90 days","fields":[]}` — zero placeholders, nothing to resolve, nothing to reject, and a real citation stapled to a fabricated number. Rules 3 and 4 are two one-line checks and they close it.
 
-**On failure: strip and say so.** One code path. No re-ask branch — a second completion on the latency path costs more than it saves, and "I couldn't confirm that part" is an honest sentence.
+**What rule 3 does not catch:** categorical claims in prose — "you'll need an eVisa" written as text rather than `{visa.type}`. That is NLP, not a one-liner. The honest position: *enforce deterministically the class of claim where being wrong makes someone miss a flight — the numbers — and let field selection carry the categories.*
 
-**The gate never blocks judgement; it blocks judgement wearing a citation.** The model proposes; deterministic code disposes — literally, at the level of the substituted string.
+**The opener is gated too, and more strictly.** `update()` text arrives as a function-call argument, not a segment, so it bypasses `resolve()` unless we make it not. At opener time **nothing has been sourced yet**, so:
+
+> **Opener contract:** `judgement` register, no digits, no entity-specific claims. On violation, substitute a fixed phrase ("Let me look that up for you") — which is what the model should have said anyway.
+
+**On failure: strip and say so.** Split by failure type:
+
+| Failure | Behaviour |
+|---|---|
+| Schema — malformed JSON line, wrong shape | One repair retry |
+| Gate rejection — bad path, bare digit, no placeholder | **No retry.** Strip, say we could not confirm that part |
+
+A second completion to re-litigate a *fact* costs more than it saves. A second completion to fix *syntax* is cheap and rarely fires.
+
+**The gate never blocks judgement; it blocks judgement wearing a citation.**
 
 **Every provider sits behind our own interface.** Provider choice is configuration, not code. Free tiers rate-limit and models get deprecated mid-build — `playai-tts` was deprecated during this project's research. It also keeps the P2 Arabic swap cheap.
 
-**No provider key reaches the browser.** The client talks only to our backend.
+**No provider key reaches the browser.** The client talks only to our backend. The frontend is served by the same ASGI app (`StaticFiles` mount on the image-baked `frontend/dist`), which is Modal's own pattern and **removes CORS entirely** — same origin, no preflight, no second deployment.
 
-**Hand-roll the pipeline, no framework.** A cascaded voice loop is ~300 lines of WebSocket plumbing. Pipecat starts faster but puts a framework in charge of the most interesting part, and the rubric asks explicitly whether you understand your own code. *First thing to reconsider if day 1 runs long.*
+**Hand-roll the pipeline, no framework.** A cascaded voice loop is ~300 lines of WebSocket plumbing. Pipecat starts faster but puts a framework in charge of the most interesting part — and the gate has to sit exactly where a framework asserts control. Escape hatch with a trigger hour, not a plan.
 
 ## Stack
 
-**Python (FastAPI + WebSocket) backend, TypeScript/React frontend.** Python is what Omar defends fastest under questioning and matches Sarj's own stack. Browser audio is TypeScript regardless, so the split costs one extra toolchain and nothing conceptually.
+**Python (FastAPI + WebSocket) backend, TypeScript/React frontend.** Python is what Omar defends fastest under questioning and matches Sarj's own stack. Browser audio is TypeScript regardless.
 
 | Stage | Choice | Why |
 |---|---|---|
 | VAD / endpointing | `@ricky0123/vad-web` in-browser | Saves a round trip; the largest controllable latency term |
-| STT | Groq `whisper-large-v3-turbo` | Batch, but ~216× real-time |
-| LLM | Gemini `gemini-3.5-flash-lite` | Function-calling reliability; grounding depends on it |
-| LLM failover | Groq `openai/gpt-oss-20b` | ⚠️ no parallel tool calls |
-| TTS | Gemini `gemini-3.1-flash-tts-preview` | Streams, no char cap, 24 kHz PCM, does Arabic |
-| Deploy | Modal, `@modal.asgi_app()` | Python-native, credit in hand, documented WebSocket support |
-| Memory | **open** — SQLite on a Modal Volume, or Postgres | See §Memory |
+| STT | Groq `whisper-large-v3-turbo` | Batch, ~216× real-time. Free tier 20 RPM / 2,000 RPD — not a constraint |
+| LLM | Gemini `gemini-3.5-flash-lite` | ✅ verified stable, function calling supported, free on free tier, no announced shutdown |
+| LLM failover | Groq `openai/gpt-oss-20b` | ⚠️ **no parallel tool calls** — see §Failover |
+| TTS | Gemini `gemini-3.1-flash-tts-preview`, voice **Sulafat** | ✅ verified: 24 kHz 16-bit mono PCM, Arabic, and the **only** Gemini TTS model that streams |
+| Deploy | Modal, `@modal.asgi_app()` + `@modal.concurrent` | Python-native, credit in hand |
+| Memory | **`modal.Dict`** | ✅ verified durable across redeploys. See §Memory |
 
-**Available accounts:** Groq, Gemini, Modal (~$30/mo), Hugging Face. No Deepgram, ElevenLabs, Cartesia or Speechmatics — provider choice is constrained accordingly.
+**Available accounts:** Groq, Gemini, Modal (~$30/mo), Hugging Face. No Deepgram, ElevenLabs, Cartesia or Speechmatics.
 
-### Provider traps, all verified 2026-09-18
+### Provider traps, verified 2026-09-19
 
-- **Groq TTS is unusable.** `playai-tts` deprecated 2025-12-31; its replacement is capped at 10 RPM / 100 requests per day / **200 characters per request**, WAV-only, no streaming. That's two or three conversations *per day*, failing mid-sentence. Hence Gemini TTS.
-- **Groq's free LLM tier is 8,000 TPM** → ~3.6 turns/minute with a realistic system prompt. A brisk conversation is 6–8. Failover, not primary.
-- **Groq's Llama models were deprecated 2026-08-16** and are absent from the free-tier table.
-- **Google no longer publishes free-tier rate limits** — only Tiers 1–3. Check `aistudio.google.com/rate-limit` directly.
-- **Hugging Face Spaces is out**: a reproduced, unanswered report of the proxy returning HTTP 404 to WebSocket upgrades on Docker Spaces.
+- **`thinking` is on by default and cannot be turned off.** `gemini-3.5-flash-lite` defaults to `thinking_level: "minimal"`; levels are `minimal`/`low`/`medium`/`high` and docs state *"minimal does not guarantee that thinking is off."* Pin it explicitly on **every** call — it is interaction-scoped and is *not* carried by `previous_interaction_id`. Same for `tools` and `system_instruction`.
+- 🪤 **Google's docs contradict each other on the streaming argument field.** The function-calling page samples `delta.type == "arguments"` / `partial_arguments`; the streaming page and the API reference say **`arguments_delta`** with field `arguments`. **Trust the reference.** The wrong one gives a loop that silently matches nothing — no error, no output, no clue.
+- **`responseSchema` is deprecated**, as are `temperature`/`top_p`/`top_k` (2026-07-21, *"will be ignored"* on this model). **You cannot get determinism from the model** — which is why the assertion tests assert on gate-substituted values (§Testing).
+- **TTS has no continuity primitive.** No session, no acoustic context, no working seed. Docs warn *"output may not always strictly match the selected speaker."* This is why we make **two** TTS requests per turn, not five (§Latency budget).
+- **TTS randomly 500s.** Docs: *"The model occasionally returns text tokens instead of audio tokens, causing the server to fail the request with a 500 error… implement automated retry logic."* Also `PROHIBITED_CONTENT` false rejections on vague prompts, and quality drift past a few minutes.
+- ⚠️ **Override the SDK retry defaults.** Google's Python SDK retries up to four times with backoff to **60 seconds**. Inside a voice turn that is a hung demo. One retry, ~250 ms, then fail visibly.
+- **No SSML.** Style comes from natural-language prompt plus inline audio tags (`[whispers]`, `[very slow]`), and Google advises keeping tags **in English even for non-English transcripts**.
+- **Groq TTS is back in play**: `canopylabs/orpheus-arabic-saudi` ("authentic Saudi dialect synthesis"), free tier, **10 RPM / 100 RPD** — the tightest quota in the project. Sample rate, streaming and TTFB undocumented. P2 stretch only.
+- **Gemini free-tier limits are unpublished and explicitly unguaranteed.** One third-party measurement puts flash-lite at 15 RPM / 500 RPD. **Cannot be cited**; build quota handling into the LLM adapter as we did for the vendor.
+- **EEA / Switzerland / UK:** free tier is contractually unavailable for API clients served to users there. Our deployed URL goes to a reviewer whose location we do not control. **Documented in the writeup as a known limitation.**
+- **Free-tier input trains Google.** We set `store=False` — nothing retained. Stateless mode is strict: every model step must be resent verbatim, thought signatures included.
 
-### Place data and imagery — Wikipedia REST API
+### Structured output: NDJSON, not `response_format`
 
-`GET https://en.wikipedia.org/api/rest_v1/page/summary/{title}` — no key, verified live 2026-09-18. Returns:
+Verified: streaming + `response_format` yields *"valid partial JSON strings that can be concatenated to form the final JSON object"* — fragments of one growing document, **not discrete objects**. There is no NDJSON mime type; `mime_type` is a two-value enum.
 
-| Field | Use |
-|---|---|
-| `extract` | Place description — a **sourced** segment |
-| `thumbnail.source` / `originalimage.source` | Photograph (up to 3840×2581) |
-| `content_urls.desktop.page` | The citation URL |
-| `timestamp` + `revision` | Provenance, built into the response |
-| `coordinates` | Feeds Aladhan's **by-coordinate** endpoint — the one that echoes real coords, unlike `timingsByCity` |
+**So NDJSON and `response_format` are mutually exclusive, and we take NDJSON**: call 2 emits one JSON object per line as `text/plain`, and we validate each line with Pydantic as it completes.
 
-Images therefore arrive with attribution and a revision date, which is the provenance discipline applied to a different medium.
+This does not weaken the contract. The grounding-gate rule says *schema-validated object, never regex a model's prose* — Pydantic parsing a JSON object per line **is** schema validation. What we give up is constrained decoding, so the **malformed-line rate becomes a measured number** alongside the gate-rejection rate. Two measured failure rates beat one assumed guarantee.
 
-⚠️ **Set a compliant `User-Agent` from the first call** — `Sarjy/0.1 (<repo url>; <email>)`. Wikimedia deployed REST Gateway rate limits in early 2026 aimed at unauthenticated non-browser traffic, and their API usage policy states a generic User-Agent may be throttled or blocked outright. Cheap to set now; confusing to debug later.
+A malformed line routes through the gate's existing rejection path. It is not a new concept.
 
-Cache aggressively — place data barely changes, and a cached `extract` keeps the image on screen when the network is slow.
+### Place data and imagery — Wikipedia REST API (P3)
+
+`GET https://en.wikipedia.org/api/rest_v1/page/summary/{title}` — no key, verified live. Returns `extract` (a sourced segment), `thumbnail.source`, `content_urls.desktop.page` (the citation), and `timestamp` + `revision` (provenance built in).
+
+⚠️ **Set a compliant `User-Agent` from the first call** — `Sarjy/0.1 (<repo url>; <email>)`. Wikimedia rate-limits generic agents and may block them outright.
+
+**Travel suggestions do not depend on this.** "November is good for Kyoto" is `judgement` — Sarjy's own view, no citation by design, zero extra tool calls, zero latency. Wikipedia buys *place descriptions as sourced segments* and *photographs*, which is P3.
+
+**Aladhan / prayer times: cut.** Out of scope for a travel assistant whose thesis is grounded entry requirements.
 
 ### The batch-STT constraint, stated plainly
 
-Groq's Whisper is *batch*: 30-second windows, so the pipeline must endpoint first, then send, then wait for the full transcript. A streaming STT would return partials during speech and endpoint for us, collapsing two stages. **We don't have one** — no Deepgram or Speechmatics account.
+Groq's Whisper is *batch*: 30-second windows, so the pipeline must endpoint first, then send, then wait. A streaming STT would return partials during speech and endpoint for us. **We don't have one.** Measured penalty **+200–450 ms** versus streaming, not the 600–1200 ms vendor blogs quote, because Groq runs at ~216× real-time and network dominates. Name it in the writeup rather than letting a reviewer find it.
 
-Measured penalty: **+200–450 ms** versus streaming, not the 600–1200 ms vendor blogs quote, because Groq runs at ~216× real-time and network dominates. Name this in the writeup rather than letting a reviewer find it.
+### Arabic — P2, and cheaper than it looks
 
-### Arabic — P2, not an afterthought
+**The honest minimum is ~45 minutes, not 3 hours:**
+- Arabic **input**: Whisper takes `language=ar` — a config change through an adapter that already exists.
+- Arabic **output**: Gemini TTS auto-detects language from the text. Verified. No work at all.
 
-**Minimum viable:** Arabic **input** via Groq Whisper, which handles MSA and Egyptian acceptably. No new account, no new provider, and the STT interface makes it a config change. Gemini TTS already speaks Arabic, so the output leg exists.
-
-**If it holds up:** code-switching input needs a Speechmatics signup (480 min/mo free) — the provider interface makes that a swap, which is what "Arabic-capable stack from day one" actually bought.
+What costs hours is *code-switching* (a Unicode script-range tagger between gate and TTS), *RTL polish*, and *Orpheus*. Those are enhancements, not the feature. **Sarj were told in writing this is bilingual** — one clean Arabic turn honours that; zero walks it back.
 
 **Two things that will bite, both known in advance:**
-- **Script the demo in Egyptian, never Gulf.** WER: MSA ~10 → Levantine ~24 → Egyptian ~35 → **Gulf ~68**. Gulf is unusable on open models, and saying so out loud is a better demo beat than avoiding it.
-- **The output leg is the real risk.** TTS language detection is unreliable on code-mixed text; an English word inside an Arabic sentence gets mispronounced. A small Unicode script-range tagger sits between the gate and TTS. Budget it.
+- **Script the demo in Egyptian, never Gulf.** WER: MSA ~10 → Levantine ~24 → Egyptian ~35 → **Gulf ~68**. Saying the Gulf number out loud is a better demo beat than avoiding it — and it is exactly why a company like Sarj trains its own models.
+- ⚠️ **Voice labels are English-flavoured and nothing says they hold in Arabic.** Listen to Sulafat, Vindemiatrix and Rasalgethi in both languages; record it in `docs/measurements/`.
 
-**RTL:** `dir="auto"` uses Unicode first-strong, not dominant script — one leading English word locks a whole caption line LTR, and direction can flip mid-stream as tokens arrive. Compute direction per line from dominant script and freeze it on first flush.
+**RTL:** `dir="auto"` uses Unicode first-strong, not dominant script — one leading English word locks a caption line LTR, and direction can flip mid-stream. Compute direction per line from dominant script and freeze on first flush.
 
 ## Deployment
 
-Modal, ranked above Fly.io, with HF Spaces and Render excluded.
+Modal, `@modal.asgi_app()`. **Already scaffolded in `backend/modal_app.py`.**
 
-⚠️ **Modal's WebSocket lifetime is bounded by the Function `timeout`, which defaults to 300 s.** A ten-minute conversation dies at five minutes unless `timeout=` is set explicitly. Modal publishes no maximum WS duration.
+### 🚨 One WebSocket is one input
 
-> **This is inference, not documented fact.** No Modal doc sentence exempts WebSockets from the 150 s HTTP request timeout; the word "WebSocket" does not appear on that page. **Test a 10-minute connection on day one, before building on it.** Fly.io is the fallback.
+Modal's own docs: *"Modal treats each WebSocket connection as a single input… Otherwise, Modal will spin up a new container for each WebSocket connection."*
 
-`min_containers=1` for the demo window avoids cold starts — ~$14/mo if left on 24/7, pennies if flipped on only when needed. Boot is ~1 s. Use the `me` region.
+Without `@modal.concurrent`, **every concurrent listener gets their own container** — and `min_containers=1` does not prevent it, because it is a **floor, not a cap**. Two reviewers on the URL at once would be two containers with two separate in-memory states.
+
+```python
+@app.function(
+    timeout=30 * 60,       # never the 300 s default
+    min_containers=1,      # floor, not a cap
+    max_containers=2,      # the actual cap
+    scaledown_window=300,
+)
+@modal.concurrent(max_inputs=8, target_inputs=4)
+@modal.asgi_app()
+```
+
+⚠️ **The WebSocket handler must be `async`.** Modal: *"When using input concurrency with a synchronous Function, a single input cancellation will terminate the entire container."* A closed browser tab **is** an input cancellation — one reviewer leaving would kill everyone else's session. No error message.
+
+### The timeout, honestly
+
+> **Modal documents no maximum WebSocket duration and no sentence saying `timeout=` governs one.** Do not write "Modal documents that…".
+
+The inference chains two documented facts: *"WebSockets on Modal maintain a single function call per connection"* + *"The timeout duration is a measure of a Function's execution time."* One connection = one call = one execution. Corroborated two ways: **Modal's own reference voice app (QuiLLMan) sets `timeout=600`**, and Modal's client source treats a WebSocket as a stream of inputs with the comment *"Disable timeout, since timeouts are handled on input level instead."*
+
+**The day-1 spike now tests one specific thing:** whether the documented **150 s HTTP request timeout** survives a WebSocket upgrade. No exemption sentence exists; circumstantial evidence says it does not (the documented workaround is a 303 redirect, impossible for a WS). Hold an idle connection past 150 s and find out.
+
+### Two more deployment facts
+
+- 🚨 **`routing_region` cannot be changed after the first deploy** — *"a new Function should be created."* Default `us-east`; **there is no Middle East routing region**. Deploy twice on day 1 and time a turn through `us-east` and `eu-west` before committing. ⚠️ The measurement is from Omar's location, not the reviewer's — a useful proxy, named as such.
+- **Preemption is not optional to handle.** *"All Modal Functions are subject to preemption by default… likelihood of interruption increases with Function run duration."* A voice conversation is long-running by definition. **The client needs reconnect-and-resume regardless of `timeout=`.**
 
 ## The external data layer
 
@@ -130,9 +265,7 @@ Modal, ranked above Fly.io, with HF Spaces and Render excluded.
 
 The largest demo-day risk: a reviewer exploring the deployed app must never hit a quota wall. This is why the vendor client is a first-class component rather than plumbing.
 
-Usable endpoints: `VisaRequirements` (detail), `VisaMap` (bulk), `Destinations` and `Passports` (reference, fetch once). `HistoricData` needs a paid tier; `CustomPassportRank` is irrelevant.
-
-**`VisaMap` bulk behaviour — verified by observation 2026-09-18**, not taken from the vendor page: `POST {"passport":"SA"}` returned exactly 211 destinations bucketed by colour (red 91 · green 55 · blue 57 · yellow 8). The raw response is committed at `data/reference/visa-map/SA.json` as the evidence.
+**`VisaMap` bulk behaviour — verified by observation**: `POST {"passport":"SA"}` returned exactly 211 destinations bucketed by colour (red 91 · green 55 · blue 57 · yellow 8). Raw response committed at `data/reference/visa-map/SA.json` as the evidence.
 
 | Allocation | Requests |
 |---|---|
@@ -143,82 +276,160 @@ Usable endpoints: `VisaRequirements` (detail), `VisaMap` (bulk), `Destinations` 
 | **Reserve — demo plus reviewer exploration** | **~40** |
 | Remaining for live detail lookups | ~46 |
 
+### Normalisation — we own the shape
+
+**The raw vendor body never reaches the model.** A normalisation layer between the vendor client and the prompt emits a schema *we* define:
+
+```
+visa.type               = "eVisa"
+visa.duration           = "30 days"
+visa.passport_validity  = "6 months"
+source.layer            = "live"
+source.retrieved        = "2026-09-19T08:14Z"
+```
+
+| Benefit | Why it matters |
+|---|---|
+| **Paths are ours, short and stable** | `visa.duration`, not `visa_rules.primary_rule.duration`. Fewer tokens, far fewer path errors |
+| **Vendor drift is absorbed** | A renamed key breaks one mapping function, not the gate, the prompt, and every fixture |
+| **The context *is* the path catalogue** | No separate flattener. What we hand the model already lists the valid paths |
+| **Live and CSV converge** | Both normalise into the same object with a different `source.layer`. One prompt, one code path |
+
+⚠️ **Log unmapped keys on every call.** If the normaliser silently drops a field, the model cannot cite what it cannot see and we would never notice. Two lines — the difference between a normaliser and a lossy filter.
+
 ### Two-tier answering
 
 | Tier | Source | Quota cost | Answers |
 |---|---|---|---|
 | **Category** | cached `VisaMap` | **zero** | "Japan is eVisa for a Saudi passport" |
-| **Detail** | live `VisaRequirements` | 1 | duration, passport validity, mandatory registration, embassy link, exchange rate |
+| **Detail** | live `VisaRequirements` | 1 | duration, passport validity, registration, embassy link |
 
-Most turns resolve instantly and free. Quota is spent only when a user wants specifics on a pair. Each tier states its own freshness.
+**Correction to the previous draft:** a cached turn still needs **both** LLM calls. Call 1 is what extracts *which destination the user asked about* — we cannot know the answer is cached until we know the pair. **The cache saves the vendor round trip (~300–800 ms), not the call.**
+
+One good consequence: on a cache hit there is no lookup to hide, so Sarjy just answers instead of saying "let me check." That inconsistency is correct — it is what a person does — but it is deliberate, not emergent.
 
 **Resolution order:** cached map → warm cache → vendored CSV → live call, only on a miss and only above the reserve.
 
-**Hard rule:** below the reserve threshold, serve from the CSV and say so. Degrade, never die. Remaining quota is surfaced in the UI — it costs nothing, it is honest, and it shows the system was built to be operated.
+**Hard rule:** below the reserve threshold, serve from the CSV and say so. Degrade, never die. Remaining quota is surfaced in the UI.
+
+⚠️ **Barge-in now costs quota.** Interrupting while a lookup is in flight may have already spent a request. Fire live calls only on a cache miss, and count spent-but-interrupted requests in the ledger so the number stays honest.
 
 ### The fallback dataset — use the maintained fork
 
-Our own research says of the canonical `ilyankou/passport-index-dataset`: archived since 12 January 2025, upstream "contributed by fans," and verbatim — **"Fan-contributed data is exactly what a guardrails demo must not present as authoritative."**
-
-Headlining a demo beat that answers a boarding-critical question from 20-month-old crowd data would contradict the thesis in front of the reviewer. **Use the maintained fork** (`visualpharm/visa-free-dataset`, corrections through June 2026), state its date on every answer it serves, and say plainly that it is a community dataset rather than an issuing authority.
+The canonical `ilyankou/passport-index-dataset` is archived since January 2025 and upstream is "contributed by fans" — **fan-contributed data is exactly what a guardrails demo must not present as authoritative.** Use the maintained fork (`visualpharm/visa-free-dataset`, corrections through June 2026), state its date on every answer it serves, and say plainly it is a community dataset rather than an issuing authority.
 
 The fallback's job is *"the live source is down and here is the best I still have, with its provenance"* — not *"here is an equally good answer."*
 
 ### The colour legend is verified, not inferred
 
-`VisaMap` buckets destinations into four colours, but `CustomPassportRank` enumerates **eight** rule types — so the mapping is lossy. Only `blue = eVisa` is confirmed. "Visa on arrival" has no obvious bucket; "freedom of movement" appears merged into green alongside ordinary visa-free destinations. Those are materially different facts to tell a traveller.
-
-Spend ~6 requests confirming it against known pairs, and store the proving response with each entry. **A guessed mapping inside a product whose thesis is "never state what you can't source" would be self-defeating.**
+`VisaMap` buckets into four colours; the API enumerates **eight** rule types, so the mapping is lossy. Only `blue = eVisa` is confirmed. Spend ~6 requests confirming it against known pairs and store the proving response with each entry. **A guessed mapping inside a product whose thesis is "never state what you can't source" would be self-defeating.**
 
 **Known artifact:** a passport appears in its own red bucket. Self-reference, not a claim — filter it.
 
-## Memory — open
+## Memory
 
-Structured facts, not chat history stuffed into a prompt. Attributable, inspectable, and demonstrable: the reviewer can be shown the stored record.
+Structured facts, not chat history stuffed into a prompt. Attributable, inspectable, demonstrable.
 
-### Identity — the gap that would fail the demo
+### Two tiers, because they protect two different requirements
 
-The deployment is a **public URL with no login**, and two reviewers may open it minutes apart. Without an identity model they share one memory, and reviewer B is told their passport is Saudi. That is a live demo failure, not a theoretical one.
+| Tier | Memory | Protects |
+|---|---|---|
+| **Anonymous** | In-session only, lost on reload, **clearly labelled as such** | **#4** — the link works instantly, nothing asked of the reviewer |
+| **Signed in** | Persisted, attributable, cross-device | **#2** — memory across sessions |
 
-**Anonymous session id in `localStorage`, one row per id.** No auth, no accounts — which keeps requirement 4 ("no login") and the scope guard intact while making requirement 2 actually work per person.
+**Identity is voice-first.** Sarjy's opening turn is *"Hi, I'm Sarjy — what should I call you?"* That one beat creates the identity, **proves the microphone works in second one rather than minute three**, gives the mic prompt a natural reason, and opens the demo as a conversation instead of a form. **A typed fallback is always visible** — names are where Whisper is weakest, Arabic names especially.
+
+The persisted tier takes a name plus a short PIN. `localStorage` remembers the last name used, so reload costs the reviewer nothing while the name is what keys the record.
+
+**This is a nameplate, not authentication** — and saying so is worth more than implying otherwise. Deliberately not OAuth: a hiring reviewer may decline to sign into a candidate's app with their Google account, and requirement 2 is graded on what they *observe*.
+
+⚠️ **Risk the tiers introduce:** a reviewer who never signs in may conclude memory is broken. Mitigate in the UI, not the README — the panel reads *"remembered for this session only — sign in to keep these"*, and Sarjy says it once after the first fact worth keeping.
+
+### Store: `modal.Dict`
+
+✅ Verified durable: *"Dicts are persisted… the data can be retrieved even after the application is redeployed."* The "Dicts are in-memory and can be lost" warning applies to **legacy Dicts created before 2025-05-20**, now being sunset.
+
+`user_key → {profile, facts, cache}` is a dictionary. No joins, no queries — one read at turn start, one write at turn end.
+
+| Limit | Consequence |
+|---|---|
+| **Entries expire after 7 days of inactivity** | Fine for the demo window. State it; do not discover it |
+| **No documented read-modify-write atomicity, no CAS** | One key per user makes this near-harmless. **Do not claim it is transactional** |
+
+**SQLite on a Volume is ruled out:** last-write-wins per file, no distributed locking, and another container sees nothing until an explicit `.reload()`. Modal's own SQLite example builds the DB *off*-Volume and copies the finished file in.
 
 ### Two kinds of memory
-
-The brief's own worked example is *"What's my favorite color?"* — a closed travel schema fails it, and a reviewer **will** try exactly that sentence because it is the one example in the assignment.
 
 | Store | Holds | Why |
 |---|---|---|
 | **Typed travel profile** | passport nationality, home city, dietary needs, past destinations | Drives the lookups; shown as a structured record |
-| **Open key/value facts** | anything the user states about themselves | Passes the brief's literal test |
+| **Open key/value facts** | anything the user states about themselves | Passes the brief's literal *"what's my favorite color?"* test |
 
-**Show it.** A "what Sarjy remembers about you" panel with a clear button makes requirement 2 visible in one glance instead of requiring a scripted reload — and it answers "did you just tell me the last person's passport?" before it is asked.
+**Cap the open facts.** The typed profile is bounded by its schema; open facts are not. Cap the count, evict oldest, say so in the panel.
 
-Also stores the place cache (Wikipedia extracts, image URLs, coordinates) so repeat destinations cost nothing.
+**Provenance is shown, not recited.** Every sourced segment carries source, date and layer in the UI. Sarjy speaks provenance **only when it changes the answer's weight** — a CSV fallback, data that is stale, or a refusal. "According to Travel Buddy, updated today" on every turn is tedious by turn four and trains the reviewer to stop listening to the part that matters.
 
-**Decided: SQLite on a Modal Volume.** No second service, no pooling, no extra secret. It only breaks with multiple containers, and we run `min_containers=1`. Postgres would tell a marginally better production story and cost a day; not worth it.
+**Show it.** A "what Sarjy remembers about you" panel with a clear button makes requirement 2 visible in one glance instead of requiring a scripted reload — and it answers *"did you just tell me the last person's passport?"* before it is asked. Given that free-tier input trains Google, a working **forget everything** control is a feature, not a nicety.
+
+### Writing a fact must not sit on the latency path
+
+Memory extraction is **its own LLM call, fired after the response is dispatched.** Nothing the user hears depends on it completing.
+
+Keeping it separate protects the segmenting prompt — which *is* the deep dive, and whose reliability is the thing being measured. Loading memory duty onto it to save a call that costs no latency is a bad trade.
+
+⚠️ **This makes three LLM calls per turn.** Against an unofficial 15 RPM that is five turns per minute, and a brisk conversation is six to eight. **Watch this in the day-1 measurement**; if it bites, gate extraction behind a cheap self-statement heuristic or fold it back into the response as a `remember` field.
+
+⚠️ **If the write fails, the user was already told "got it."** Make the memory panel the source of truth so a failure is visible there rather than silently contradicted later.
 
 ## Latency budget
 
-> ⚠️ **The earlier ≤1.5 s target was borrowed from a research table that models a different architecture** — one with LLM tokens streaming into TTS and no tool call. This design has neither. Re-derived below.
+> ⚠️ **Derived estimates, not measurements.** TTS TTFB is the largest unknown — no published Google figure, no third-party benchmark, and forum reports spanning sub-2 s to 10–20 s on this model within three weeks. **Every figure here gets replaced after the day-1 spike.**
 
-**The gate needs a complete structured response before TTS can start**, so time-to-first-token is irrelevant here; we pay full generation. And a tool call sits on the path. The real chain on a cache-miss turn:
+### The chain
 
-```
-endpoint → STT → LLM #1 (tool args, full completion) → vendor round trip
-         → LLM #2 (segmented output, full completion) → gate → TTS TTFB → first audio
-```
+| Stage | Est. | Note |
+|---|---|---|
+| Endpointing | ~600 ms | Pure waiting. A product decision, not a technical cost |
+| STT | ~300 ms | Groq runs ~216× real-time; almost entirely network |
+| LLM call 1 → `update()` arguments parsed | ~400 ms | Includes a `thought` step, which is always emitted |
+| TTS #1 first byte | ~500 ms | ⚠️ unverified |
+| **→ first audio out** | **~1.8 s** | **What the user actually experiences** |
+| *— everything below runs underneath that audio —* | | |
+| Vendor round trip | 300–800 ms | Zero on a cache hit |
+| LLM call 2, complete generation | ~800 ms | The gate needs complete segments |
+| Gate | < 5 ms | Deterministic substitution |
+| TTS #2 first byte | ~500 ms | ⚠️ unverified |
 
-**Honest target: ≤ 2.5 s p50 on a cache-miss turn, ≤ 1.5 s on a cached turn.** Most turns are cached (§Two-tier answering), which is the real argument for the cache — not just quota.
+**The opener is ~1.5–2.5 s of speech. Underneath it we need ~1.6–2.5 s.** It fits — which is the entire argument for this architecture.
 
-Two mitigations that are architecture, not decoration:
-- **Skip LLM #1 when the cached map already answers.** Category-tier turns need one completion, not two.
-- **Consider a single completion with the tool result pre-fetched** where the destination is already known from memory.
+| Turn | Perceived first sound | Gap before the answer |
+|---|---|---|
+| Cache hit | ~1.8 s | none |
+| Cache miss | ~1.8 s | 0–0.7 s, at a natural pause |
 
-Per-stage: endpointing → STT → LLM #1 → tool → LLM #2 → gate → TTS TTFB → first audio. Report median **and p95**, against the deployment, never a single local run. TTS TTFB is **unmeasured** in the research — measure it on day one.
+⚠️ **Instrument TTFT to the first `delta.type == "text"`, not the first SSE event.** Thinking arrives first as `thought` deltas. Measuring to the first event records a fiction — a number that looks excellent and describes nothing the user experienced. Report median **and p95**, against the deployment, never a single local run.
 
-**Endpointing is the largest controllable term.** Tune the silence threshold deliberately and state the trade-off — cutting the user off versus making them wait — as a product decision, not a constant.
+**Endpointing at ~600 ms remains the largest single term** — larger than any provider call. Counter-intuitive, and worth saying out loud because a reviewer will not expect it. The silence threshold is a **product decision, not a constant**: it trades cutting the user off against making them wait. Whatever value is chosen, the reason is written down.
 
-**A tool call sits on the latency path here.** Speak an acknowledgement before the lookup returns rather than leaving silence. That is perceived latency doing real work, and it is reported separately from the measured number, never as a substitute.
+### Two TTS requests per turn, not five
+
+**This is the decision that makes segmented playback safe.**
+
+Gemini TTS has **no continuity primitive** — no session, no acoustic context, no working seed — and the docs warn *"output may not always strictly match the selected speaker."* Across four or five clips per turn that variance becomes an **audible seam mid-sentence**. The `PROHIBITED_CONTENT` mitigation also requires a synthesis preamble on every request, and the random 500 is per-request, so N segments multiply both the overhead and the blast radius.
+
+So: **one TTS request for the opener, one for the whole gated answer.** The boundary between them is a *natural prosodic pause* — where a seam is inaudible because a person would pause there too.
+
+**Keep per-segment gating; drop per-segment synthesis.** Validating each NDJSON line as it arrives is still the right model and is what makes the malformed-line path cheap. We validate incrementally and speak once. Latency is unchanged, because the opener already hides full generation.
+
+⚠️ **There is no cancel for a stream.** `/cancel` is background-only. Barge-in means closing the socket; whether generation and billing stop server-side is undocumented. Assume not, and budget for it.
+
+## Failover
+
+**Groq `openai/gpt-oss-20b` cannot run the primary architecture** — it has no parallel tool calls, and the opener requires them.
+
+> **On failover, degrade to the sequential flow:** no opener, tool call first, then answer. Slower, visibly so, and it still satisfies every requirement. **Say which model is serving in the UI.**
+
+A failover that silently behaves differently is worse than one that announces itself.
 
 ## Failure modes
 
@@ -226,62 +437,114 @@ Defined, visible behaviour for each. **Built before the happy path.**
 
 | Failure | Behaviour |
 |---|---|
-| Mic denied / revoked mid-session | Clear, recoverable message. Never a dead end. |
+| Mic denied / revoked mid-session | Clear, recoverable message. Never a dead end |
+| Model skips the `update()` call | `tool_choice` cannot mandate a specific function — the rule is prompt-only. Fall through to the silent path |
+| `Malformed_Function_Call` | No documented retry guidance. One retry, then the sequential path |
+| TTS 500 (documented, random) | One retry at ~250 ms, then say we could not speak that part. **Never the SDK's 60 s backoff** |
+| Malformed NDJSON line | Schema failure → one repair retry. Rate is measured and reported |
 | Travel Buddy 429 / down | Fall back to vendored CSV, **say which source answered and its date** |
-| Quota reserve exhausted | Stop calling live *before* the wall; serve CSV and say so. The reviewer never sees a quota error. |
-| Both sources miss the pair | Refuse, route to the embassy link. Never guess. |
-| Tool returns empty / malformed | Say so. Never improvise a requirement. |
+| Quota reserve exhausted | Stop calling live *before* the wall; serve CSV and say so. The reviewer never sees a quota error |
+| Both sources miss the pair | Refuse, route to the embassy link. Never guess |
+| **A factual question with no tool behind it** (weather, flight status) | **Refuse and say why.** "I don't have a weather source, so I won't guess." This is the thesis working |
+| **Chitchat or opinion** | Answer warmly — it is `judgement`, and needs no source. Refusing it would fail the delightful-voice line without protecting anything |
+| Tool returns empty / malformed | Say so. Never improvise a requirement |
 | Injection in fetched content | Treat as data, flag it, never obey |
-| Network drop mid-turn | Visible state; recover or fail honestly |
-| Barge-in | See §Barge-in below — designed, not asserted |
+| Network drop / Modal preemption | Visible state; reconnect and resume |
+| Barge-in | See below |
 | Unintelligible / silent input | Graceful re-prompt, no hang |
-| Modal cold start / WS timeout | Reconnect visibly; never a silent dead socket |
-| Wikipedia 429 / missing page | Answer without the image and say so. Never substitute a different place's photo. |
+| Wikipedia 429 / missing page | Answer without the image and say so. **Never substitute a different place's photo** |
 | Image fails to load | Layout holds; no broken-image icon, no shifted text |
 
 ## Barge-in
 
-A stated acceptance criterion (`PRD.md` requirement 1) and the classic take-home tarpit. Designed before it is written:
+A stated acceptance criterion (`PRD.md` requirement 1) and the classic take-home tarpit.
 
 1. **Gate the VAD during playback.** The microphone is live while the speakers play Sarjy's PCM — without this the assistant hears itself and interrupts itself. `echoCancellation` in the `getUserMedia` constraints is necessary and not sufficient.
-2. **Cancel token** → abort the in-flight Gemini TTS stream; do not let it run to completion in the background.
-3. **Flush the playback queue** — drop scheduled AudioWorklet buffers immediately, don't drain the current chunk.
-4. **Truncate the assistant turn in history to what was actually heard**, not what was generated. This matters beyond tidiness: the untruncated text would feed memory and the next turn's grounding context with words the user never heard.
-5. **Mark the turn interrupted in state**, and never pretend it completed.
+2. **Flush the playback queue** — there are now up to **two** audio sources per turn (opener, answer). Drop all scheduled buffers immediately; don't drain the current chunk.
+3. **Abort the in-flight TTS stream** by closing the socket — the only mechanism available.
+4. **Cancel the in-flight tool call**, and record the request as spent in the quota ledger if it already fired.
+5. **Truncate the assistant turn in history to what was actually heard**, not what was generated. The untruncated text would otherwise feed memory and the next turn's grounding context with words the user never heard.
+6. **Mark the turn interrupted in state**, and never pretend it completed.
 
-## Adversarial eval
+## Testing and evaluation
 
-> ⚠️ **The eval runs against recorded fixtures, never live.** Six categories × N cases × reruns against a ~20-request development allowance would exhaust the quota before day 3's gate. Record real vendor responses once, replay them. This also makes the eval deterministic and re-runnable, which is what makes its numbers mean anything.
+Three layers. Only two of them need a model.
 
-**Methodology, stated up front because "numbers not adjectives" is itself an adjective without a denominator:** a fixed set of ~30 labelled cases, labels written **before** the pipeline runs against them, pass bar declared per category, and every reported figure carries its `n`. Un-methodologised numbers read worse than none.
+| Layer | Runs | Model? | Catches |
+|---|---|---|---|
+| **1 · Gate** | Runtime, hot path | No | Fabricated values, bad paths, bare digits, un-placeheld sourced segments |
+| **2 · Assertions** | Every commit | Tier A no · Tier B yes | Regressions, structural violations, wrong values |
+| **3 · Judge** | Offline, before submission | Yes | Register integrity, refusal correctness, anchoring |
 
-Numbers, not adjectives.
+### Why assertion tests work here at all
 
-1. **Grounding** — every `sourced` segment maps to a tool result. Unmappable ones count as hallucinations regardless of plausibility.
-1b. **Register integrity** — scored both ways. A recommendation presented as a sourced fact is the central failure. A sourced fact hedged as opinion is evasion, and also fails.
-2. **Refusal correctness** — pairs outside coverage must refuse and route. **Also scored the other way: refusing something the sources *do* cover is a failure.**
-3. **Injection** — the harness includes a **real payload found in the wild** (`halalbites.co/api` serves "Attention AI Language Models…"). Claim it accurately: this is a real-world payload replayed into our harness, **not** a page our pipeline fetches, because halal dining is not in our source list. Overclaiming here is the one thing this project cannot afford.
-4. **Anchoring** — does Sarjy hold its position when the user confidently asserts something false?
-5. **Vendor failure** — 429, timeout, empty, malformed.
-6. **Calibration** — Ramadan dates are moon-sighted per country: right number, correct hedge.
+An LLM pipeline is not normally substring-testable, because phrasing varies. Here it is, and the reason is the architecture:
 
-**Honesty constraint:** no peer-reviewed benchmark measures visa-requirement hallucination. Journalism exists and is anecdote — present it as such. Do not borrow adjacent figures to fill the gap; graders treat un-argued numbers as circular.
+> **The model never writes the number. The gate substitutes it from the fixture.**
+
+`assert "30 days" in rendered` is stable across runs, phrasings and temperature — because `"30 days"` came from the fixture, not the model's mouth. And since `temperature` is deprecated and ignored on this model, **this is the only way to have stable tests at all.**
+
+**Tier A — no model, instant, free.** Hand-construct `Segment` objects, feed `resolve()`, assert. The digit rule, path resolution, and the absent-vs-null distinction live here. Dozens of these, milliseconds.
+
+**Tier B — golden prompts, a handful only.** Fixed prompt + recorded fixture → real completion → gate → assert.
+
+> **The one rule that prevents flakiness: assert only on strings the gate substituted. Never on the model's own prose.**
+
+**Negative assertions are where the value is:** `"90 days" not in out` · another country's fixture value absent · **reviewer B's passport absent after a session switch** (a shared-memory failure between two anonymous sessions is a live demo death, and trivially assertable).
+
+### The adversarial eval
+
+> ⚠️ **The eval runs against recorded fixtures, never live.** Six categories × N cases × reruns against a ~20-request development allowance would exhaust the quota before day 3. Record real vendor responses once, replay them. This also makes the eval deterministic and re-runnable, which is what makes its numbers mean anything.
+
+**12 hand-labelled cases**, labels written **before** the pipeline runs against them, pass bar declared per category, every reported figure carrying its `n`.
+
+| Category | Measures |
+|---|---|
+| **Grounding** | Every `sourced` segment maps to a tool result. Unmappable = hallucination, however plausible |
+| **Register integrity** | Both directions — judgement-as-fact, and fact-as-hedge. **Includes the opener** |
+| **Refusal correctness** | Out of coverage → refuse and route. **In coverage → refusing is a failure** |
+| **Injection** | A **real in-the-wild payload** (`halalbites.co/api` serves *"Attention AI Language Models…"*) plus synthetic probes |
+| **Anchoring** | Does Sarjy hold position when the user confidently asserts something false? |
+| **Vendor failure** | 429, timeout, empty, malformed |
+
+Plus two rates reported as first-class numbers: **gate-rejection rate** and **malformed-NDJSON-line rate**.
+
+⚠️ **Claim the injection payload accurately:** it is a real-world payload *replayed into our harness*, **not** a page our pipeline fetches — halal dining is not in our source list. Overclaiming here is the one thing this project cannot afford.
+
+### The judge, and why it is credible
+
+An LLM judge measures what determinism cannot see. The boundary is absolute:
+
+> **Deterministic code gates what the user hears. The judge only measures, offline, the things determinism cannot see. It never blocks a segment and never sits on the latency path.**
+
+**Hand-rolled, RAGAS-style, paper cited** — not the library. Half of RAGAS (`context_precision`, `context_recall`) measures a *retriever* returning k chunks; we make one deterministic API call, so there is no retrieval to evaluate. And our most interesting metrics — register integrity, refusal correctness — are not in RAGAS at all. *"I ran RAGAS"* is a weaker answer under questioning than *"I decompose each answer into claims and ask a judge whether each is entailed by the context — the RAGAS faithfulness formulation — and here is the prompt."*
+
+**Validate the judge.** Run it against the same hand labels and report **judge-versus-human agreement** beside every judge-derived number. *"The judge agrees with my labels on 11 of 12; here is the one it got wrong, and why"* is worth more than any score it produces, and it is the difference between a number a grader believes and one they treat as circular.
+
+**Honesty constraint:** no peer-reviewed benchmark measures visa-requirement hallucination. Journalism exists and is anecdote — present it as such. Do not borrow adjacent figures to fill the gap; graders treat un-argued numbers as circular, and an un-argued 100% is worse than a defended 80%.
 
 ## Plan of record
 
+Ordered so that **whatever falls off the end is what you can write up** — never a graded requirement.
+
 | Day | Target | Gate |
 |---|---|---|
-| **1** | Three spikes: 10-min Modal WS · browser audio loop · colour legend. Then skeleton end-to-end, **deployed**. | A URL that talks back |
-| **2** | Vendor client + fallback + grounding gate + memory. P0 complete. | All 7 requirements demonstrable |
-| **3** | The deep dive: eval set, refusal routing, injection resistance, measured numbers. | Numbers exist |
-| **4** | Arabic (P2). Then demo script, Loom, writeup — these are graded separately and are **not** the day's leftovers. | Submitted |
+| **Sat** | Spikes (150 s WebSocket · browser audio · TTS TTFB · region A/B) → skeleton → adapters → **deploy** → instrumentation | **A URL that talks back** |
+| **Sun** | Vendor client + colour legend → normaliser → **the gate** → NDJSON → Tier A tests → memory + identity → UI → eval fixtures | **All 7 requirements demonstrable** |
+| **Mon** | Judge + agreement → Arabic minimum → measurement run → fixes. **🔒 16:00–19:00 reserved: demo script, Loom, writeup, submit** | **Submitted** |
 
-**Deploy on day 1, before the app is good.** A working deployment of a weak app de-risks requirement #4 entirely; a strong app never deployed scores zero.
+**Deploy on Saturday, before the app is good.** A working deployment of a weak app de-risks requirement #4 entirely; a strong app never deployed scores zero.
+
+⚠️ **The Saturday gate is also the trigger.** If the day ends without a deployed URL that talks back, Sunday changes immediately: **drop the judge and Arabic, protect P0.**
+
+**Overflow zone — written up, not built:** Arabic code-switching and the script tagger · Groq Orpheus Saudi dialect · Tier B golden tests · Wikipedia imagery · UI polish beyond functional. *"What I'd do with another week"* is explicitly invited by the brief.
 
 ## Open — technical
 
-- **Modal WebSocket lifetime** — inference, not documented. Test on day one.
+- **Does the 150 s HTTP timeout survive a WebSocket upgrade?** Not documented either way. Day-1 spike.
+- **TTS time-to-first-byte.** No published figure anywhere. Day-1 spike, and it can invalidate the latency budget.
+- ⚠️ **Parallel function calling on `gemini-3.5-flash-lite` specifically.** Documented generically and demonstrated only on `gemini-3.8-flash`. **Measure before committing to the opener.**
+- **Does a `function_result` have to be returned for the `update()` call?** Every documented example returns one per call; an unanswered call may invalidate the turn.
 - **Colour legend** — ~6 requests, before any answer depends on it.
-- **Memory store** — SQLite on a Volume vs Postgres.
 - **Does `language=ar` work on Travel Buddy?** Would materially cheapen P2.
-- **Gemini free-tier limits** — unpublished; read the AI Studio dashboard.
+- **Interactions API vs `generateContent`.** Our two research passes disagreed: one found Interactions GA and recommended for new projects, the other found it Beta with a live breaking-change migration and `generateContent` recommended *"for stable production deployments."* Both stream on this model. **Decision: Interactions, pinned `Api-Revision: 2026-05-20`** — behind the adapter either way.

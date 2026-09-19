@@ -32,7 +32,7 @@ The demo is not that it never errs. It is that **you can always see where an ans
 
 | Register | Covers | Rule |
 |---|---|---|
-| **Sourced** | Visa rules, entry requirements, prayer times, currency, place descriptions | Cited, dated, traceable. Never invented. |
+| **Sourced** | Visa rules, entry requirements, passport validity, place descriptions | Cited, dated, traceable. Never invented. |
 | **Judgement** | Where to go, what to see, when to travel, how to spend three days | Marked as Sarjy's own view. Never dressed as a looked-up fact. |
 
 The user always knows which one they are hearing, in the voice line and in the UI. **A visible register switch is a better demo beat than a refusal** — it shows the discipline is real without the assistant being useless.
@@ -59,7 +59,9 @@ Getting this wrong in either direction is a failure: a sourced claim presented a
 
 That is the requirement-#3 justification. It holds because the API was chosen *for* the deep dive rather than bolted on to satisfy a checkbox.
 
-Supporting sources: passport-index (MIT) as an offline fallback · GOV.UK Content API for destination safety and local-law guidance · **Wikipedia REST API** for place descriptions, photographs and coordinates — each carrying its own revision date and page URL · Aladhan for prayer times, using the coordinates Wikipedia supplies.
+Supporting sources: the maintained passport-index fork (`visualpharm/visa-free-dataset`) as an offline fallback, and the **Wikipedia REST API** for place descriptions and photographs — each carrying its own revision date and page URL.
+
+**Deliberately not used:** GOV.UK (it answers only British-passport questions, which is the wrong traveller) and Aladhan prayer times (out of scope for a thesis about grounded entry requirements). Travel suggestions need no source at all — they are `judgement`, and the register split is what makes saying so honest.
 
 **Images arrive with attribution and a revision date.** That is the same provenance discipline applied to a different medium, not decoration bolted on.
 
