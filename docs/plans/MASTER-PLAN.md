@@ -1,0 +1,171 @@
+# Sarjy — Master plan
+
+**Date:** 2026-09-19 17:00 · Deadline **Monday 19:00** · Design of record: `TDD.md`
+
+High-level only. Each block gets its own plan in `docs/plans/blocks/NN-name.md`, written immediately before that block is built — deeper detail, file-by-file, written when we know what the previous block actually produced.
+
+## The budget, honestly
+
+| | Hours |
+|---|---|
+| Saturday, from 17:00 | ~5 |
+| Sunday | ~10 |
+| Monday, to 19:00, **less 3 h reserved** | ~6 |
+| **Available** | **~21** |
+| Plan below, P0 + deep dive + deliverables | **~24** |
+
+**~3 hours over, and that assumes nothing goes wrong in a voice app.** The overflow list at the bottom is what comes out, in order. Deciding now beats discovering it Monday.
+
+## Rules that apply to every block
+
+1. **Plan the block, then build it.** No block starts without its own plan file.
+2. **Every block ends deployed and demo-able.** `main` is never broken overnight.
+3. **Failure paths before happy paths.** This is a voice app; the failure paths are what break demos.
+4. **Walk through the code as it lands, not on Monday.** With AI the bottleneck is comprehension, not typing — and *"do you understand it thoroughly"* is graded.
+5. **Never commit.** Omar runs every git write.
+
+## The blocks
+
+### Block 0 — Spikes · ~1.5 h · **Saturday**
+
+Three experiments that can invalidate the architecture. Nothing downstream is safe until they answer.
+
+| Spike | Question | If it fails |
+|---|---|---|
+| Modal WebSocket | Does an idle connection survive past 150 s? | Fly.io |
+| Browser audio | Does capture → 16 kHz PCM → playback work in isolation? | The hard part of Block 2, surfaced early |
+| TTS TTFB | How long to first audio byte? `generateContent` vs `/interactions`? | Latency budget is rewritten |
+| *(rolled in)* Region A/B | `us-east` vs `eu-west` — **irreversible after first deploy** | — |
+| *(rolled in)* Parallel FC | Does `gemini-3.5-flash-lite` emit two function calls at once? | The opener design is dropped |
+
+**Gate:** five answers written into `docs/measurements/day1-spikes.md`. **No code kept.**
+
+---
+
+### Block 1 — Skeleton that deploys · ~2 h · **Saturday** · *needs 0*
+
+FastAPI **async** WebSocket handler, the message protocol, a frontend shell that connects, and the `StaticFiles` mount that serves the frontend from the same origin.
+
+**Gate:** a public Modal URL. Open it, the socket connects, a message round-trips. **Requirement #4 is landed** — the one that scores zero if missing.
+
+---
+
+### Block 2 — The voice loop · ~3.5 h · **Sat → Sun** · *needs 1*
+
+The riskiest block, and the one that is pure engineering with no model cleverness.
+
+Browser capture (AudioWorklet, 48→16 kHz, PCM16, echo cancellation) · client-side VAD and endpointing · STT adapter · **a plain LLM call, no tools, no NDJSON** · TTS adapter · playback queue with explicit scheduling · visible state machine.
+
+**Deliberately simple LLM here.** Tools and the opener come in Block 4. This block's job is proving audio in, audio out.
+
+**Gate:** speak to the deployed URL and hear a sensible spoken reply. **Requirement #1.**
+
+---
+
+### Block 3 — Instrumentation · ~1 h · *needs 2*
+
+Per-stage timings on every turn, emitted and visible: endpointing → STT → LLM → TTS TTFB → first audio out.
+
+⚠️ **TTFT measured to the first `text` delta, not the first SSE event** — a `thought` step always arrives first, and timing to it records a fiction.
+
+**Gate:** real numbers on screen for a real turn, and a median over ten turns against the deployment. **Invariant 2, and retrofitting it later tells you nothing.**
+
+---
+
+### Block 4 — The LLM turn, with the opener · ~2 h · *needs 2, 3*
+
+The architecture's signature move. `update()` plus the real tool call in one response; lookup fired from `step.start` before arguments finish; call 2 streaming NDJSON segments validated per line.
+
+Against a **fake** tool. The real vendor is Block 5 — this block should not be blocked on quota.
+
+🪤 Use `arguments_delta`, not `arguments`. Google's own docs contradict each other and the wrong one silently matches nothing.
+
+**Gate:** Sarjy speaks an opener, the fake lookup resolves underneath it, the answer continues. Measured: did first-audio-out drop?
+
+---
+
+### Block 5 — Vendor client + normaliser · ~2.25 h · *needs 4*
+
+Quota ledger and reserve · resolution order (cached map → warm cache → CSV → live) · the maintained-fork CSV · **the colour-legend spike (~6 requests)** · normalisation so live and CSV emit one identical shape.
+
+**Gate:** a real visa lookup answers, the ledger decrements correctly, and pulling the network still produces a correct answer that says which layer served it. **Requirement #3.**
+
+---
+
+### Block 6 — The gate · ~2 h · *needs 5* · **the deep dive**
+
+`resolve` · `get_path` · the digit rule · the placeholder rule · the opener contract · the reject-and-say-so path. **Tier A unit tests written in this block, not after.**
+
+**Gate:** tests pass; a real turn is gated end to end; a deliberately fabricated number is visibly rejected. **This is the demo.**
+
+---
+
+### Block 7 — Memory and identity · ~2 h · *needs 6*
+
+`modal.Dict` store · two tiers (anonymous session-only / signed-in persisted) · voice-first greeting with typed fallback · name + PIN · the extraction call fired after dispatch · the "what Sarjy remembers" panel with a forget button.
+
+**Gate:** favourite colour survives a reload. Two different names do not see each other's facts — **asserted in a test, not just tried once.** Requirement #2.
+
+---
+
+### Block 8 — The UI · ~1.5 h · *needs 7*
+
+Most of it arrives free from Blocks 2, 3 and 7. What is left: register styling (sourced vs judgement look different), provenance chips, quota display, the calm first screen, and the failure states actually looking like something.
+
+**Gate:** the first-five-seconds screen matches what we designed. Every failure mode has a visible state.
+
+---
+
+### Block 9 — Eval and judge · ~2.5 h · **Monday** · *needs 6*
+
+Recorded fixtures · 12 hand-labelled cases, **labels written before the pipeline runs** · six categories · hand-rolled RAGAS-style judge · **judge-vs-human agreement reported beside every number** · gate-rejection rate and malformed-line rate as first-class figures.
+
+**Gate:** numbers exist, with their `n`, and a methodology paragraph that survives a sceptical read.
+
+---
+
+### Block 10 — Arabic · ~0.75 h · **Monday** · *needs 2*
+
+`language=ar` on Whisper · Gemini TTS auto-detects · listen to Sulafat, Vindemiatrix, Rasalgethi in both languages and record the choice.
+
+**Gate:** one clean Arabic turn, demoed in Egyptian, with the Gulf WER cliff named out loud.
+
+---
+
+### Block 11 — Deliverables · ~3 h · **Monday 16:00–19:00** · 🔒 reserved
+
+Demo script and rehearsal · Loom · writeup (API justification, deep-dive numbers, what I'd do with another week) · submission.
+
+**This is reserved time, not leftovers.** The presentation is graded separately from the build, and the most common way a good take-home scores badly is arriving Monday evening with working code and no demo.
+
+## Dependency shape
+
+```
+0 ─→ 1 ─→ 2 ─→ 3 ─→ 4 ─→ 5 ─→ 6 ─→ 7 ─→ 8
+                    │              └─→ 9
+                    └─→ 10              └─→ 11
+```
+
+Only Blocks 9 and 10 can move. Everything else is a chain, which is why a slip in Block 2 costs the whole day.
+
+## The overflow list — cut from the bottom
+
+| Cut | Saves | What is lost |
+|---|---|---|
+| 1. Wikipedia imagery | 0.75 | Already P3. Travel suggestions do not need it — they are `judgement` |
+| 2. UI polish beyond functional | 1.25 | Real rubric loss. State and clarity carry most of it |
+| 3. Arabic code-switching + RTL | 1.25 | Keep the bare Arabic turn. Name the gap out loud |
+| 4. Tier B golden tests | 0.4 | Tier A still covers the gate |
+| 5. The LLM judge (Block 9 partial) | 1.5 | **Last thing to cut.** Gate + assertions still give defensible numbers |
+
+Cuts 1–4 close the ~3 h gap. Cut 5 only if Sunday goes badly.
+
+## Trigger points, decided now rather than at 2 a.m.
+
+| If… | Then |
+|---|---|
+| Block 0 says the Modal WebSocket dies at 150 s | Switch to Fly.io **immediately**, same evening |
+| Block 0 says TTS TTFB > 2 s | Drop the opener; re-derive the budget; say so in the writeup |
+| Block 0 says no parallel function calling on flash-lite | Sequential flow, no opener. Everything else stands |
+| **Saturday ends without a deployed URL** | Sunday drops Blocks 9 and 10 at the start of the day, not the end |
+| Sunday ends without the gate working | The deep dive becomes "designed and partially built" — say so honestly, show the tests |

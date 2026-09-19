@@ -1,6 +1,6 @@
 ---
 name: implement
-description: Implement a feature or bug fix in Sarjy. Use whenever asked to build, add, or fix anything beyond a trivial edit — it orchestrates the workflow phases, the provider boundary, and the validation matrix.
+description: Build a block from its plan, or make a fix outside the block flow. Use whenever asked to build, add, or fix anything beyond a trivial edit — it carries the process, the provider boundary, and the validation matrix.
 argument-hint: [feature description]
 ---
 
@@ -10,11 +10,11 @@ Rules auto-load when you touch matching files. Your job is the process.
 
 ## Steps
 
-1. **Plan intake.** Identify the governing plan (`docs/plans/PRD.md` or a feature plan) and restate scope in/out. If none exists and the work is non-trivial, write one first (`/prd`) and get sign-off. **If the deep-dive track is still open, stop** — say so rather than building around it.
+1. **Find the plan.** Work here belongs to a block: `docs/plans/blocks/NN-name.md` is the contract, `docs/plans/MASTER-PLAN.md` says which block and what its gate is. **If there is no block plan for this work, stop and say so** — the plan gets written first, by the `block-planner` agent.
 
-2. **Check the decisions.** Does this depend on anything open in `AGENTS.md`? If so, build against the provider interface and a fake — don't wait, and don't silently pick a provider's behavior and build on it.
+2. **Restate scope in / scope out** from the plan before touching anything. "Scope out" is what stops the work expanding.
 
-3. **Spec.** For non-trivial work, `{feature-name}.spec.md` per `workflow.md` Phase 2. Track milestones as todos and close them as you go.
+3. **Check the open decisions.** Does this depend on anything still open in `AGENTS.md` or the TDD's §Open? If so, build against the provider interface and a fake — don't wait, and don't silently adopt a provider behaviour and build on it.
 
 4. **Types and interfaces first.** Domain types, provider interfaces, closed unions for pipeline state. Schema-validated shapes at every boundary — especially anything crossing to the client or coming back from a model. No function bodies yet.
 
@@ -42,9 +42,12 @@ Rules auto-load when you touch matching files. Your job is the process.
 
 10. **Document.** `docs/PRs/PR_{FEATURE_NAME}.md`, and update the demo script if the change is demo-visible. Draft a conventional-commit message for Omar. **Do not commit — ever.**
 
+11. **Report against the gate.** The block's gate is an observation, not a feeling. Show the output that proves it, or say plainly which part of it is not met yet.
+
 ## Anti-patterns
 
-- Coding before the deep-dive track is chosen
+- Building without a block plan
+- Improvising around a plan that turned out wrong, instead of stopping and saying so
 - A provider SDK, model id, or provider DTO outside its adapter
 - Any provider key reachable from client code
 - An external call with no timeout and no defined failure behavior

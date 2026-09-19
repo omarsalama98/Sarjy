@@ -16,15 +16,24 @@ Retrofitted timing tells you nothing about what you already built. Every turn em
 |---|---|
 | Endpointing | user stops speaking → VAD declares end of turn |
 | STT | audio sent → final transcript available |
-| LLM TTFT | prompt sent → first token |
-| LLM total | prompt sent → last token (note if TTS streams before this) |
-| TTS TTFB | text sent → first audio byte |
-| Playback | first audio byte → first audible sound in the browser |
-| **Voice-to-voice** | user stops speaking → **first audio out** |
+| LLM call 1 TTFT | prompt sent → first **text** delta |
+| Opener ready | prompt sent → `update()` arguments parsed |
+| TTS #1 TTFB | opener text sent → first audio byte |
+| **→ first audio out** | user stops speaking → **first audible sound** |
+| *— everything below runs underneath that audio —* | |
+| Tool round trip | lookup fired → result in hand |
+| LLM call 2 | prompt sent → last NDJSON line |
+| Gate | segments in → rendered segments out |
+| TTS #2 TTFB | answer text sent → first audio byte |
+| **Answer gap** | opener audio ends → answer audio starts |
 
-Voice-to-voice is the headline number. The stage breakdown is the answer to "where does the time go."
+**First audio out is the headline number** — it is what the user experiences. The stage breakdown answers "where does the time go."
 
-Record alongside every run: the provider and **model id** for each stage, network conditions, cold vs. warm, and whether it ran locally or against the deployment. A latency figure without its configuration is not a measurement.
+**The answer gap is the number that validates the architecture.** It says whether the opener actually covered the work hidden under it. A gap near zero means the design works; a large one means the opener is too short or the hidden work is too slow, and that is a finding, not a failure.
+
+⚠️ **Measure LLM TTFT to the first `delta.type == "text"`, not the first SSE event.** A `thought` step is always emitted, even at `thinking_level: "minimal"`. Timing to the first event records a fiction — a number that looks excellent and describes nothing the user experienced.
+
+Record alongside every run: the provider and **model id** for each stage, `thinking_level`, network conditions, cold vs. warm, and whether it ran locally or against the deployment. A latency figure without its configuration is not a measurement.
 
 ## Rules
 
@@ -50,3 +59,5 @@ Record alongside every run: the provider and **model id** for each stage, networ
 - No model ids recorded, so the run can't be reproduced or explained
 - A stage table that doesn't sum to the headline figure — the gap *is* a finding, chase it
 - Discarding the experiments that failed
+- Timing TTFT to the first SSE event, which is a `thought` step
+- Reporting perceived latency as though it were measured

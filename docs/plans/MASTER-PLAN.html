@@ -1,0 +1,302 @@
+<title>Sarjy — Master plan</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --ink:       #14171c;
+    --ink-2:     #474e5a;
+    --ink-3:     #767e8b;
+    --line:      #e2e5ea;
+    --line-2:    #eef0f4;
+    --accent:    #2d4a7c;
+    --accent-bg: #edf1f8;
+    --warn:      #a6421f;
+    --warn-bg:   #fbf0eb;
+    --code-bg:   #f0f2f6;
+    --shadow:    0 1px 2px rgba(20,23,28,.05), 0 8px 24px -12px rgba(20,23,28,.15);
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #101317;
+      --surface:   #171b21;
+      --ink:       #e7eaef;
+      --ink-2:     #a8b0bc;
+      --ink-3:     #7b838f;
+      --line:      #2a2f38;
+      --line-2:    #22262d;
+      --accent:    #8fb0e6;
+      --accent-bg: #1a2130;
+      --warn:      #e2916d;
+      --warn-bg:   #2a1d17;
+      --code-bg:   #1d222a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #101317;
+    --surface:   #171b21;
+    --ink:       #e7eaef;
+    --ink-2:     #a8b0bc;
+    --ink-3:     #7b838f;
+    --line:      #2a2f38;
+    --line-2:    #22262d;
+    --accent:    #8fb0e6;
+    --accent-bg: #1a2130;
+    --warn:      #e2916d;
+    --warn-bg:   #2a1d17;
+    --code-bg:   #1d222a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .5rem 2.25rem; margin: 0; }
+  dl.meta div { display: flex; flex-direction: column; gap: .1rem; }
+  dl.meta dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  dl.meta dd { margin: 0; font-size: .9rem; color: var(--ink-2); }
+
+  /* ---- toc ---- */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 3rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--ink-3);
+    margin: 0 0 .75rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: flex;
+    gap: .7rem;
+    font-size: .92rem;
+    border-radius: 2px;
+  }
+  .toc a:hover { color: var(--accent); }
+  .tocnum, .secnum {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: .8em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- headings ---- */
+  h2, h3, h4 { font-family: var(--serif); letter-spacing: -.01em; text-wrap: balance; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    font-weight: 600;
+    margin: 3.5rem 0 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .75rem;
+    align-items: baseline;
+  }
+  h3 { font-size: 1.14rem; font-weight: 600; margin: 2.25rem 0 .7rem; display: flex; gap: .6rem; align-items: baseline; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; color: var(--ink-2); }
+  h2 .secnum, h3 .secnum { flex: none; }
+
+  p { margin: 0 0 1.05rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line-2); margin: 2.5rem 0; }
+
+  ul, ol { margin: 0 0 1.15rem; padding-left: 1.35rem; max-width: 68ch; }
+  li { margin-bottom: .38rem; }
+  li::marker { color: var(--ink-3); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+  .codewrap { overflow-x: auto; margin: 0 0 1.4rem; }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 0;
+    min-width: min-content;
+  }
+  pre code { background: none; padding: 0; font-size: .845rem; line-height: 1.6; }
+
+  blockquote {
+    margin: 0 0 1.4rem;
+    padding: .1rem 0 .1rem 1.15rem;
+    border-left: 3px solid var(--line);
+    color: var(--ink-2);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+  }
+  .callout p { margin-bottom: .6rem; color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--warn); }
+
+  .tablewrap { overflow-x: auto; margin: 0 0 1.6rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  th, td { padding: .6rem .85rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <h1>Sarjy — Master plan</h1>
+    <dl class="meta"><div><dt>Date</dt><dd>2026-09-19 17:00 · Deadline <strong>Monday 19:00</strong> · Design of record: <code>TDD.md</code></dd></div><div><dt>note</dt><dd>High-level only. Each block gets its own plan in <code>docs/plans/blocks/NN-name.md</code>, written immediately before that block is built — deeper detail, file-by-file, written when we know what the previous block actually produced.</dd></div></dl>
+  </header>
+  <nav class="toc" aria-label="Contents"><p class="eyebrow">Contents</p><ol><li><a href="#the-budget-honestly">The budget, honestly</a></li><li><a href="#rules-that-apply-to-every-block">Rules that apply to every block</a></li><li><a href="#the-blocks">The blocks</a></li><li><a href="#dependency-shape">Dependency shape</a></li><li><a href="#the-overflow-list-cut-from-the-bottom">The overflow list — cut from the bottom</a></li><li><a href="#trigger-points-decided-now-rather-than-at-2-am">Trigger points, decided now rather than at 2 a.m.</a></li></ol></nav>
+  <main>
+<h2 id="the-budget-honestly"><span class="htext">The budget, honestly</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left"></th><th style="text-align:left">Hours</th></tr></thead><tbody><tr><td style="text-align:left">Saturday, from 17:00</td><td style="text-align:left">~5</td></tr><tr><td style="text-align:left">Sunday</td><td style="text-align:left">~10</td></tr><tr><td style="text-align:left">Monday, to 19:00, <strong>less 3 h reserved</strong></td><td style="text-align:left">~6</td></tr><tr><td style="text-align:left"><strong>Available</strong></td><td style="text-align:left"><strong>~21</strong></td></tr><tr><td style="text-align:left">Plan below, P0 + deep dive + deliverables</td><td style="text-align:left"><strong>~24</strong></td></tr></tbody></table></div>
+<p><strong>~3 hours over, and that assumes nothing goes wrong in a voice app.</strong> The overflow list at the bottom is what comes out, in order. Deciding now beats discovering it Monday.</p>
+<h2 id="rules-that-apply-to-every-block"><span class="htext">Rules that apply to every block</span></h2>
+<ol>
+<li><strong>Plan the block, then build it.</strong> No block starts without its own plan file.</li>
+<li><strong>Every block ends deployed and demo-able.</strong> <code>main</code> is never broken overnight.</li>
+<li><strong>Failure paths before happy paths.</strong> This is a voice app; the failure paths are what break demos.</li>
+<li><strong>Walk through the code as it lands, not on Monday.</strong> With AI the bottleneck is comprehension, not typing — and <em>&quot;do you understand it thoroughly&quot;</em> is graded.</li>
+<li><strong>Never commit.</strong> Omar runs every git write.</li>
+</ol>
+<h2 id="the-blocks"><span class="htext">The blocks</span></h2>
+<h3 id="block-0-spikes-15-h-saturday"><span class="htext">Block 0 — Spikes · ~1.5 h · <strong>Saturday</strong></span></h3>
+<p>Three experiments that can invalidate the architecture. Nothing downstream is safe until they answer.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Spike</th><th style="text-align:left">Question</th><th style="text-align:left">If it fails</th></tr></thead><tbody><tr><td style="text-align:left">Modal WebSocket</td><td style="text-align:left">Does an idle connection survive past 150 s?</td><td style="text-align:left">Fly.io</td></tr><tr><td style="text-align:left">Browser audio</td><td style="text-align:left">Does capture → 16 kHz PCM → playback work in isolation?</td><td style="text-align:left">The hard part of Block 2, surfaced early</td></tr><tr><td style="text-align:left">TTS TTFB</td><td style="text-align:left">How long to first audio byte? <code>generateContent</code> vs <code>/interactions</code>?</td><td style="text-align:left">Latency budget is rewritten</td></tr><tr><td style="text-align:left"><em>(rolled in)</em> Region A/B</td><td style="text-align:left"><code>us-east</code> vs <code>eu-west</code> — <strong>irreversible after first deploy</strong></td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><em>(rolled in)</em> Parallel FC</td><td style="text-align:left">Does <code>gemini-3.5-flash-lite</code> emit two function calls at once?</td><td style="text-align:left">The opener design is dropped</td></tr></tbody></table></div>
+<p><strong>Gate:</strong> five answers written into <code>docs/measurements/day1-spikes.md</code>. <strong>No code kept.</strong></p>
+<hr />
+<h3 id="block-1-skeleton-that-deploys-2-h-saturday-needs-0"><span class="htext">Block 1 — Skeleton that deploys · ~2 h · <strong>Saturday</strong> · <em>needs 0</em></span></h3>
+<p>FastAPI <strong>async</strong> WebSocket handler, the message protocol, a frontend shell that connects, and the <code>StaticFiles</code> mount that serves the frontend from the same origin.</p>
+<p><strong>Gate:</strong> a public Modal URL. Open it, the socket connects, a message round-trips. <strong>Requirement #4 is landed</strong> — the one that scores zero if missing.</p>
+<hr />
+<h3 id="block-2-the-voice-loop-35-h-sat-sun-needs-1"><span class="htext">Block 2 — The voice loop · ~3.5 h · <strong>Sat → Sun</strong> · <em>needs 1</em></span></h3>
+<p>The riskiest block, and the one that is pure engineering with no model cleverness.</p>
+<p>Browser capture (AudioWorklet, 48→16 kHz, PCM16, echo cancellation) · client-side VAD and endpointing · STT adapter · <strong>a plain LLM call, no tools, no NDJSON</strong> · TTS adapter · playback queue with explicit scheduling · visible state machine.</p>
+<p><strong>Deliberately simple LLM here.</strong> Tools and the opener come in Block 4. This block's job is proving audio in, audio out.</p>
+<p><strong>Gate:</strong> speak to the deployed URL and hear a sensible spoken reply. <strong>Requirement #1.</strong></p>
+<hr />
+<h3 id="block-3-instrumentation-1-h-needs-2"><span class="htext">Block 3 — Instrumentation · ~1 h · <em>needs 2</em></span></h3>
+<p>Per-stage timings on every turn, emitted and visible: endpointing → STT → LLM → TTS TTFB → first audio out.</p>
+<p>⚠️ <strong>TTFT measured to the first <code>text</code> delta, not the first SSE event</strong> — a <code>thought</code> step always arrives first, and timing to it records a fiction.</p>
+<p><strong>Gate:</strong> real numbers on screen for a real turn, and a median over ten turns against the deployment. <strong>Invariant 2, and retrofitting it later tells you nothing.</strong></p>
+<hr />
+<h3 id="block-4-the-llm-turn-with-the-opener-2-h-needs-2-3"><span class="htext">Block 4 — The LLM turn, with the opener · ~2 h · <em>needs 2, 3</em></span></h3>
+<p>The architecture's signature move. <code>update()</code> plus the real tool call in one response; lookup fired from <code>step.start</code> before arguments finish; call 2 streaming NDJSON segments validated per line.</p>
+<p>Against a <strong>fake</strong> tool. The real vendor is Block 5 — this block should not be blocked on quota.</p>
+<p>🪤 Use <code>arguments_delta</code>, not <code>arguments</code>. Google's own docs contradict each other and the wrong one silently matches nothing.</p>
+<p><strong>Gate:</strong> Sarjy speaks an opener, the fake lookup resolves underneath it, the answer continues. Measured: did first-audio-out drop?</p>
+<hr />
+<h3 id="block-5-vendor-client-normaliser-225-h-needs-4"><span class="htext">Block 5 — Vendor client + normaliser · ~2.25 h · <em>needs 4</em></span></h3>
+<p>Quota ledger and reserve · resolution order (cached map → warm cache → CSV → live) · the maintained-fork CSV · <strong>the colour-legend spike (~6 requests)</strong> · normalisation so live and CSV emit one identical shape.</p>
+<p><strong>Gate:</strong> a real visa lookup answers, the ledger decrements correctly, and pulling the network still produces a correct answer that says which layer served it. <strong>Requirement #3.</strong></p>
+<hr />
+<h3 id="block-6-the-gate-2-h-needs-5-the-deep-dive"><span class="htext">Block 6 — The gate · ~2 h · <em>needs 5</em> · <strong>the deep dive</strong></span></h3>
+<p><code>resolve</code> · <code>get_path</code> · the digit rule · the placeholder rule · the opener contract · the reject-and-say-so path. <strong>Tier A unit tests written in this block, not after.</strong></p>
+<p><strong>Gate:</strong> tests pass; a real turn is gated end to end; a deliberately fabricated number is visibly rejected. <strong>This is the demo.</strong></p>
+<hr />
+<h3 id="block-7-memory-and-identity-2-h-needs-6"><span class="htext">Block 7 — Memory and identity · ~2 h · <em>needs 6</em></span></h3>
+<p><code>modal.Dict</code> store · two tiers (anonymous session-only / signed-in persisted) · voice-first greeting with typed fallback · name + PIN · the extraction call fired after dispatch · the &quot;what Sarjy remembers&quot; panel with a forget button.</p>
+<p><strong>Gate:</strong> favourite colour survives a reload. Two different names do not see each other's facts — <strong>asserted in a test, not just tried once.</strong> Requirement #2.</p>
+<hr />
+<h3 id="block-8-the-ui-15-h-needs-7"><span class="htext">Block 8 — The UI · ~1.5 h · <em>needs 7</em></span></h3>
+<p>Most of it arrives free from Blocks 2, 3 and 7. What is left: register styling (sourced vs judgement look different), provenance chips, quota display, the calm first screen, and the failure states actually looking like something.</p>
+<p><strong>Gate:</strong> the first-five-seconds screen matches what we designed. Every failure mode has a visible state.</p>
+<hr />
+<h3 id="block-9-eval-and-judge-25-h-monday-needs-6"><span class="htext">Block 9 — Eval and judge · ~2.5 h · <strong>Monday</strong> · <em>needs 6</em></span></h3>
+<p>Recorded fixtures · 12 hand-labelled cases, <strong>labels written before the pipeline runs</strong> · six categories · hand-rolled RAGAS-style judge · <strong>judge-vs-human agreement reported beside every number</strong> · gate-rejection rate and malformed-line rate as first-class figures.</p>
+<p><strong>Gate:</strong> numbers exist, with their <code>n</code>, and a methodology paragraph that survives a sceptical read.</p>
+<hr />
+<h3 id="block-10-arabic-075-h-monday-needs-2"><span class="htext">Block 10 — Arabic · ~0.75 h · <strong>Monday</strong> · <em>needs 2</em></span></h3>
+<p><code>language=ar</code> on Whisper · Gemini TTS auto-detects · listen to Sulafat, Vindemiatrix, Rasalgethi in both languages and record the choice.</p>
+<p><strong>Gate:</strong> one clean Arabic turn, demoed in Egyptian, with the Gulf WER cliff named out loud.</p>
+<hr />
+<h3 id="block-11-deliverables-3-h-monday-16001900-reserved"><span class="htext">Block 11 — Deliverables · ~3 h · <strong>Monday 16:00–19:00</strong> · 🔒 reserved</span></h3>
+<p>Demo script and rehearsal · Loom · writeup (API justification, deep-dive numbers, what I'd do with another week) · submission.</p>
+<p><strong>This is reserved time, not leftovers.</strong> The presentation is graded separately from the build, and the most common way a good take-home scores badly is arriving Monday evening with working code and no demo.</p>
+<h2 id="dependency-shape"><span class="htext">Dependency shape</span></h2>
+<div class="codewrap"><pre><code>0 ─→ 1 ─→ 2 ─→ 3 ─→ 4 ─→ 5 ─→ 6 ─→ 7 ─→ 8
+                    │              └─→ 9
+                    └─→ 10              └─→ 11</code></pre></div>
+<p>Only Blocks 9 and 10 can move. Everything else is a chain, which is why a slip in Block 2 costs the whole day.</p>
+<h2 id="the-overflow-list-cut-from-the-bottom"><span class="htext">The overflow list — cut from the bottom</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Cut</th><th style="text-align:left">Saves</th><th style="text-align:left">What is lost</th></tr></thead><tbody><tr><td style="text-align:left">1. Wikipedia imagery</td><td style="text-align:left">0.75</td><td style="text-align:left">Already P3. Travel suggestions do not need it — they are <code>judgement</code></td></tr><tr><td style="text-align:left">2. UI polish beyond functional</td><td style="text-align:left">1.25</td><td style="text-align:left">Real rubric loss. State and clarity carry most of it</td></tr><tr><td style="text-align:left">3. Arabic code-switching + RTL</td><td style="text-align:left">1.25</td><td style="text-align:left">Keep the bare Arabic turn. Name the gap out loud</td></tr><tr><td style="text-align:left">4. Tier B golden tests</td><td style="text-align:left">0.4</td><td style="text-align:left">Tier A still covers the gate</td></tr><tr><td style="text-align:left">5. The LLM judge (Block 9 partial)</td><td style="text-align:left">1.5</td><td style="text-align:left"><strong>Last thing to cut.</strong> Gate + assertions still give defensible numbers</td></tr></tbody></table></div>
+<p>Cuts 1–4 close the ~3 h gap. Cut 5 only if Sunday goes badly.</p>
+<h2 id="trigger-points-decided-now-rather-than-at-2-am"><span class="htext">Trigger points, decided now rather than at 2 a.m.</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">If…</th><th style="text-align:left">Then</th></tr></thead><tbody><tr><td style="text-align:left">Block 0 says the Modal WebSocket dies at 150 s</td><td style="text-align:left">Switch to Fly.io <strong>immediately</strong>, same evening</td></tr><tr><td style="text-align:left">Block 0 says TTS TTFB &gt; 2 s</td><td style="text-align:left">Drop the opener; re-derive the budget; say so in the writeup</td></tr><tr><td style="text-align:left">Block 0 says no parallel function calling on flash-lite</td><td style="text-align:left">Sequential flow, no opener. Everything else stands</td></tr><tr><td style="text-align:left"><strong>Saturday ends without a deployed URL</strong></td><td style="text-align:left">Sunday drops Blocks 9 and 10 at the start of the day, not the end</td></tr><tr><td style="text-align:left">Sunday ends without the gate working</td><td style="text-align:left">The deep dive becomes &quot;designed and partially built&quot; — say so honestly, show the tests</td></tr></tbody></table></div>
+  </main>
+</div>

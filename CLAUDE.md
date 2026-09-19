@@ -35,9 +35,7 @@ Unusually for a codebase, the grading criteria in `AGENTS.md` §The rubric are *
 
 | Task | Skill |
 |---|---|
-| Choose the deep-dive track (the gating decision) | `/plan-deep-dive` |
-| Write the PRD / TDD the brief asks for | `/prd` |
-| Implement a feature or fix | `/implement` |
+| Build a block, or fix something outside the block flow | `/implement` |
 | Instrument, run, or interpret a latency measurement | `/measure` |
 | Verify the deployment is demo-ready end to end | `/demo-check` |
 | Draft a progress update or a question to Sarj | `/update-sarj` |
@@ -53,6 +51,18 @@ The deep dive's contract lives in `.claude/rules/tools/grounding-gate.md` and lo
   - `voice-latency-engineer` — latency budget, per-stage instrumentation, where the time actually goes, what to try next
   - `voice-ux-critic` — turn-taking, barge-in, visible state, failure-path UX; the "is the voice experience delightful" line of the rubric
   - `guardrails-engineer` — **owns the deep dive.** The grounding gate, the two-register contract, refusal correctness, injection resistance, and the adversarial eval. Consult before any claim about how well the guardrails work.
+
+### The block workflow
+
+Implementation runs block by block, and each block goes through three agents in order:
+
+| Agent | Model | Does |
+|---|---|---|
+| `block-planner` | opus | Writes `docs/plans/blocks/NN-name.md` from the master plan and the TDD. Never implements |
+| `block-implementer` | sonnet | Builds exactly that plan. Stops and reports rather than improvising when the plan is wrong |
+| `block-verifier` | opus | Cross-checks what was built against what was planned. Fixes nothing |
+
+The plan is reviewed before implementation starts, and the verifier's findings are resolved before the next block begins. `docs/plans/MASTER-PLAN.md` holds the block list, the gates and the dependency chain.
 - **Precedence:** skill > agent > ad-hoc. If both match, run the skill.
 
 ## Review gates that are never skipped
@@ -100,9 +110,5 @@ These load themselves when you touch matching files. Don't re-read them manually
 | `rules/tools/vendor-client.md` | vendor/provider clients — quota, resolution order, reserve |
 | `rules/voice/pipeline.md` | pipeline, STT/TTS, websocket code |
 | `rules/voice/browser-audio.md` | frontend TypeScript — capture, playback, permissions |
-
-## Still to be written
-
-- `.claude/skills/` — stack-specific procedures once the tree exists (scaffold, deploy, add-a-tool)
 
 When a decision closes, come back and write the corresponding rule. An outdated rule is worse than a missing one.
