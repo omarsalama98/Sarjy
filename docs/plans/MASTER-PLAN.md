@@ -164,8 +164,18 @@ Cuts 1–4 close the ~3 h gap. Cut 5 only if Sunday goes badly.
 
 | If… | Then |
 |---|---|
-| Block 0 says the Modal WebSocket dies at 150 s | Switch to Fly.io **immediately**, same evening |
+| ~~Block 0 says the Modal WebSocket dies at 150 s~~ | ~~Switch to Fly.io immediately~~ — **FIRED, AND OVERRIDDEN 2026-09-19.** It dies in (5s, 160s]. We stay on Modal and Block 1 ships transparent reconnect between turns. Reasoning in `docs/measurements/day1-spikes.md` §S1 |
 | Block 0 says TTS TTFB > 2 s | Drop the opener; re-derive the budget; say so in the writeup |
 | Block 0 says no parallel function calling on flash-lite | Sequential flow, no opener. Everything else stands |
 | **Saturday ends without a deployed URL** | Sunday drops Blocks 9 and 10 at the start of the day, not the end |
 | Sunday ends without the gate working | The deep dive becomes "designed and partially built" — say so honestly, show the tests |
+
+### Block 0 outcome — 2026-09-19, full detail in `docs/measurements/day1-spikes.md`
+
+| Trigger | Fired? | What happened |
+|---|---|---|
+| Modal WebSocket dies at 150 s → Fly.io | **YES — FIRED.** | Both arms (idle **and** heartbeat) died client-side somewhere in (5 s, 160 s], corroborated by a control test against an unrelated public WebSocket that survived past 200 s under the same idle conditions from the same network. **Switch to Fly.io before Block 1.** This is the block's headline finding. |
+| TTS TTFB > 2 s → drop the opener | NO (preliminary) | Clean, isolated samples ~1.1–1.4 s (n=1–2 per arm, not the planned n=5 — a previously-unknown **10 requests/day** free-tier cap on `gemini-3.1-flash-tts-preview` cut the batch short). PASS-with-a-rewrite band. **Re-run at full n=5 once the daily quota resets** before finalizing the budget. |
+| No parallel FC on flash-lite → sequential, no opener | NO | 3/3 runs produced both `update` and `get_visa_requirements` in one response. Opener stands. Median name→args gap was ~111 ms (< 150 ms), so the two calls stream back-to-back rather than concurrently — adjust the "hidden under audio" framing to "fires the instant call 1 finishes," not literally mid-generation. |
+
+**New trigger this block surfaced, not in the original table:** `gemini-3.1-flash-tts-preview` free tier caps at **10 requests/day**, shared across `generateContent` and `interactions` alike. At 2 TTS calls/turn this is ~5 turns/day before the model stops working entirely — a demo-day risk bigger than the latency question the table was written for. Needs a decision (paid tier, quota increase, or a fallback voice) before Block 2.

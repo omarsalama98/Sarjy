@@ -1,0 +1,527 @@
+<title>Block 0 — Spikes</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --ink:       #14171c;
+    --ink-2:     #474e5a;
+    --ink-3:     #767e8b;
+    --line:      #e2e5ea;
+    --line-2:    #eef0f4;
+    --accent:    #2d4a7c;
+    --accent-bg: #edf1f8;
+    --warn:      #a6421f;
+    --warn-bg:   #fbf0eb;
+    --code-bg:   #f0f2f6;
+    --shadow:    0 1px 2px rgba(20,23,28,.05), 0 8px 24px -12px rgba(20,23,28,.15);
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #101317;
+      --surface:   #171b21;
+      --ink:       #e7eaef;
+      --ink-2:     #a8b0bc;
+      --ink-3:     #7b838f;
+      --line:      #2a2f38;
+      --line-2:    #22262d;
+      --accent:    #8fb0e6;
+      --accent-bg: #1a2130;
+      --warn:      #e2916d;
+      --warn-bg:   #2a1d17;
+      --code-bg:   #1d222a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #101317;
+    --surface:   #171b21;
+    --ink:       #e7eaef;
+    --ink-2:     #a8b0bc;
+    --ink-3:     #7b838f;
+    --line:      #2a2f38;
+    --line-2:    #22262d;
+    --accent:    #8fb0e6;
+    --accent-bg: #1a2130;
+    --warn:      #e2916d;
+    --warn-bg:   #2a1d17;
+    --code-bg:   #1d222a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .5rem 2.25rem; margin: 0; }
+  dl.meta div { display: flex; flex-direction: column; gap: .1rem; }
+  dl.meta dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  dl.meta dd { margin: 0; font-size: .9rem; color: var(--ink-2); }
+
+  /* ---- toc ---- */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 3rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--ink-3);
+    margin: 0 0 .75rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: flex;
+    gap: .7rem;
+    font-size: .92rem;
+    border-radius: 2px;
+  }
+  .toc a:hover { color: var(--accent); }
+  .tocnum, .secnum {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: .8em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- headings ---- */
+  h2, h3, h4 { font-family: var(--serif); letter-spacing: -.01em; text-wrap: balance; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    font-weight: 600;
+    margin: 3.5rem 0 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .75rem;
+    align-items: baseline;
+  }
+  h3 { font-size: 1.14rem; font-weight: 600; margin: 2.25rem 0 .7rem; display: flex; gap: .6rem; align-items: baseline; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; color: var(--ink-2); }
+  h2 .secnum, h3 .secnum { flex: none; }
+
+  p { margin: 0 0 1.05rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line-2); margin: 2.5rem 0; }
+
+  ul, ol { margin: 0 0 1.15rem; padding-left: 1.35rem; max-width: 68ch; }
+  li { margin-bottom: .38rem; }
+  li::marker { color: var(--ink-3); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+  .codewrap { overflow-x: auto; margin: 0 0 1.4rem; }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 0;
+    min-width: min-content;
+  }
+  pre code { background: none; padding: 0; font-size: .845rem; line-height: 1.6; }
+
+  blockquote {
+    margin: 0 0 1.4rem;
+    padding: .1rem 0 .1rem 1.15rem;
+    border-left: 3px solid var(--line);
+    color: var(--ink-2);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+  }
+  .callout p { margin-bottom: .6rem; color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--warn); }
+
+  .tablewrap { overflow-x: auto; margin: 0 0 1.6rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  th, td { padding: .6rem .85rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <h1>Block 0 — Spikes</h1>
+    <dl class="meta"><div><dt>Date</dt><dd>2026-09-19 · <strong>Start:</strong> Saturday ~17:15 · <strong>Budget:</strong> ~1.5 h wall clock</dd></div><div><dt>Plan of record</dt><dd><code>docs/plans/MASTER-PLAN.md</code> §Block 0 · <strong>Design:</strong> <code>docs/plans/TDD.md</code></dd></div><div><dt>Output</dt><dd><code>docs/measurements/day1-spikes.md</code> — five answers. <strong>No code is kept.</strong></dd></div></dl>
+  </header>
+  <nav class="toc" aria-label="Contents"><p class="eyebrow">Contents</p><ol><li><a href="#summary-read-this-page">Summary — read this page</a></li><li><a href="#goal">Goal</a></li><li><a href="#prerequisites">Prerequisites</a></li><li><a href="#scope-in-scope-out">Scope in / scope out</a></li><li><a href="#files">Files</a></li><li><a href="#s1-does-an-idle-modal-websocket-survive">S1 — Does an idle Modal WebSocket survive?</a></li><li><a href="#s3-tts-time-to-first-audio-byte">S3 — TTS time to first audio byte</a></li><li><a href="#s4-parallel-function-calling-on-gemini-35-flash-lite">S4 — Parallel function calling on <code>gemini-3.5-flash-lite</code></a></li><li><a href="#s2-region-ab-us-east-vs-eu-west">S2 — Region A/B: <code>us-east</code> vs <code>eu-west</code></a></li><li><a href="#s5-browser-audio-capture-16-khz-pcm16-playback">S5 — Browser audio: capture → 16 kHz PCM16 → playback</a></li><li><a href="#gate">Gate</a></li><li><a href="#if-the-clock-runs-out-de-scope-in-this-order">If the clock runs out — de-scope in this order</a></li><li><a href="#known-conflicts-with-the-design-documents">Known conflicts with the design documents</a></li></ol></nav>
+  <main>
+<h2 id="summary-read-this-page"><span class="htext">Summary — read this page</span></h2>
+<p>Five measurements, run mostly in parallel, that decide whether the architecture in the TDD survives contact with the providers. Nothing downstream is safe until they answer.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Spike</th><th style="text-align:left">Question</th><th style="text-align:left">Pass threshold</th><th style="text-align:left">On fail</th></tr></thead><tbody><tr><td style="text-align:left"><strong>S1</strong></td><td style="text-align:left">Modal WebSocket</td><td style="text-align:left">Does an <strong>idle</strong> connection survive 150 s? 600 s?</td><td style="text-align:left">Arm 1 (true idle) alive at 610 s</td><td style="text-align:left">Arm 2 (heartbeat) alive → keep Modal + heartbeat. <strong>Both dead &lt; 150 s → Fly.io tonight</strong></td></tr><tr><td style="text-align:left"><strong>S3</strong></td><td style="text-align:left">TTS TTFB</td><td style="text-align:left">Time to first <strong>audio</strong> byte, <code>generateContent</code> vs <code>interactions</code></td><td style="text-align:left">Median ≤ 800 ms</td><td style="text-align:left">0.8–2.0 s → re-derive budget. <strong>&gt; 2.0 s → drop the opener</strong></td></tr><tr><td style="text-align:left"><strong>S4</strong></td><td style="text-align:left">Parallel FC</td><td style="text-align:left">Does <code>gemini-3.5-flash-lite</code> emit <strong>two</strong> function calls in one response?</td><td style="text-align:left">3/3 runs</td><td style="text-align:left"><strong>Sequential flow, no opener.</strong> Everything else stands</td></tr><tr><td style="text-align:left"><strong>S2</strong></td><td style="text-align:left">Region A/B</td><td style="text-align:left"><code>us-east</code> vs <code>eu-west</code>, <strong>immutable once the URL is shared</strong></td><td style="text-align:left">Winner by ≥ 100 ms combined</td><td style="text-align:left">Tie or not run → ship <code>us-east</code> (the default), permanently</td></tr><tr><td style="text-align:left"><strong>S5</strong></td><td style="text-align:left">Browser audio</td><td style="text-align:left">Does capture → 16 kHz PCM16 → playback work on this machine?</td><td style="text-align:left">Intelligible round trip in Chrome</td><td style="text-align:left">Block 2 gets +1 h and a server-side-decode fallback</td></tr></tbody></table></div>
+<p><strong>S1, S3 and S4 can invalidate the architecture. S2 and S5 cannot</strong> — S2 is a one-way config choice, S5 is de-risking the block that is already known to be hardest.</p>
+<h3 id="order-and-why"><span class="htext">Order, and why</span></h3>
+<div class="codewrap"><pre><code>17:15  P0  Omar's prerequisites (4 items, independent — a missing one stalls one spike, not all five)
+17:25  S1  deploy two throwaway apps · start the 10-minute idle hold        ── unattended ──┐
+17:35  S3  TTS A/B         (scripted, unattended batch, prints a table)                     │
+17:55  S4  parallel FC     (scripted, unattended batch, prints a table)                     │  overlap
+17:35  S5  browser audio   (hands-on — this is where Omar's attention goes)  ───────────────┤
+18:10  S2  region pings, both regions, plus the in-container provider leg   ────────────────┘
+18:20      write day1-spikes.md · apply the triggers · `modal app stop` the throwaways
+18:35  done</code></pre></div>
+<p>S1 is first because it has the <strong>longest unattended wall clock</strong> (10.5 min of deliberate waiting) and because it is the only spike whose failure changes the deployment target — every other spike's work is wasted if we move to Fly.io. S2 is last of the deployed spikes because it reuses S1's two deployments and needs no new infrastructure. S3 and S4 need only an API key, so they are free to run underneath S1. S5 needs neither Modal nor a key, so it is the one thing that can occupy Omar while the machines wait.</p>
+<h3 id="three-things-omar-must-do-before-anything-runs"><span class="htext">Three things Omar must do before anything runs</span></h3>
+<ol>
+<li>Create <code>.env</code> from <code>.env.example</code>. <strong>Block 0 only needs <code>GEMINI_API_KEY</code>.</strong> (Groq, RapidAPI</li>
+<p>are Block 1+.) Agents never read or write <code>.env</code>.</p>
+<li><code>modal profile current</code> — confirm auth. <code>~/.modal.toml</code> exists, so this is probably already</li>
+<p>done; if it errors, <code>modal token new</code>.</p>
+<li><code>modal secret create sarjy-secrets --from-dotenv .env</code> — needed by S2's in-container probe,</li>
+<p>and by Block 1 an hour later regardless.</p>
+<li><code>cd frontend &amp;&amp; npm install</code> — needed by S5, and by Block 1 regardless.</li>
+</ol>
+<h3 id="the-one-blocking-finding-before-you-start"><span class="htext">The one blocking finding, before you start</span></h3>
+<p>🚨 <strong><code>routing_region</code> does not exist in Modal 1.4.2</strong> — the installed client. Verified by inspecting the package: <code>app.function()</code> accepts <code>region</code>, not <code>routing_region</code>. Uncommenting line 59 of <code>backend/modal_app.py</code> today raises <code>TypeError</code>. See <strong>S2 · Step 0</strong>; resolve it in the first five minutes or S2 does not run at all.</p>
+<p>Also verified present in 1.4.2 and safe to use as scaffolded: <code>@modal.concurrent(max_inputs=, target_inputs=)</code>, <code>scaledown_window=</code>, <code>min_containers=</code>, <code>max_containers=</code>, <code>timeout=</code>, <code>secrets=</code>.</p>
+<hr />
+<h2 id="goal"><span class="htext">Goal</span></h2>
+<p><strong>One sentence:</strong> when this block is done, the five provider and platform facts that the whole weekend's design rests on are written down as measured numbers with their conditions, and any trigger they fire has already been pulled — instead of being discovered at 2 a.m. on Sunday.</p>
+<hr />
+<h2 id="prerequisites"><span class="htext">Prerequisites</span></h2>
+<p>Omar does these himself. They are independent: a missing one stalls one spike, not the block.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Command</th><th style="text-align:left">Unblocks</th><th style="text-align:left">Note</th></tr></thead><tbody><tr><td style="text-align:left">P0.1</td><td style="text-align:left">Copy <code>.env.example</code> → <code>.env</code>, fill <code>GEMINI_API_KEY</code></td><td style="text-align:left">S3, S4</td><td style="text-align:left">Block 0 needs <strong>only</strong> this key. <code>GROQ_API_KEY</code>, <code>RAPIDAPI_KEY</code>, <code>RAPIDAPI_HOST</code>, <code>QUOTA_RESERVE</code>, <code>LOG_LEVEL</code> are Block 1+. <strong>No agent reads or writes this file.</strong></td></tr><tr><td style="text-align:left">P0.2</td><td style="text-align:left"><code>modal profile current</code></td><td style="text-align:left">S1, S2</td><td style="text-align:left"><code>~/.modal.toml</code> already exists. Falls back to <code>modal token new</code>.</td></tr><tr><td style="text-align:left">P0.3</td><td style="text-align:left"><code>modal secret create sarjy-secrets --from-dotenv .env</code></td><td style="text-align:left">S2b</td><td style="text-align:left"><code>--from-dotenv</code> means the key never passes through a shell history or an agent. Add <code>--force</code> to overwrite.</td></tr><tr><td style="text-align:left">P0.4</td><td style="text-align:left"><code>cd /Users/omarsalama/Projects/Sarjy/frontend &amp;&amp; npm install</code></td><td style="text-align:left">S5</td><td style="text-align:left">Also proves the frontend toolchain installs, which Block 1 needs.</td></tr><tr><td style="text-align:left">P0.5</td><td style="text-align:left">Add <code>scratch/</code> to <code>.gitignore</code></td><td style="text-align:left">all</td><td style="text-align:left">One line. Everything this block writes is throwaway and must not enter the repo.</td></tr></tbody></table></div>
+<p><strong>Decision Omar must take at P0 (2 minutes, see S2 Step 0):</strong> upgrade the Modal client to 1.5.5, or ship on the default region. Do not defer it — it gates S2 and S2's window closes when the deployment URL is shared.</p>
+<hr />
+<h2 id="scope-in-scope-out"><span class="htext">Scope in / scope out</span></h2>
+<h3 id="in"><span class="htext">In</span></h3>
+<ul>
+<li>Five measurements, each with a threshold fixed <strong>before</strong> it runs.</li>
+<li>Throwaway scripts under <code>scratch/spikes/</code>, and one throwaway page under <code>frontend/</code>.</li>
+<li>Two throwaway Modal apps, named so they can never be confused with the real one, stopped at</li>
+<p>the end of the block.</p>
+<li>One results document: <code>docs/measurements/day1-spikes.md</code>.</li>
+<li>Pulling any trigger the results fire — including telling Omar immediately if the opener dies.</li>
+</ul>
+<h3 id="out-this-is-what-stops-the-block-expanding"><span class="htext">Out — this is what stops the block expanding</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Not in this block</th><th style="text-align:left">Where it belongs</th></tr></thead><tbody><tr><td style="text-align:left">The real <code>sarjy</code> Modal app, <code>StaticFiles</code> mount, health route</td><td style="text-align:left"><strong>Block 1</strong></td></tr><tr><td style="text-align:left">The WebSocket message protocol, <code>app/pipeline/protocol.py</code></td><td style="text-align:left"><strong>Block 1</strong></td></tr><tr><td style="text-align:left">Any STT call, any Groq call at all</td><td style="text-align:left"><strong>Block 2</strong></td></tr><tr><td style="text-align:left">Provider adapters, <code>app/providers/*</code></td><td style="text-align:left"><strong>Block 2</strong></td></tr><tr><td style="text-align:left"><code>app/audio</code> capture/playback as production code</td><td style="text-align:left"><strong>Block 2</strong> — S5 is a throwaway page, even though Block 2 will lift the resampler from it</td></tr><tr><td style="text-align:left">Per-stage instrumentation, <code>app/measure.py</code>, <code>make measure</code></td><td style="text-align:left"><strong>Block 3</strong></td></tr><tr><td style="text-align:left">The <code>update()</code> opener wired into a turn; NDJSON; <code>arguments_delta</code> parsing</td><td style="text-align:left"><strong>Block 4</strong> — S4 only observes whether the primitives exist</td></tr><tr><td style="text-align:left">Travel Buddy, the quota ledger, the colour legend (~6 requests)</td><td style="text-align:left"><strong>Block 5</strong></td></tr><tr><td style="text-align:left">The gate, <code>resolve</code>, <code>get_path</code>, any Pydantic segment model</td><td style="text-align:left"><strong>Block 6</strong></td></tr><tr><td style="text-align:left"><code>modal.Dict</code> semantics, memory, identity</td><td style="text-align:left"><strong>Block 7</strong></td></tr><tr><td style="text-align:left">Arabic, Orpheus, voice selection between Sulafat/Vindemiatrix/Rasalgethi</td><td style="text-align:left"><strong>Block 10</strong></td></tr><tr><td style="text-align:left">Fixing anything a spike reveals as broken</td><td style="text-align:left">The block that owns it. <strong>Block 0 measures and records; it does not repair.</strong></td></tr></tbody></table></div>
+<p><strong>If a spike passes, resist writing &quot;just a little&quot; of the real thing while the context is warm.</strong> Every minute here is a minute off Block 1, and Block 1 is the one that lands requirement #4.</p>
+<hr />
+<h2 id="files"><span class="htext">Files</span></h2>
+<p>Everything below is deleted or ignored except the last row.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">File</th><th style="text-align:left">Purpose</th></tr></thead><tbody><tr><td style="text-align:left"><code>scratch/spikes/ws_probe.py</code></td><td style="text-align:left">Throwaway Modal app: one <code>/ws</code> echo endpoint + one <code>/probe</code> HTTP route. Deployed twice, once per region.</td></tr><tr><td style="text-align:left"><code>scratch/spikes/ws_hold.py</code></td><td style="text-align:left">Local client. Holds a socket idle and pokes it at fixed marks. Two arms (<code>idle</code> / <code>heartbeat</code>).</td></tr><tr><td style="text-align:left"><code>scratch/spikes/ws_rtt.py</code></td><td style="text-align:left">Local client. n=20 send→recv round trips against a deployed region.</td></tr><tr><td style="text-align:left"><code>scratch/spikes/tts_ab.py</code></td><td style="text-align:left">S3. Interleaved A/B, times to first <strong>audio</strong> byte and to complete audio. Prints a table.</td></tr><tr><td style="text-align:left"><code>scratch/spikes/parallel_fc.py</code></td><td style="text-align:left">S4. Three runs, asserts two function calls in one response; times name-vs-arguments gap. Prints a table.</td></tr><tr><td style="text-align:left"><code>frontend/spike.html</code> + <code>frontend/src/spike/main.ts</code> + <code>frontend/src/spike/worklet.js</code></td><td style="text-align:left">S5. Throwaway capture→resample→playback page, served by the existing vite dev server. <strong>Delete after Block 2 lifts the resampler.</strong></td></tr><tr><td style="text-align:left"><code>scratch/spikes/out/</code></td><td style="text-align:left">Raw output: JSON timing dumps, the S5 <code>.wav</code>, the S1 terminal logs. Evidence for the results file.</td></tr><tr><td style="text-align:left"><strong><code>docs/measurements/day1-spikes.md</code></strong></td><td style="text-align:left"><strong>The only kept artifact.</strong> The gate.</td></tr></tbody></table></div>
+<hr />
+<h2 id="s1-does-an-idle-modal-websocket-survive"><span class="htext">S1 — Does an idle Modal WebSocket survive?</span></h2>
+<p><strong>Blast radius: total.</strong> If this fails both arms, the deployment target changes and every other spike's result is about a platform we are not using. It runs first for that reason and because it is 10.5 minutes of deliberate waiting that everything else hides underneath.</p>
+<h3 id="what-is-actually-being-asked"><span class="htext">What is actually being asked</span></h3>
+<p>The TDD (§Deployment, <em>The timeout, honestly</em>) is careful and correct here: Modal documents a <strong>150 s HTTP request timeout</strong> and says nothing about whether it survives a WebSocket upgrade. <code>timeout=30*60</code> is an <em>inference</em> from two documented facts, not a documented guarantee. So:</p>
+<ol>
+<li>Does a <strong>truly idle</strong> connection — no traffic in either direction — die at ~150 s?</li>
+<li>If it does, does a <strong>client heartbeat</strong> rescue it?</li>
+<li>Does it reach 600 s, which is the length of a realistic demo conversation?</li>
+</ol>
+<h3 id="the-trap-that-would-make-this-spike-lie"><span class="htext">⚠️ The trap that would make this spike lie</span></h3>
+<p>The <code>websockets</code> Python client sends protocol pings <strong>every 20 s by default</strong> (<code>ping_interval=20</code>). That is traffic. Run arm 1 with <code>ping_interval=None</code> or the spike measures a heartbeat while claiming to measure idleness.</p>
+<h3 id="method"><span class="htext">Method</span></h3>
+<p>Deploy <code>ws_probe.py</code> (see S2 for the two-region deploy — the same app serves both spikes). Sketch, ~20 lines, for the implementer to fill in:</p>
+<div class="codewrap"><pre><code class="lang-python"># scratch/spikes/ws_probe.py  — SKETCH
+import modal
+image = modal.Image.debian_slim(python_version=&quot;3.12&quot;).pip_install(&quot;fastapi[standard]&quot;, &quot;google-genai&quot;)
+app = modal.App(&quot;sarjy-spike-useast&quot;, image=image)   # second deploy: -euwest
+
+@app.function(timeout=30*60, min_containers=1, max_containers=1, scaledown_window=300,
+              secrets=[modal.Secret.from_name(&quot;sarjy-secrets&quot;)])
+@modal.concurrent(max_inputs=8, target_inputs=4)
+@modal.asgi_app()
+def web():
+    import time
+    from fastapi import FastAPI, WebSocket
+    api = FastAPI()
+
+    @api.websocket(&quot;/ws&quot;)
+    async def ws(sock: WebSocket):            # async — a sync handler makes one
+        await sock.accept()                   # cancellation kill the container
+        t0 = time.monotonic()
+        try:
+            while True:
+                m = await sock.receive_text()          # no server-side keepalive
+                await sock.send_text(f&quot;{m} t={time.monotonic()-t0:.1f}&quot;)
+        except Exception as e:
+            print(f&quot;closed after {time.monotonic()-t0:.1f}s: {e!r}&quot;)
+
+    @api.get(&quot;/probe&quot;)                        # used by S2b, not by S1
+    async def probe() -&gt; dict: ...
+    return api</code></pre></div>
+<div class="codewrap"><pre><code class="lang-python"># scratch/spikes/ws_hold.py  — SKETCH
+# usage: python ws_hold.py wss://&lt;host&gt;/ws idle       (arm 1)
+#        python ws_hold.py wss://&lt;host&gt;/ws heartbeat  (arm 2)
+MARKS = (5, 160, 310, 610)     # 160 straddles the documented 150 s HTTP timeout
+ping  = None if sys.argv[2] == &quot;idle&quot; else 20
+# connect once with ping_interval=ping; sleep to each mark; send &quot;poke&quot;; await recv with a
+# 10 s timeout; print &quot;t=…s alive&quot; or &quot;t=…s DEAD &lt;exc&gt;&quot; and exit. Append to scratch/spikes/out/.</code></pre></div>
+<h3 id="commands"><span class="htext">Commands</span></h3>
+<div class="codewrap"><pre><code class="lang-bash">cd /Users/omarsalama/Projects/Sarjy
+modal deploy scratch/spikes/ws_probe.py            # prints the URL
+
+# two terminals, same deployment — max_containers=1 + @modal.concurrent means
+# both connections land in ONE container, so the two arms cost 10.5 min, not 21
+python scratch/spikes/ws_hold.py wss://&lt;url&gt;/ws idle      | tee scratch/spikes/out/s1-idle.log
+python scratch/spikes/ws_hold.py wss://&lt;url&gt;/ws heartbeat | tee scratch/spikes/out/s1-hb.log</code></pre></div>
+<h3 id="threshold-fixed-before-it-runs"><span class="htext">Threshold — fixed before it runs</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Result</th><th style="text-align:left">Verdict</th></tr></thead><tbody><tr><td style="text-align:left">Arm 1 alive at 610 s</td><td style="text-align:left"><strong>PASS.</strong> The TDD's inference holds. No heartbeat needed; add one anyway in Block 1, it is five lines and preemption exists regardless.</td></tr><tr><td style="text-align:left">Arm 1 dies 150–610 s, arm 2 alive at 610 s</td><td style="text-align:left"><strong>PASS with a condition.</strong> Keep Modal. The client heartbeat becomes mandatory in Block 1, and the interval goes in the results file.</td></tr><tr><td style="text-align:left">Arm 1 dies &lt; 160 s, arm 2 alive at 610 s</td><td style="text-align:left"><strong>PASS with a condition, and the 150 s timeout is confirmed to survive the upgrade</strong> — a genuinely useful finding for the writeup. Heartbeat mandatory.</td></tr><tr><td style="text-align:left"><strong>Both arms dead &lt; 610 s</strong></td><td style="text-align:left"><strong>FAIL → Fly.io, tonight.</strong> Tell Omar immediately; do not start Block 1 on Modal.</td></tr></tbody></table></div>
+<aside class="callout critical" role="note"><p>⚠️ <strong>This splits the master plan's trigger deliberately.</strong> MASTER-PLAN says <em>&quot;dies at 150 s → switch to Fly.io immediately.&quot;</em> That is too blunt: a five-line client heartbeat is a far cheaper fix than a platform migration, and the spike is designed to tell those two cases apart. Only <strong>both arms failing</strong> justifies the switch.</p></aside>
+<p>Regardless of the result, Block 1 ships client <strong>reconnect-and-resume</strong> — the TDD notes all Modal Functions are preemptible and <em>&quot;likelihood of interruption increases with Function run duration.&quot;</em> A voice call is long-running by definition. S1 does not change that.</p>
+<h3 id="recorded"><span class="htext">Recorded</span></h3>
+<p>Arm, <code>ping_interval</code>, the last mark that answered, the first that did not, the close code and exception text, container logs from <code>modal app logs sarjy-spike-useast</code>, and the Modal client version.</p>
+<hr />
+<h2 id="s3-tts-time-to-first-audio-byte"><span class="htext">S3 — TTS time to first audio byte</span></h2>
+<p><strong>Blast radius: the latency budget and possibly the opener.</strong> The TDD is explicit that every figure in §Latency budget is a derived estimate and that this is the largest unknown: no published Google figure, no third-party benchmark, and one forum reporter swinging between sub-2 s and 10–20 s on this model within three weeks.</p>
+<h3 id="the-ab-and-why-both-arms-must-be-identical"><span class="htext">The A/B, and why both arms must be identical</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Arm</th><th style="text-align:left">Path</th><th style="text-align:left">Bet</th></tr></thead><tbody><tr><td style="text-align:left"><strong>A</strong></td><td style="text-align:left"><code>generateContent</code>, streamed</td><td style="text-align:left">The reportedly faster endpoint</td></tr><tr><td style="text-align:left"><strong>B</strong></td><td style="text-align:left"><code>interactions</code>, streamed</td><td style="text-align:left">The path the LLM adapter is already committed to</td></tr></tbody></table></div>
+<p><strong>Identical method or the comparison is worthless:</strong> same model (<code>gemini-3.1-flash-tts-preview</code>), same voice (<strong>Sulafat</strong>), same two input strings, same machine, same network, <strong>interleaved A/B/A/B/A/B…</strong> so that drift in Google's backend hits both arms equally. n=5 per arm, 10 calls total, paced ~5 s apart — the free tier is reportedly ~15 RPM and unpublished.</p>
+<p>Two input strings, because the turn makes two TTS requests of very different lengths:</p>
+<ul>
+<li><code>OPENER</code> = <code>&quot;Let me check that for you.&quot;</code></li>
+<li><code>ANSWER</code> = a ~45-word paragraph — roughly what a gated answer will be.</li>
+</ul>
+<h3 id="measure-to-the-first-audio-delta"><span class="htext">🚨 Measure to the first <em>audio</em> delta</span></h3>
+<p>The same trap as the LLM path, in a different costume. A stream's first chunk may carry metadata, a role marker, or an empty inline-data envelope. <strong><code>t_first_audio</code> is the timestamp of the first chunk whose inline audio payload has non-zero length.</strong> Timing to the first SSE event records a fiction.</p>
+<p>Record <strong>two</strong> numbers per call, not one:</p>
+<ul>
+<li><code>t_first_audio</code> — matters if the opener streams into the playback queue.</li>
+<li><code>t_complete</code> — matters if the opener is played as one buffered clip, which is the simpler</li>
+<p>Block 2 implementation and the one that avoids a mid-clip seam.</p>
+</ul>
+<p>Whichever the implementation turns out to be, the number that governs perceived latency is in the table. Guessing now which one matters would be the mistake.</p>
+<h3 id="method"><span class="htext">Method</span></h3>
+<div class="codewrap"><pre><code class="lang-python"># scratch/spikes/tts_ab.py — SKETCH
+# The exact SDK call shape for each arm comes from the google-genai docs — CHECK IT, do not
+# guess. What is specified here is the harness, which is the part that must be identical.
+for i in range(5):
+    for arm in (&quot;generateContent&quot;, &quot;interactions&quot;):
+        for label, text in ((&quot;OPENER&quot;, OPENER), (&quot;ANSWER&quot;, ANSWER)):
+            t0 = time.perf_counter()
+            first_audio = None; total_bytes = 0
+            for chunk in &lt;arm's streaming call&gt;(model=TTS_MODEL, voice=&quot;Sulafat&quot;, text=text):
+                audio = &lt;extract inline audio bytes from chunk&gt;     # arm-specific
+                if audio and first_audio is None:
+                    first_audio = time.perf_counter() - t0          # &lt;- the number
+                total_bytes += len(audio or b&quot;&quot;)
+            row(arm, label, i, first_audio, time.perf_counter()-t0, total_bytes, err=None)
+            time.sleep(5)
+# print median + p95 per (arm, label); dump every row to scratch/spikes/out/s3.json</code></pre></div>
+<p>Also write <strong>one</strong> clip per arm to <code>scratch/spikes/out/</code> and listen to both. A fast arm that sounds wrong is not a win, and the TDD warns the model <em>&quot;may not always strictly match the selected speaker.&quot;</em></p>
+<h3 id="threshold-fixed-before-it-runs"><span class="htext">Threshold — fixed before it runs</span></h3>
+<p><strong>Which arm wins:</strong> the arm faster by ≥ 150 ms on median <code>t_first_audio</code> for <code>OPENER</code>. Inside 150 ms, take <strong><code>generateContent</code></strong> — the TDD's own research found it recommended <em>&quot;for stable production deployments&quot;</em>, and the simpler path is the one Omar defends more easily.</p>
+<p><strong>Whether the design survives</strong>, on the winning arm's median <code>t_first_audio</code> for <code>OPENER</code>:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Median</th><th style="text-align:left">Verdict</th></tr></thead><tbody><tr><td style="text-align:left">≤ 800 ms</td><td style="text-align:left"><strong>PASS.</strong> §Latency budget's 500 ms estimate is optimistic but the ~1.8 s first-audio-out target holds.</td></tr><tr><td style="text-align:left">0.8 – 2.0 s</td><td style="text-align:left"><strong>PASS with a rewrite.</strong> The opener survives — it is still faster than waiting for the lookup — but re-derive §Latency budget with the measured figure and state the new first-audio-out target in the writeup.</td></tr><tr><td style="text-align:left"><strong>&gt; 2.0 s</strong></td><td style="text-align:left"><strong>FAIL → drop the opener.</strong> MASTER-PLAN's trigger. Re-derive the budget, and <strong>tell Omar the same hour</strong>: the opener is the TDD's &quot;one trick&quot; and the demo narrative changes with it. Block 4 shrinks; the latency story becomes &quot;here is where the time goes and why we could not hide it,&quot; which is still a defensible answer.</td></tr></tbody></table></div>
+<p><strong>Also recorded, free:</strong> how many of the 10 calls returned a <code>500</code> or <code>PROHIBITED_CONTENT</code>. The TDD cites Google's own docs saying the model <em>&quot;occasionally returns text tokens instead of audio tokens&quot;</em>. This is the first real data point on that rate and it sets Block 2's retry budget — which must be <strong>one retry, ~250 ms, then fail visibly</strong>, never the SDK's default of four retries backing off to 60 s.</p>
+<h3 id="recorded"><span class="htext">Recorded</span></h3>
+<p>Per arm and per input string: median and p95 <code>t_first_audio</code>, median <code>t_complete</code>, total audio bytes, error count and error kinds, model id, voice, date, network, n. <strong>A latency figure without its configuration is not a measurement.</strong></p>
+<blockquote><p><strong>Do not harmonise this with the LLM adapter.</strong> TDD §Open records <em>&quot;Decision: Interactions, pinned <code>Api-Revision: 2026-05-20</code>&quot;</em> for the LLM. If S3 picks <code>generateContent</code> for TTS, those are two different calls and they may legitimately differ. Both sit behind our own interface.</p></blockquote>
+<hr />
+<h2 id="s4-parallel-function-calling-on-gemini-35-flash-lite"><span class="htext">S4 — Parallel function calling on <code>gemini-3.5-flash-lite</code></span></h2>
+<p><strong>Blast radius: the opener, and with it the TDD's headline argument.</strong> The TDD flags this explicitly: parallel function calling is <em>&quot;documented generically and demonstrated only on <code>gemini-3.8-flash</code>&quot;</em>. The entire &quot;Sarjy speaks before the lookup returns&quot; design rests on this model doing it.</p>
+<h3 id="three-questions-one-script"><span class="htext">Three questions, one script</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Question</th><th style="text-align:left">Why it matters</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Q1</strong></td><td style="text-align:left">Does one response contain <strong>two</strong> function calls — <code>update</code> <strong>and</strong> <code>get_visa_requirements</code>?</td><td style="text-align:left">If not, there is no opener.</td></tr><tr><td style="text-align:left"><strong>Q2</strong></td><td style="text-align:left">Does the tool call's <strong>name and id arrive before its arguments finish generating</strong>?</td><td style="text-align:left">This is what lets the HTTP lookup fire mid-stream. Without it the opener still hides call 2, but not the vendor round trip.</td></tr><tr><td style="text-align:left"><strong>Q3</strong> <em>(free, if it falls out)</em></td><td style="text-align:left">Does the turn survive if <code>update()</code> gets no <code>function_result</code>?</td><td style="text-align:left">TDD §Open. Costs one extra call and unblocks Block 4.</td></tr></tbody></table></div>
+<h3 id="n3-not-n1"><span class="htext">n=3, not n=1</span></h3>
+<p>Parallel function calling is a <strong>model behaviour, not an API guarantee</strong>. One sample cannot tell &quot;supported&quot; from &quot;happened to this time&quot;. Three runs, same prompt:</p>
+<ul>
+<li>3/3 → <strong>yes</strong>, build the opener.</li>
+<li>2/3 → <strong>supported but unreliable.</strong> Build the opener with a fallback path for the turns where</li>
+<p>only one call arrives — and say the rate out loud in the writeup.</p>
+<li>0–1/3 → <strong>no.</strong></li>
+</ul>
+<h3 id="method"><span class="htext">Method</span></h3>
+<div class="codewrap"><pre><code class="lang-python"># scratch/spikes/parallel_fc.py — SKETCH
+# Pin explicitly on EVERY call — thinking_level is interaction-scoped and is NOT carried by
+# previous_interaction_id, and the docs say &quot;minimal does not guarantee that thinking is off&quot;.
+CONFIG = dict(thinking_level=&quot;minimal&quot;, store=False, tools=[UPDATE_TOOL, VISA_TOOL],
+              system_instruction=SYS)   # SYS mandates calling update() alongside any lookup
+PROMPT = &quot;Do I need a visa for Japan on an Egyptian passport?&quot;
+
+for run in range(3):
+    t0 = time.perf_counter(); seen = {}      # name -&gt; (t_name, t_args_complete)
+    for ev in stream(model=&quot;gemini-3.5-flash-lite&quot;, contents=PROMPT, **CONFIG):
+        # record the delta type verbatim for EVERY event — see the note below
+        log(ev.type, time.perf_counter() - t0)
+        ...  # capture: t at which each call's name+id is known; t at which its arguments close
+    row(run, names=list(seen), gap_ms=seen[&quot;get_visa_requirements&quot;].args - seen[...].name)</code></pre></div>
+<p>🪤 <strong>Log every delta type verbatim and keep the dump.</strong> TDD §Provider traps: Google's own docs contradict each other — the function-calling page samples <code>delta.type == &quot;arguments&quot;</code> / <code>partial_arguments</code>, while the streaming page and the API reference say <strong><code>arguments_delta</code></strong>. The wrong one gives a loop that silently matches nothing: no error, no output, no clue. <strong>Observing the real field name here saves an hour in Block 4 and costs nothing.</strong> Record it.</p>
+<h3 id="threshold-fixed-before-it-runs"><span class="htext">Threshold — fixed before it runs</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Result</th><th style="text-align:left">Verdict</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Q1 3/3</strong> and <strong>Q2 gap ≥ 150 ms</strong></td><td style="text-align:left"><strong>PASS.</strong> Build the opener as designed. The gap is the headroom the architecture spends — record the median.</td></tr><tr><td style="text-align:left"><strong>Q1 3/3</strong>, <strong>Q2 gap &lt; 150 ms</strong></td><td style="text-align:left"><strong>PARTIAL.</strong> Keep the two-call turn; stop claiming the lookup fires mid-stream. The opener still hides the whole of call 2, which is most of the benefit. Adjust §Latency budget's &quot;hidden&quot; column, do not panic.</td></tr><tr><td style="text-align:left"><strong>Q1 2/3</strong></td><td style="text-align:left"><strong>CONDITIONAL.</strong> Opener with a single-call fallback branch. Report the rate.</td></tr><tr><td style="text-align:left"><strong>Q1 0–1/3</strong></td><td style="text-align:left"><strong>FAIL → sequential flow, no opener.</strong> MASTER-PLAN's trigger. Tool call first, then answer. Slower and visibly so, and it still satisfies every numbered requirement. Block 4 shrinks; say so in the writeup.</td></tr></tbody></table></div>
+<p>Q3 has no threshold — it is either answered or recorded as still open. Do not spend more than five minutes on it.</p>
+<h3 id="recorded"><span class="htext">Recorded</span></h3>
+<p>Runs, calls seen per run, median name→arguments gap in ms, <strong>the observed streaming delta field name</strong>, whether an unanswered <code>update()</code> invalidates the turn, model id, <code>thinking_level</code>, date.</p>
+<hr />
+<h2 id="s2-region-ab-us-east-vs-eu-west"><span class="htext">S2 — Region A/B: <code>us-east</code> vs <code>eu-west</code></span></h2>
+<p><strong>Blast radius: one configuration value, permanently.</strong> The lowest of the five — but the window is narrow, so it runs today rather than never.</p>
+<h3 id="step-0-before-anything-else-routing_region-does-not-exist-in"><span class="htext">🚨 Step 0, before anything else: <code>routing_region</code> does not exist in Modal 1.4.2</span></h3>
+<p>Verified by inspecting the installed package (<code>modal 1.4.2</code>, PyPI latest is <code>1.5.5</code>):</p>
+<div class="codewrap"><pre><code>app.function() accepts:  timeout ✅  min_containers ✅  max_containers ✅
+                         scaledown_window ✅  secrets ✅  region ✅  experimental_options ✅
+                         routing_region ❌  &lt;-- not a parameter
+@modal.concurrent(max_inputs=…, target_inputs=…)  ✅  exists, exactly as scaffolded</code></pre></div>
+<p><code>backend/modal_app.py</code> line 59 carries <code>routing_region</code> as a commented-out kwarg. <strong>Uncommenting it on the installed client raises <code>TypeError</code>.</strong> <code>region=</code> exists but is a different thing — it constrains <em>where the container runs</em>, not <em>where the request enters Modal's network</em> — and the TDD's immutability claim is about <code>routing_region</code>.</p>
+<p>Pick one, in under five minutes:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Option</th><th style="text-align:left">Command</th><th style="text-align:left">Consequence</th></tr></thead><tbody><tr><td style="text-align:left"><strong>(a) Recommended — upgrade the client</strong></td><td style="text-align:left"><code>python3 -m pip install -U modal</code> → 1.5.5, then verify</td><td style="text-align:left">The client then matches the docs Omar will read all weekend. Upgrading now, before the first real deploy, is safer than upgrading Sunday night.</td></tr><tr><td style="text-align:left">(b) Stay on 1.4.2, use <code>region=</code></td><td style="text-align:left">—</td><td style="text-align:left">Measures a different thing. Do not label the result &quot;routing region&quot;.</td></tr><tr><td style="text-align:left">(c) Skip S2</td><td style="text-align:left">—</td><td style="text-align:left"><strong>This is a decision to ship on <code>us-east</code> forever</strong>, not a deferral. Legitimate; record it as such.</td></tr></tbody></table></div>
+<p>Verification after an upgrade — one line, run it, do not assume:</p>
+<div class="codewrap"><pre><code class="lang-bash">python3 -c &quot;import inspect, modal, modal.app as A; s=inspect.signature(A._App.function).parameters; \
+print({k: k in s for k in ['routing_region','scaledown_window','min_containers','timeout']}); \
+print(inspect.signature(modal.concurrent))&quot;</code></pre></div>
+<p>If the upgrade breaks <code>@modal.concurrent</code> or <code>scaledown_window</code>, <strong>roll back to 1.4.2 and take option (c)</strong>. Block 1 matters more than this A/B.</p>
+<h3 id="the-correction-to-the-tdds-design"><span class="htext">The correction to the TDD's design</span></h3>
+<p>⚠️ <strong>A WebSocket round trip from Omar's machine is one of about six network legs in a turn.</strong> The others are Modal → Groq (STT), Modal → Gemini (LLM ×2), Modal → Gemini (TTS ×2). Moving the app to <code>eu-west</code> shortens the browser↔app legs and may <em>lengthen</em> the four-to-five app↔provider legs. Measuring only the first leg would produce a number that argues for the wrong choice with apparent rigour.</p>
+<p>So S2 measures two legs and combines them.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left"></th><th style="text-align:left">What</th><th style="text-align:left">n</th></tr></thead><tbody><tr><td style="text-align:left"><strong>S2a</strong></td><td style="text-align:left">Browser↔app: WebSocket send→recv round trip, from Omar's machine to each region</td><td style="text-align:left">20</td></tr><tr><td style="text-align:left"><strong>S2b</strong></td><td style="text-align:left">App↔provider: one small Gemini <code>generateContent</code> text call timed <strong>from inside the container</strong>, via <code>/probe</code></td><td style="text-align:left">5</td></tr></tbody></table></div>
+<p><strong>Decision rule, fixed before it runs:</strong> choose the region minimising <code>median(S2a) + 4 × median(S2b)</code>. The weight of 4 is the approximate number of provider round trips on a turn's critical path — write the weight and its justification into the results file so the arithmetic is auditable. <strong>If the two regions land within 100 ms of each other on that combined figure, take <code>us-east</code></strong> — the default, no client upgrade required, fewer moving parts.</p>
+<p>⚠️ <strong>The measurement is from Omar's location, not the reviewer's.</strong> Sarj is Saudi, so the likely reviewer is in the Gulf, and the TDD confirms <strong>there is no Middle East routing region</strong>. Geography already favours <code>eu-west</code> for a Gulf reviewer; this measurement is a sanity check on that prior, not a discovery. Say so in the results file rather than implying the number is the reviewer's experience.</p>
+<h3 id="commands"><span class="htext">Commands</span></h3>
+<div class="codewrap"><pre><code class="lang-bash"># same throwaway app source, two names, two regions — NEVER the real &quot;sarjy&quot; app
+modal deploy scratch/spikes/ws_probe.py            # app name: sarjy-spike-useast
+#   edit app name -&gt; sarjy-spike-euwest, add the region kwarg, redeploy
+modal deploy scratch/spikes/ws_probe.py
+
+python scratch/spikes/ws_rtt.py wss://&lt;useast&gt;/ws  | tee scratch/spikes/out/s2a-useast.log
+python scratch/spikes/ws_rtt.py wss://&lt;euwest&gt;/ws  | tee scratch/spikes/out/s2a-euwest.log
+for i in 1 2 3 4 5; do curl -s https://&lt;useast&gt;/probe; done
+for i in 1 2 3 4 5; do curl -s https://&lt;euwest&gt;/probe; done</code></pre></div>
+<h3 id="throwaway-names-and-the-real-deadline"><span class="htext">🚨 Throwaway names, and the real deadline</span></h3>
+<p><strong>These are <code>sarjy-spike-useast</code> and <code>sarjy-spike-euwest</code>, never <code>sarjy</code>.</strong> Block 1 deploys the real app and its Function's region is fixed from that point — changing it later requires a <strong>new Function</strong>, which means <strong>a new URL</strong>.</p>
+<blockquote><p><strong>The true deadline is not &quot;before the first deploy&quot; — it is &quot;before the URL is shared with Sarj.&quot;</strong> A new Function is cheap until the URL is committed to. This is slightly more generous than TDD §Deployment implies, and it is the accurate statement.</p></blockquote>
+<p>Stop both throwaway apps at the end of the block:</p>
+<div class="codewrap"><pre><code class="lang-bash">modal app stop sarjy-spike-useast &amp;&amp; modal app stop sarjy-spike-euwest &amp;&amp; modal app list</code></pre></div>
+<h3 id="recorded"><span class="htext">Recorded</span></h3>
+<p>Per region: S2a median and p95, S2b median, the combined figure and the weight used, the <code>modal</code> client version, the parameter actually used (<code>routing_region</code> / <code>region</code> / default), Omar's location and network, the date, and <strong>the chosen region with one sentence of reasoning</strong>.</p>
+<hr />
+<h2 id="s5-browser-audio-capture-16-khz-pcm16-playback"><span class="htext">S5 — Browser audio: capture → 16 kHz PCM16 → playback</span></h2>
+<p><strong>Not a yes/no.</strong> Block 2 is the riskiest block in the project and is pure engineering with no model cleverness — every bug in it is fixable and none are mysterious, which is exactly why finding them tonight costs an hour and finding them tomorrow costs a day. This spike's job is to produce <strong>numbers and a resampler that Block 2 lifts unchanged.</strong></p>
+<h3 id="where-it-runs"><span class="htext">Where it runs</span></h3>
+<p>Inside the existing <code>frontend/</code> vite scaffold, as a throwaway second page — <code>frontend/spike.html</code> + <code>frontend/src/spike/</code>. Reasons: <code>@ricky0123/vad-web</code> is already a declared dependency, TypeScript is configured, and <code>npm run dev</code> exists. <code>http://localhost</code> is a secure context, so <code>getUserMedia</code> works with no TLS (it would <strong>not</strong> on a LAN IP — do not test from a phone).</p>
+<p>Mark the files delete-after-Block-2. They are a spike that happens to live in the frontend tree, not the beginning of Block 2.</p>
+<h3 id="the-loop"><span class="htext">The loop</span></h3>
+<ol>
+<li><code>getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } })</code></li>
+<li><strong>Log <code>track.getSettings().sampleRate</code> and record it.</strong> Do not assume 48000 — the rule file</li>
+<p>names &quot;assuming the sample rate&quot; as an anti-pattern for a reason.</p>
+<li><code>AudioWorklet</code> (never <code>ScriptProcessor</code>) — accumulate 128-frame render quanta to a chosen</li>
+<p>frame size, downsample to 16 kHz, float32 → int16, <code>port.postMessage</code> to the main thread.</p>
+<li>Main thread buffers ~3 s, then schedules it back through an <code>AudioContext</code> with explicit</li>
+<p><code>AudioBufferSourceNode</code> timing. <strong>Never an <code>&lt;audio&gt;</code> element.</strong></p>
+<li>Say a sentence. Hear it back. Save the PCM as a <code>.wav</code> in <code>scratch/spikes/out/</code>.</li>
+</ol>
+<h3 id="five-checks-each-with-a-threshold"><span class="htext">Five checks, each with a threshold</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Check</th><th style="text-align:left">Pass</th><th style="text-align:left">On fail</th></tr></thead><tbody><tr><td style="text-align:left"><strong>C1</strong></td><td style="text-align:left">Round trip is <strong>intelligible</strong> in <strong>Chrome</strong></td><td style="text-align:left">A listener can transcribe the sentence from the saved <code>.wav</code></td><td style="text-align:left"><strong>Block 2 gets +1 h</strong>, and the fallback goes on the table: <code>MediaRecorder</code> → webm/opus → server-side decode, moving the 16 kHz conversion off the browser. Tell Omar.</td></tr><tr><td style="text-align:left"><strong>C2</strong></td><td style="text-align:left">Same in <strong>Safari</strong></td><td style="text-align:left">Works</td><td style="text-align:left"><strong>Not a blocker.</strong> Record it. The reviewer's browser is unknown, so the consequence is either a detect-and-warn in Block 8 or a line in the submission note. Safari's autoplay and mic behaviour break voice apps specifically.</td></tr><tr><td style="text-align:left"><strong>C3</strong></td><td style="text-align:left">Echo cancellation is genuinely on</td><td style="text-align:left">With loopback playing <strong>through speakers, not headphones</strong>, the captured signal does not contain the playback</td><td style="text-align:left">The assistant will interrupt itself in Block 2 — a bug that looks architectural and is one constraint line. Record which constraint failed.</td></tr><tr><td style="text-align:left"><strong>C4</strong></td><td style="text-align:left">VAD fires correctly</td><td style="text-align:left"><code>@ricky0123/vad-web</code> emits speech-start and speech-end on a sentence, and <strong>a backchannel (&quot;mhm&quot;) does not end the turn</strong> at the chosen threshold</td><td style="text-align:left">Record the threshold that does work. This is a <strong>product decision, not a constant</strong> — whatever value is chosen, the reason is written down.</td></tr><tr><td style="text-align:left"><strong>C5</strong></td><td style="text-align:left"><code>AudioContext</code> resumes after a user gesture</td><td style="text-align:left">First click resumes; playback then works</td><td style="text-align:left">Trivial to fix, classic silent failure. Record it so Block 2 does not rediscover it.</td></tr></tbody></table></div>
+<h3 id="the-number-that-matters-most"><span class="htext">The number that matters most</span></h3>
+<p><strong>C4's measured end-of-speech delay replaces the ~600 ms estimate in TDD §Latency budget</strong> — the single largest term in the whole chain, larger than any provider call. It is also the one term that is entirely ours to choose. Measure it, do not carry the estimate forward.</p>
+<h3 id="recorded-this-is-the-transfer-into-block-2"><span class="htext">Recorded — this is the transfer into Block 2</span></h3>
+<p>Actual mic sample rate · chosen frame size <strong>and the reason</strong> · measured capture→playback round trip · measured VAD end-of-speech delay at the chosen threshold, and the threshold · whether resampling was manual or via <code>new AudioContext({ sampleRate: 16000 })</code> · C1–C5 pass/fail per browser · browser versions and OS.</p>
+<hr />
+<h2 id="gate"><span class="htext">Gate</span></h2>
+<p><strong>The block is done when <code>docs/measurements/day1-spikes.md</code> exists and contains all five answers.</strong> Concretely, a complete file has:</p>
+<ol>
+<li><strong>A header</strong> with date, machine, OS, network, Modal client version, and Omar's location.</li>
+<li><strong>One section per spike</strong>, each containing:</li>
+<ul>
+<li>the question, in one sentence;</li>
+<li>the threshold <strong>as it was written in this plan, before the run</strong>;</li>
+<li>the measured numbers with their <code>n</code>, median and p95 where there is more than one sample;</li>
+<li>pass / fail / conditional, against that threshold;</li>
+<li>the consequence, named — and if a trigger fired, what was actually done about it.</li>
+</ul>
+<li><strong>A &quot;triggers fired&quot; section</strong> at the top, even if it says <em>none</em>. If S1 failed both arms, or</li>
+<p>S3 exceeded 2.0 s, or S4 came back 0–1/3, the entry says what changed and whether Omar was told.</p>
+<li><strong>A &quot;carried into Block 2&quot; section</strong> — S5's numbers, in the form Block 2 needs them: sample</li>
+<p>rate, frame size, VAD threshold and delay, resampling approach.</p>
+<li><strong>An &quot;open&quot; section</strong> — anything that could not be answered, stated as an open question</li>
+<p>rather than quietly assumed. Q3 and any region caveat belong here.</p>
+<li><strong>A provenance line per number:</strong> model id, endpoint, date, conditions. A latency figure</li>
+<p>without its configuration is not a measurement.</p>
+</ol>
+<p><strong>Also required to close the block:</strong></p>
+<ul>
+<li><code>modal app stop sarjy-spike-useast</code> and <code>…-euwest</code>, confirmed with <code>modal app list</code>.</li>
+<li><code>scratch/</code> in <code>.gitignore</code>.</li>
+<li>The real <code>sarjy</code> app has <strong>not</strong> been deployed — that is Block 1.</li>
+<li><code>docs/plans/MASTER-PLAN.md</code> §Trigger points and <code>docs/plans/TDD.md</code> §Latency budget /</li>
+<p>§Open updated with any measured figure that replaces an estimate. <strong>The estimates must not survive the measurements.</strong></p>
+</ul>
+<p>Render and publish per the usual pipeline:</p>
+<div class="codewrap"><pre><code class="lang-bash">node ~/Projects/spec-html.mjs docs/measurements/day1-spikes.md</code></pre></div>
+<hr />
+<h2 id="if-the-clock-runs-out-de-scope-in-this-order"><span class="htext">If the clock runs out — de-scope in this order</span></h2>
+<p>The 1.5 h has roughly 10 minutes of slack and the first thing that goes wrong eats it.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Order</th><th style="text-align:left">Cut</th><th style="text-align:left">What is actually lost</th></tr></thead><tbody><tr><td style="text-align:left"><strong>1st</strong></td><td style="text-align:left"><strong>S2 entirely</strong></td><td style="text-align:left">We ship on <code>us-east</code>. Say it as a decision, not a deferral. A marginal latency optimisation, on a leg that is one of six.</td></tr><tr><td style="text-align:left">2nd</td><td style="text-align:left"><strong>S5 · C2</strong> (Safari)</td><td style="text-align:left">A demo risk we then carry knowingly. Chrome-only is a defensible submission note.</td></tr><tr><td style="text-align:left">3rd</td><td style="text-align:left"><strong>S3 arm B</strong> (<code>interactions</code>)</td><td style="text-align:left">Take <code>generateContent</code>. We lose the comparison, keep the absolute number — and the absolute number is what fires the trigger.</td></tr><tr><td style="text-align:left">4th</td><td style="text-align:left"><strong>S4 · Q3</strong></td><td style="text-align:left">Stays an open question. It costs Block 4 maybe twenty minutes to discover.</td></tr></tbody></table></div>
+<p><strong>S1, S3 arm A, and S4 Q1 are never cut.</strong> They are the three that can invalidate the architecture, and discovering any of them on Sunday costs more than the whole of Saturday.</p>
+<hr />
+<h2 id="known-conflicts-with-the-design-documents"><span class="htext">Known conflicts with the design documents</span></h2>
+<p>Recorded here so the implementer does not silently plan around them.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Where</th><th style="text-align:left">Issue</th><th style="text-align:left">Handled by</th></tr></thead><tbody><tr><td style="text-align:left">1</td><td style="text-align:left"><code>backend/modal_app.py:59</code>, TDD §Deployment</td><td style="text-align:left"><code>routing_region</code> is <strong>not a parameter in Modal 1.4.2</strong>, the installed client. <code>region</code> is, and means something else.</td><td style="text-align:left">S2 Step 0</td></tr><tr><td style="text-align:left">2</td><td style="text-align:left">MASTER-PLAN §Trigger points</td><td style="text-align:left"><em>&quot;Dies at 150 s → Fly.io immediately&quot;</em> skips the cheap fix. A client heartbeat is five lines.</td><td style="text-align:left">S1's two arms</td></tr><tr><td style="text-align:left">3</td><td style="text-align:left">TDD §Deployment</td><td style="text-align:left">Region A/B as specified measures browser↔app only — one of ~six legs, and the one that moves in the <em>opposite</em> direction to the other five.</td><td style="text-align:left">S2a + S2b combined rule</td></tr><tr><td style="text-align:left">4</td><td style="text-align:left">TDD §Deployment</td><td style="text-align:left"><em>&quot;Cannot be changed after the first deploy&quot;</em> — true of the Function, but a new Function is cheap. The real deadline is <strong>before the URL is shared.</strong></td><td style="text-align:left">S2, noted</td></tr><tr><td style="text-align:left">5</td><td style="text-align:left">TDD §Open vs S3</td><td style="text-align:left"><em>&quot;Decision: Interactions&quot;</em> is about the <strong>LLM</strong>. If S3 picks <code>generateContent</code> for <strong>TTS</strong>, those are different calls and may differ.</td><td style="text-align:left">S3, noted</td></tr><tr><td style="text-align:left">6</td><td style="text-align:left"><code>tdd-review.md</code> §5 arm A</td><td style="text-align:left"><em>&quot;one call per segment&quot;</em> is stale — §Latency budget already settled on <strong>two TTS requests per turn</strong>. The arms are now streamed-vs-streamed on opener-length and answer-length strings.</td><td style="text-align:left">S3's two input strings</td></tr><tr><td style="text-align:left">7</td><td style="text-align:left">MASTER-PLAN §Block 0</td><td style="text-align:left">~1.5 h is achievable at ~80 minutes <strong>only</strong> because S1, S3 and S4 are unattended batch runs. Written as five sequential spikes it is closer to 3 h.</td><td style="text-align:left">The schedule, and the de-scope order</td></tr></tbody></table></div>
+  </main>
+</div>

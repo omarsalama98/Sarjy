@@ -70,7 +70,7 @@ Substring assertions work here only *because* of the architecture: the model nev
 
 ### The stack, in one line each
 
-Groq `whisper-large-v3-turbo` (batch) · Gemini `gemini-3.5-flash-lite` (tools, `thinking_level: minimal`, `store=False`) · Gemini `gemini-3.1-flash-tts-preview` voice **Sulafat** · `modal.Dict` for memory · Travel Buddy for visas, **120 requests total, ever**.
+Groq `whisper-large-v3-turbo` (batch) · Gemini `gemini-3.5-flash-lite` (tools, `thinking_level: minimal`, `store=False`) · **Deepgram `aura-2` for English TTS, Groq `orpheus-arabic-saudi` for Arabic** · `modal.Dict` for memory · Travel Buddy for visas, **120 requests total, ever**.
 
 ### The three things that can still break it
 
@@ -165,22 +165,35 @@ A second completion to re-litigate a *fact* costs more than it saves. A second c
 | STT | Groq `whisper-large-v3-turbo` | Batch, ~216× real-time. Free tier 20 RPM / 2,000 RPD — not a constraint |
 | LLM | Gemini `gemini-3.5-flash-lite` | ✅ verified stable, function calling supported, free on free tier, no announced shutdown |
 | LLM failover | Groq `openai/gpt-oss-20b` | ⚠️ **no parallel tool calls** — see §Failover |
-| TTS | Gemini `gemini-3.1-flash-tts-preview`, voice **Sulafat** | ✅ verified: 24 kHz 16-bit mono PCM, Arabic, and the **only** Gemini TTS model that streams |
+| TTS (English) | **Deepgram `aura-2-thalia-en`** | $200 credit ≈ 6.7M chars, no card. WebSocket streaming, **raw PCM s16le @ 24 kHz** straight into the AudioContext. Replaced Gemini TTS — see §Why TTS moved |
+| TTS (Arabic, P2) | **Groq `canopylabs/orpheus-arabic-saudi`** | Genuine Saudi dialect, 6 voices, key already held. ⚠️ **200-char cap per request** |
 | Deploy | Modal, `@modal.asgi_app()` + `@modal.concurrent` | Python-native, credit in hand |
 | Memory | **`modal.Dict`** | ✅ verified durable across redeploys. See §Memory |
 
 **Available accounts:** Groq, Gemini, Modal (~$30/mo), Hugging Face. No Deepgram, ElevenLabs, Cartesia or Speechmatics.
+
+### Why TTS moved off Gemini — measured 2026-09-19
+
+The day-1 spike found **undocumented free-tier caps on `gemini-3.1-flash-tts-preview`**, taken from Google's own quota ids: **10 requests per day** (`GenerateRequestsPerDayPerProjectPerModel-FreeTier`) and **3 per minute**, shared across `generateContent` and `interactions`. At two TTS calls per turn that is **five conversational turns a day** — the demo script alone is six beats.
+
+Measured TTFB was also **1.1–1.4 s**, roughly 3× the estimate, which pushed first-audio-out to ~3.0–3.4 s and threatened the opener design. And near the rate limit, calls did not cleanly 429 — one returned *successfully* after **48 seconds**, which would fool any naive timeout budget.
+
+Deepgram fixes all three: quota, latency, and format. **Arabic is the one thing it does not do**, which is why the P2 path is Groq — English on Deepgram, Arabic on Groq, one `TTSProvider` interface. That is Invariant 3 doing exactly the job it was written for, and it is a better walkthrough answer than a single vendor would have been.
+
+⚠️ **Deepgram's <200 ms is a published vendor figure, not one we measured.** We have rejected unverified vendor numbers from every other provider in this project; hold this one to the same standard and measure it in Block 2.
 
 ### Provider traps, verified 2026-09-19
 
 - **`thinking` is on by default and cannot be turned off.** `gemini-3.5-flash-lite` defaults to `thinking_level: "minimal"`; levels are `minimal`/`low`/`medium`/`high` and docs state *"minimal does not guarantee that thinking is off."* Pin it explicitly on **every** call — it is interaction-scoped and is *not* carried by `previous_interaction_id`. Same for `tools` and `system_instruction`.
 - 🪤 **Google's docs contradict each other on the streaming argument field.** The function-calling page samples `delta.type == "arguments"` / `partial_arguments`; the streaming page and the API reference say **`arguments_delta`** with field `arguments`. **Trust the reference.** The wrong one gives a loop that silently matches nothing — no error, no output, no clue.
 - **`responseSchema` is deprecated**, as are `temperature`/`top_p`/`top_k` (2026-07-21, *"will be ignored"* on this model). **You cannot get determinism from the model** — which is why the assertion tests assert on gate-substituted values (§Testing).
-- **TTS has no continuity primitive.** No session, no acoustic context, no working seed. Docs warn *"output may not always strictly match the selected speaker."* This is why we make **two** TTS requests per turn, not five (§Latency budget).
-- **TTS randomly 500s.** Docs: *"The model occasionally returns text tokens instead of audio tokens, causing the server to fail the request with a 500 error… implement automated retry logic."* Also `PROHIBITED_CONTENT` false rejections on vague prompts, and quality drift past a few minutes.
-- ⚠️ **Override the SDK retry defaults.** Google's Python SDK retries up to four times with backoff to **60 seconds**. Inside a voice turn that is a hung demo. One retry, ~250 ms, then fail visibly.
-- **No SSML.** Style comes from natural-language prompt plus inline audio tags (`[whispers]`, `[very slow]`), and Google advises keeping tags **in English even for non-English transcripts**.
-- **Groq TTS is back in play**: `canopylabs/orpheus-arabic-saudi` ("authentic Saudi dialect synthesis"), free tier, **10 RPM / 100 RPD** — the tightest quota in the project. Sample rate, streaming and TTFB undocumented. P2 stretch only.
+- 🪤 **Deepgram: `container=none` is mandatory.** It defaults to `wav` even for `linear16`, which puts a WAV header on **every chunk of a stream** and corrupts playback. Full query string: `?model=aura-2-thalia-en&encoding=linear16&container=none&sample_rate=24000`.
+- **Deepgram's mp3 sample rate is fixed at 22050 Hz** and not configurable. Only `linear16`/`mulaw`/`alaw`/`flac` let you choose the rate. Use `linear16`.
+- 🪤 **Groq has a 200-character cap per TTS request**, documented only on the individual model pages and not on the main TTS page. A 400-char answer costs two or three requests. Segment on sentence boundaries with a hard 200-char split.
+- **Groq TTS `sample_rate` defaults to 48000**, and `response_format` differs between the API reference (`mp3`) and the TTS guide (`wav`). **Set both explicitly.**
+- ⚠️ **Groq TTS streaming is undocumented** — no `stream` parameter exists in the API reference. Assume a complete file comes back. With a 200-char cap that is a ≤10 s clip, so buffering is acceptable; do not architect assuming chunks arrive.
+- ⚠️ **Override every SDK's retry defaults.** Google's Python SDK retries up to four times with backoff to **60 seconds** — inside a voice turn that is a hung demo. One retry, ~250 ms, then fail visibly. Apply the same rule to every provider client.
+- **Voice selection is now a Deepgram voice, not Sulafat.** The Aura-2 shortlist has not been listened to yet; `aura-2-thalia-en` is a placeholder. Pick it by ear in Block 2 and record the choice in `docs/measurements/`.
 - **Gemini free-tier limits are unpublished and explicitly unguaranteed.** One third-party measurement puts flash-lite at 15 RPM / 500 RPD. **Cannot be cited**; build quota handling into the LLM adapter as we did for the vendor.
 - **EEA / Switzerland / UK:** free tier is contractually unavailable for API clients served to users there. Our deployed URL goes to a reviewer whose location we do not control. **Documented in the writeup as a known limitation.**
 - **Free-tier input trains Google.** We set `store=False` — nothing retained. Stateless mode is strict: every model step must be resent verbatim, thought signatures included.
@@ -219,7 +232,8 @@ What costs hours is *code-switching* (a Unicode script-range tagger between gate
 
 **Two things that will bite, both known in advance:**
 - **Script the demo in Egyptian, never Gulf.** WER: MSA ~10 → Levantine ~24 → Egyptian ~35 → **Gulf ~68**. Saying the Gulf number out loud is a better demo beat than avoiding it — and it is exactly why a company like Sarj trains its own models.
-- ⚠️ **Voice labels are English-flavoured and nothing says they hold in Arabic.** Listen to Sulafat, Vindemiatrix and Rasalgethi in both languages; record it in `docs/measurements/`.
+- **Arabic output is Groq `canopylabs/orpheus-arabic-saudi`** — genuine Saudi dialect, six voices, on a key already held. Deepgram Aura-2 has no Arabic at all, so this is not a preference, it is the only path. ⚠️ **200-char cap per request** and streaming is undocumented; assume a complete file and buffer. Listen to the six voices and record the choice in `docs/measurements/`.
+- **A nice consequence worth saying out loud:** English and Arabic now come from different vendors behind one `TTSProvider` interface. That is Invariant 3 paying for itself rather than being an abstraction we asserted was useful.
 
 **RTL:** `dir="auto"` uses Unicode first-strong, not dominant script — one leading English word locks a caption line LTR, and direction can flip mid-stream. Compute direction per line from dominant script and freeze on first flush.
 
@@ -256,7 +270,8 @@ The inference chains two documented facts: *"WebSockets on Modal maintain a sing
 
 ### Two more deployment facts
 
-- 🚨 **`routing_region` cannot be changed after the first deploy** — *"a new Function should be created."* Default `us-east`; **there is no Middle East routing region**. Deploy twice on day 1 and time a turn through `us-east` and `eu-west` before committing. ⚠️ The measurement is from Omar's location, not the reviewer's — a useful proxy, named as such.
+- 🚨 **`routing_region` is fixed per Function once deployed** — changing it means a new Function, and therefore a new URL. **The real deadline is therefore "before the URL is shared with Sarj", not "before the first deploy"** — a new Function is cheap until the URL is committed to. Default `us-east`; **there is no Middle East routing region**. ⚠️ **Not a parameter in the installed client (1.4.2)**; it needs `modal >= 1.5.5`. Note that `region=` is a different thing — it constrains where the *container runs*, not where the request enters.
+- ⚠️ **The region A/B must measure both legs.** Browser↔app is one of roughly six network legs on a turn — the others are Modal↔Groq and Modal↔Gemini (×4), and they move in the *opposite* direction when the app relocates. Measuring only the first leg produces a number that argues for the wrong choice with apparent rigour. Decision rule: minimise `median(browser↔app) + 4 × median(app↔provider)`. Measured from Omar's location, not the reviewer's — a sanity check on the geographic prior, not a discovery.
 - **Preemption is not optional to handle.** *"All Modal Functions are subject to preemption by default… likelihood of interruption increases with Function run duration."* A voice conversation is long-running by definition. **The client needs reconnect-and-resume regardless of `timeout=`.**
 
 ## The external data layer
@@ -383,24 +398,39 @@ Keeping it separate protects the segmenting prompt — which *is* the deep dive,
 
 ## Latency budget
 
-> ⚠️ **Derived estimates, not measurements.** TTS TTFB is the largest unknown — no published Google figure, no third-party benchmark, and forum reports spanning sub-2 s to 10–20 s on this model within three weeks. **Every figure here gets replaced after the day-1 spike.**
+> ✅ **Partially replaced by the day-1 spike, 2026-09-19** — full detail and provenance in
+> `docs/measurements/day1-spikes.md`. TTS and LLM-call-1 figures below are now measurements,
+> not derivations, but at **n=1–3**, not a production-representative sample: a previously
+> unknown **10-requests/day** free-tier cap on `gemini-3.1-flash-tts-preview` cut S3's planned
+> n=5 batch short after the first rep. Endpointing is still an estimate — S5 needs a human at a
+> browser and was handed off, not completed, this run. **Re-measure TTS at full n once the daily
+> quota resets, and replace the endpointing estimate once S5's VAD numbers come back.**
 
 ### The chain
 
-| Stage | Est. | Note |
-|---|---|---|
-| Endpointing | ~600 ms | Pure waiting. A product decision, not a technical cost |
-| STT | ~300 ms | Groq runs ~216× real-time; almost entirely network |
-| LLM call 1 → `update()` arguments parsed | ~400 ms | Includes a `thought` step, which is always emitted |
-| TTS #1 first byte | ~500 ms | ⚠️ unverified |
-| **→ first audio out** | **~1.8 s** | **What the user actually experiences** |
-| *— everything below runs underneath that audio —* | | |
-| Vendor round trip | 300–800 ms | Zero on a cache hit |
-| LLM call 2, complete generation | ~800 ms | The gate needs complete segments |
-| Gate | < 5 ms | Deterministic substitution |
-| TTS #2 first byte | ~500 ms | ⚠️ unverified |
+| Stage | Was | Now | Note |
+|---|---|---|---|
+| Endpointing | ~600 ms | ~600 ms (still an estimate) | S5 not yet run by a human — see `day1-spikes.md` §Open |
+| STT | ~300 ms | ~300 ms (still an estimate) | Out of Block 0's scope — no Groq call happens here |
+| LLM call 1 → `update()` arguments parsed | ~400 ms | **~1.1–1.5 s, measured** | S4, n=3: median `update()` args-complete at 1.336 s from request start. The ~400 ms estimate was roughly 3x too low — most of this is pre-first-step network + thinking overhead, not the `update()` step itself, which is fast once it starts (~85 ms of that total) |
+| TTS #1 first byte | ~500 ms | **~200 ms — vendor claim, UNMEASURED** | ⚠️ Deepgram's published figure. **Measure it in Block 2 before quoting it.** The 1.1–1.4 s measured in S3 was Gemini TTS, which we have since dropped — see §Why TTS moved |
+| **→ first audio out** | **~1.8 s** | **~2.4 s, re-derived after the TTS switch** | Was ~3.0–3.4 s on Gemini TTS. **Still misses the ≤1.8 s target by ~0.6 s**, and the dominant remaining term is now **LLM call 1 at ~1.3 s** — of which only ~85 ms is the `update()` step itself; the rest is network plus thinking overhead before the first step arrives. A pre-generated opener clip, played the instant endpointing fires, would cut first-audio-out to ~650 ms — and costs nothing in fidelity, because the opener contract already forbids it from saying anything substantive. **Open design question for Block 4.** This is the block's second-most consequential finding after S1. Re-derive once endpointing is measured and TTS is re-run at full n — but do not expect this to fall back under 1.8s without a design change (e.g. a shorter/simpler opener prompt to cut LLM-call-1 time, or accepting the higher number and re-scripting the demo narrative around it) |
+| *— everything below runs underneath that audio —* | | | |
+| Vendor round trip | 300–800 ms | 300–800 ms (still an estimate) | Block 5 territory, not touched here |
+| LLM call 2, complete generation | ~800 ms | ~800 ms (still an estimate) | Not measured — S4 only exercised the two-function-call turn, not the NDJSON follow-up completion |
+| Gate | < 5 ms | < 5 ms (still an estimate) | Not built yet |
+| TTS #2 first byte | ~500 ms | **~200 ms — vendor claim, UNMEASURED** | Same source and caveat as TTS #1. One thing worth carrying over from the Gemini measurements: TTFB did **not** scale with text length, only total generation time did. Re-check that holds on Deepgram |
 
-**The opener is ~1.5–2.5 s of speech. Underneath it we need ~1.6–2.5 s.** It fits — which is the entire argument for this architecture.
+**Revised: does the opener still hide the hidden work?** Opener speech duration is ~1.5–2.5 s
+(unchanged — a function of text length and TTS speech rate, not of TTFB). Hidden work is now
+vendor (300–800) + call 2 (~800) + TTS #2 first byte (**~1.1–1.4 s measured**, not 500 ms) ≈
+**2.2–3.0 s needed**, against **1.5–2.5 s available**. ⚠️ **These may no longer reliably fit.**
+At the low end (2.2 s needed vs 2.5 s available) it still works; at the high end it does not —
+the answer may not be ready when the opener finishes, meaning a brief silence before call 2's
+audio starts. This did not need re-deriving before the TTS number was measured; it does now.
+Options, not decided here: a slightly longer/more elastic opener phrase, or accept and script
+around a short pause. **Flag for Omar — this is a real design question, not a measurement
+detail.**
 
 | Turn | Perceived first sound | Gap before the answer |
 |---|---|---|
@@ -541,10 +571,42 @@ Ordered so that **whatever falls off the end is what you can write up** — neve
 
 ## Open — technical
 
-- **Does the 150 s HTTP timeout survive a WebSocket upgrade?** Not documented either way. Day-1 spike.
-- **TTS time-to-first-byte.** No published figure anywhere. Day-1 spike, and it can invalidate the latency budget.
-- ⚠️ **Parallel function calling on `gemini-3.5-flash-lite` specifically.** Documented generically and demonstrated only on `gemini-3.8-flash`. **Measure before committing to the opener.**
-- **Does a `function_result` have to be returned for the `update()` call?** Every documented example returns one per call; an unanswered call may invalidate the turn.
+- ✅ **ANSWERED, 2026-09-19 (`day1-spikes.md` S1): the 150 s HTTP timeout does not survive a
+  WebSocket upgrade, and it's worse than that** — both an idle connection and one with a
+  client-side protocol heartbeat died client-side somewhere in (5 s, 160 s], corroborated by a
+  control test against an unrelated WebSocket service on the same network that survived past
+  200 s. **Both arms dead → the MASTER-PLAN trigger fires: switch to Fly.io before Block 1.**
+- ✅ **ANSWERED (partially), 2026-09-19 (`day1-spikes.md` S3): TTS time-to-first-byte is
+  ~1.1–1.4 s**, not the 500 ms estimate — at n=1–2 per arm, not the planned n=5, because of a
+  newly-discovered 10-requests/day free-tier cap (see below). Re-run at full n once quota
+  resets. This already changes §Latency budget's headline number; see that section.
+- ✅ **ANSWERED, 2026-09-19 (`day1-spikes.md` S4): yes, `gemini-3.5-flash-lite` emits both
+  `update` and `get_visa_requirements` in one response, 3/3 runs.** The opener stands. Caveat:
+  the two function-call steps stream sequentially, not concurrently (median name→args-complete
+  gap 111 ms, under the 150 ms line) — the lookup fires the instant call 1 finishes, not
+  literally mid-generation of `update()`'s own text. Adjust the "hidden under audio" framing
+  accordingly; the latency benefit is still real, just not exactly as first described.
+- **Does a `function_result` have to be returned for the `update()` call?** Attempted
+  (`day1-spikes.md` S4 Q3, resending the step sequence with a result for
+  `get_visa_requirements` only) and inconclusive — a generic "Invalid input received." Most
+  likely cause: `store=False` means the `thought` step (with its signature) also needs
+  resending verbatim, which the spike's reconstruction didn't do. **Still open** — budget more
+  than the spike's 5-minute cap in Block 4 if this needs a real answer.
+- ⚠️ **NEW, found while building S3 — not previously known:** `gemini-3.1-flash-tts-preview`'s
+  free tier caps at **10 requests/day** (`GenerateRequestsPerDayPerProjectPerModel-FreeTier`,
+  Google's own 429 payload), on top of a 3 RPM per-minute cap, and **both `generateContent` and
+  `interactions` draw from the same daily bucket.** At 2 TTS calls/turn that's ~5 turns/day
+  before TTS stops working entirely, project-wide. **This needs a decision before Block 2**: a
+  paid tier, a quota-increase request, or a fallback voice path. Bigger practical risk than the
+  latency number for the rest of this weekend's *development* velocity, separate from whatever
+  it means for the actual demo.
 - **Colour legend** — ~6 requests, before any answer depends on it.
 - **Does `language=ar` work on Travel Buddy?** Would materially cheapen P2.
-- **Interactions API vs `generateContent`.** Our two research passes disagreed: one found Interactions GA and recommended for new projects, the other found it Beta with a live breaking-change migration and `generateContent` recommended *"for stable production deployments."* Both stream on this model. **Decision: Interactions, pinned `Api-Revision: 2026-05-20`** — behind the adapter either way.
+- ✅ **Interactions API vs `generateContent` — confirmed live, 2026-09-19.** Both work; the
+  installed SDK (`google-genai` 2.24.0) defaults `Api-Revision` to `2026-05-20` already, matching
+  the pinned decision below. One inconsistency worth recording: `client.interactions.create`
+  rejects an explicit `response_format.mime_type` for TTS on this model (`audio/l16`, `audio/wav`,
+  `audio/mp3`, `audio/ogg_opus` all tried, all rejected as "not supported for
+  models/gemini-3.1-flash-tts-preview") — omitting `mime_type` (`{"type": "audio"}`) succeeds and
+  the server defaults to native `audio/l16` @ 24kHz. **Decision: Interactions, pinned
+  `Api-Revision: 2026-05-20`** — behind the adapter either way.

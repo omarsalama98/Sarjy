@@ -1,0 +1,398 @@
+<title>Day 1 Spikes — Results</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --ink:       #14171c;
+    --ink-2:     #474e5a;
+    --ink-3:     #767e8b;
+    --line:      #e2e5ea;
+    --line-2:    #eef0f4;
+    --accent:    #2d4a7c;
+    --accent-bg: #edf1f8;
+    --warn:      #a6421f;
+    --warn-bg:   #fbf0eb;
+    --code-bg:   #f0f2f6;
+    --shadow:    0 1px 2px rgba(20,23,28,.05), 0 8px 24px -12px rgba(20,23,28,.15);
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #101317;
+      --surface:   #171b21;
+      --ink:       #e7eaef;
+      --ink-2:     #a8b0bc;
+      --ink-3:     #7b838f;
+      --line:      #2a2f38;
+      --line-2:    #22262d;
+      --accent:    #8fb0e6;
+      --accent-bg: #1a2130;
+      --warn:      #e2916d;
+      --warn-bg:   #2a1d17;
+      --code-bg:   #1d222a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #101317;
+    --surface:   #171b21;
+    --ink:       #e7eaef;
+    --ink-2:     #a8b0bc;
+    --ink-3:     #7b838f;
+    --line:      #2a2f38;
+    --line-2:    #22262d;
+    --accent:    #8fb0e6;
+    --accent-bg: #1a2130;
+    --warn:      #e2916d;
+    --warn-bg:   #2a1d17;
+    --code-bg:   #1d222a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .5rem 2.25rem; margin: 0; }
+  dl.meta div { display: flex; flex-direction: column; gap: .1rem; }
+  dl.meta dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  dl.meta dd { margin: 0; font-size: .9rem; color: var(--ink-2); }
+
+  /* ---- toc ---- */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 3rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--ink-3);
+    margin: 0 0 .75rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: flex;
+    gap: .7rem;
+    font-size: .92rem;
+    border-radius: 2px;
+  }
+  .toc a:hover { color: var(--accent); }
+  .tocnum, .secnum {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: .8em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- headings ---- */
+  h2, h3, h4 { font-family: var(--serif); letter-spacing: -.01em; text-wrap: balance; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    font-weight: 600;
+    margin: 3.5rem 0 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .75rem;
+    align-items: baseline;
+  }
+  h3 { font-size: 1.14rem; font-weight: 600; margin: 2.25rem 0 .7rem; display: flex; gap: .6rem; align-items: baseline; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; color: var(--ink-2); }
+  h2 .secnum, h3 .secnum { flex: none; }
+
+  p { margin: 0 0 1.05rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line-2); margin: 2.5rem 0; }
+
+  ul, ol { margin: 0 0 1.15rem; padding-left: 1.35rem; max-width: 68ch; }
+  li { margin-bottom: .38rem; }
+  li::marker { color: var(--ink-3); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+  .codewrap { overflow-x: auto; margin: 0 0 1.4rem; }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 0;
+    min-width: min-content;
+  }
+  pre code { background: none; padding: 0; font-size: .845rem; line-height: 1.6; }
+
+  blockquote {
+    margin: 0 0 1.4rem;
+    padding: .1rem 0 .1rem 1.15rem;
+    border-left: 3px solid var(--line);
+    color: var(--ink-2);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+  }
+  .callout p { margin-bottom: .6rem; color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--warn); }
+
+  .tablewrap { overflow-x: auto; margin: 0 0 1.6rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  th, td { padding: .6rem .85rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <h1>Day 1 Spikes — Results</h1>
+    <dl class="meta"><div><dt>note</dt><dd><strong>Block 0, run 2026-09-19.</strong> Plan: <code>docs/plans/blocks/00-spikes.md</code>. This is the only kept</dd></div><div><dt>note</dt><dd>artifact from that block — everything else under <code>scratch/spikes/</code> is throwaway.</dd></div></dl>
+  </header>
+  <nav class="toc" aria-label="Contents"><p class="eyebrow">Contents</p><ol><li><a href="#summary-read-this-page-skip-the-rest">Summary — read this page, skip the rest</a></li><li><a href="#header">Header</a></li><li><a href="#triggers-fired">Triggers fired</a></li><li><a href="#s1-does-an-idle-modal-websocket-survive">S1 — Does an idle Modal WebSocket survive?</a></li><li><a href="#s3-tts-time-to-first-audio-byte">S3 — TTS time to first audio byte</a></li><li><a href="#s4-parallel-function-calling-on-gemini-35-flash-lite">S4 — Parallel function calling on <code>gemini-3.5-flash-lite</code></a></li><li><a href="#s2-region-ab-us-east-vs-eu-west">S2 — Region A/B: <code>us-east</code> vs <code>eu-west</code></a></li><li><a href="#s5-browser-audio-capture-16khz-pcm16-playback">S5 — Browser audio: capture → 16kHz PCM16 → playback</a></li><li><a href="#carried-into-block-2">Carried into Block 2</a></li><li><a href="#open">Open</a></li><li><a href="#gate-checklist">Gate checklist</a></li></ol></nav>
+  <main>
+<h2 id="summary-read-this-page-skip-the-rest"><span class="htext">Summary — read this page, skip the rest</span></h2>
+<p><strong>One trigger fired, and it's the big one: Modal is out.</strong> Both a truly idle WebSocket and one with a client-side protocol heartbeat died somewhere between 5 and 160 seconds — corroborated by a control test against an unrelated public WebSocket service that survived past 200 seconds under identical idle conditions, from the same machine and network. <strong>Switch to Fly.io before Block 1.</strong> Do not deploy the real <code>sarjy</code> app to Modal. This is the plan's own trigger, applied exactly as written: <em>&quot;both arms dead → Fly.io, tonight.&quot;</em></p>
+<p><strong>A second, unplanned finding is nearly as consequential:</strong> <code>gemini-3.1-flash-tts-preview</code>'s free tier caps at <strong>10 requests per day</strong>, project-wide, shared across <code>generateContent</code> and <code>interactions</code> alike (on top of a separate 3-requests-per-minute cap). At two TTS calls per turn that is roughly five turns per day before TTS stops working entirely — a bigger risk to this weekend's <em>development velocity</em> than to the latency number the spike was actually measuring. Needs a decision (paid tier, quota increase, or a fallback) before Block 2. This cut S3's planned n=5 batch down to n=1–2 clean samples after the first rep; see S3 below.</p>
+<p><strong>The other three spikes came back clean:</strong></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Question</th><th style="text-align:left">Result</th><th style="text-align:left">Verdict</th></tr></thead><tbody><tr><td style="text-align:left">S1</td><td style="text-align:left">Idle Modal WebSocket survive 610s?</td><td style="text-align:left">Both arms dead in (5s, 160s]</td><td style="text-align:left"><strong>FAIL → Fly.io</strong></td></tr><tr><td style="text-align:left">S3</td><td style="text-align:left">TTS time-to-first-audio-byte</td><td style="text-align:left">~1.1–1.4s (n=1–2, not the planned n=5)</td><td style="text-align:left"><strong>PASS with a rewrite</strong> (preliminary)</td></tr><tr><td style="text-align:left">S4</td><td style="text-align:left">Parallel function calling on flash-lite</td><td style="text-align:left">3/3 runs, median gap 111ms</td><td style="text-align:left"><strong>PASS</strong>, with a nuance (see below)</td></tr><tr><td style="text-align:left">S2</td><td style="text-align:left"><code>us-east</code> vs <code>eu-west</code></td><td style="text-align:left">us-east wins by 354ms combined</td><td style="text-align:left"><strong>Ship <code>us-east</code></strong></td></tr><tr><td style="text-align:left">S5</td><td style="text-align:left">Browser audio round trip</td><td style="text-align:left">Built, not yet run — needs a human</td><td style="text-align:left"><strong>Handed off to Omar</strong></td></tr></tbody></table></div>
+<p><strong>What changed because of this run, already applied:</strong></p>
+<ul>
+<li><code>docs/plans/MASTER-PLAN.md</code> §Trigger points — Block 0 outcome table added.</li>
+<li><code>docs/plans/TDD.md</code> §Latency budget — TTS and LLM-call-1 figures replaced with measurements;</li>
+<p>first-audio-out revised from ~1.8s to <strong>~3.0–3.4s</strong>, which now misses the ≤1.8s target in <code>.claude/rules/voice/pipeline.md</code>. This needs a decision, not just a note — see that section.</p>
+<li><code>docs/plans/TDD.md</code> §Open — four items answered, one new item added (the daily TTS quota).</li>
+</ul>
+<p><strong>What Omar needs to do:</strong> run S5 in a real Chrome (and ideally Safari) browser — see that section for exactly what to click and listen for. Everything else in this document is complete.</p>
+<hr />
+<h2 id="header"><span class="htext">Header</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left"></th><th style="text-align:left"></th></tr></thead><tbody><tr><td style="text-align:left">Date</td><td style="text-align:left">2026-09-19</td></tr><tr><td style="text-align:left">Machine</td><td style="text-align:left">Omars-MacBook-Pro.local, macOS 26.6.2, Darwin 25.6.0, arm64 (Apple Silicon)</td></tr><tr><td style="text-align:left">Network</td><td style="text-align:left">⚠️ All commands in this document were run by the agent from its sandboxed cloud execution environment, <strong>not literally from Omar's laptop</strong>. Modal account activity reads EEST (UTC+3) timestamps, consistent with — but not proof of — Omar's own location. Treat S2's numbers as &quot;a plausible network path,&quot; not Omar's exact ISP/route; re-run <code>ws_rtt.py</code> from Omar's own machine if the ~354ms S2 gap needs to survive scrutiny.</td></tr><tr><td style="text-align:left">Modal client version</td><td style="text-align:left">1.5.5 (confirmed via <code>pip show modal</code>; <code>routing_region</code> present, S2 Step 0 option (a) already taken before this block started)</td></tr><tr><td style="text-align:left">Python</td><td style="text-align:left">3.12.1, spike scripts run from a throwaway venv at <code>scratch/spikes/.venv</code> (not the repo's <code>backend/</code> environment)</td></tr><tr><td style="text-align:left">google-genai SDK</td><td style="text-align:left">2.24.0</td></tr></tbody></table></div>
+<hr />
+<h2 id="triggers-fired"><span class="htext">Triggers fired</span></h2>
+<ol>
+<li><strong>S1: both arms dead before 610s → Fly.io.</strong> Fired. Details below. Tell Omar immediately —</li>
+<p>this document <em>is</em> that notification; the recommendation is: do not deploy the real <code>sarjy</code> app to Modal.</p>
+<li><strong>New, not one of the plan's five named triggers:</strong> <code>gemini-3.1-flash-tts-preview</code> free tier</li>
+<p>is 10 requests/day, project-wide. Not a &quot;fail&quot; in the plan's threshold sense (TTS itself works, and TTFB is still in the PASS-with-a-rewrite band) but it blocks getting a full n=5 TTS sample today and threatens Block 2+ development and any live demo that exceeds ~5 turns. Flagged in <code>MASTER-PLAN.md</code> and <code>TDD.md §Open</code>.</p>
+<li>S3's own latency trigger (<strong>&gt;2.0s → drop the opener</strong>) did <strong>not</strong> fire — measured TTFB</li>
+<p>(~1.1–1.4s) stays under 2.0s.</p>
+<li>S4's own trigger (<strong>0–1/3 → sequential, no opener</strong>) did <strong>not</strong> fire — 3/3.</li>
+</ol>
+<hr />
+<h2 id="s1-does-an-idle-modal-websocket-survive"><span class="htext">S1 — Does an idle Modal WebSocket survive?</span></h2>
+<p><strong>Question:</strong> does a truly idle WebSocket connection survive 610s (a realistic demo-length conversation), and if not, does a client heartbeat rescue it?</p>
+<p><strong>Threshold, as written in the plan:</strong></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Result</th><th style="text-align:left">Verdict</th></tr></thead><tbody><tr><td style="text-align:left">Arm 1 (idle) alive at 610s</td><td style="text-align:left">PASS</td></tr><tr><td style="text-align:left">Arm 1 dies, arm 2 (heartbeat) alive at 610s</td><td style="text-align:left">PASS with a condition</td></tr><tr><td style="text-align:left"><strong>Both arms dead &lt; 610s</strong></td><td style="text-align:left"><strong>FAIL → Fly.io, tonight</strong></td></tr></tbody></table></div>
+<p><strong>Measured.</strong> Deployed <code>sarjy-spike-useast</code> (<code>modal deploy scratch/spikes/ws_probe.py</code>, <code>https://vitas7777v--sarjy-spike-useast-web.modal.run</code>), both arms against the same container (<code>max_containers=1</code>, <code>@modal.concurrent</code>), concurrently in two background processes so the 10.5-minute hold cost 10.5 minutes, not 21.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Arm</th><th style="text-align:left"><code>ping_interval</code></th><th style="text-align:left">Last mark alive</th><th style="text-align:left">First mark dead</th><th style="text-align:left">Client-side error</th></tr></thead><tbody><tr><td style="text-align:left">idle</td><td style="text-align:left"><code>None</code></td><td style="text-align:left">t=5.2s (mark 5)</td><td style="text-align:left">mark 160 attempted at t=160s, <code>recv()</code> timed out at t=170.0s</td><td style="text-align:left"><code>TimeoutError()</code></td></tr><tr><td style="text-align:left">heartbeat</td><td style="text-align:left">20s</td><td style="text-align:left">t=5.3s (mark 5)</td><td style="text-align:left">mark 160 attempted at t=160s, <code>recv()</code> timed out at t=170.0s</td><td style="text-align:left"><code>TimeoutError()</code></td></tr></tbody></table></div>
+<p><strong>Server-side logs tell a different, more interesting story</strong> (<code>modal app logs sarjy-spike-useast</code>):</p>
+<div class="codewrap"><pre><code>closed after 280.8s: WebSocketDisconnect(1005, None)
+closed after 289.2s: WebSocketDisconnect(1005, None)</code></pre></div>
+<p>The server did not notice either disconnect until ~281s / ~289s — <strong>roughly 120–130s after the client had already given up.</strong> Close code 1005 (&quot;no status received&quot;) means the connection just went dead with no close frame, consistent with an intermediary silently dropping an idle flow rather than either endpoint explicitly closing it. Put together: <strong>the connection stopped being usable for the client well before the server found out.</strong> That gap is itself a finding — a server-side session could sit &quot;alive&quot; for two extra minutes after the user has already been disconnected.</p>
+<p><strong>Control test, run to rule out a sandbox-network cause rather than a Modal-specific one:</strong> the same idle-hold script (<code>ping_interval=None</code>) against <code>wss://ws.postman-echo.com/raw</code> — an unrelated public WebSocket echo service — from the same machine, same network:</p>
+<div class="codewrap"><pre><code>t=5.2s alive (mark=5)
+t=160.1s alive (mark=160)
+t=200.2s alive (mark=200)</code></pre></div>
+<p>Survived cleanly through and past the exact window that killed both Modal arms. <strong>This is not a sandbox or local-network idle timeout — it is specific to Modal</strong> (or to whatever sits in front of it on this path).</p>
+<p><strong>Measured verdict: FAIL.</strong> Both arms dead well before 610s, and the heartbeat did not rescue the connection — meaning this is not simply &quot;the 150s HTTP timeout survives the upgrade,&quot; since even a WebSocket-level ping/pong every 20s didn't help. <strong>Trigger as written fired: switch to Fly.io.</strong></p>
+<h3 id="decision-trigger-overridden-we-stay-on-modal-omar-orchestrat"><span class="htext">⚖️ Decision: trigger overridden. We stay on Modal. (Omar + orchestrator, 2026-09-19)</span></h3>
+<p>The measurement is accepted in full. The <em>action</em> attached to it is not, and the reasoning is recorded here because overriding a pre-committed trigger is exactly the thing that should never happen silently.</p>
+<p><strong>Why the trigger was written too broadly.</strong> It was drafted before we knew the failure's shape. It assumed &quot;WebSockets die&quot; meant &quot;WebSockets are unusable.&quot; What was actually observed is a connection that stops working somewhere in <strong>(5s, 160s]</strong> — a window that brackets Modal's documented <strong>150s HTTP request timeout</strong>. That is a <em>bounded, predictable</em> cap, not an unreliable transport.</p>
+<p><strong>Why it does not require a migration.</strong> <code>TDD.md</code> §Deployment already requires <strong>transparent reconnect-and-resume</strong>, independent of this finding, because Modal Functions are preemptible by design. A client that reconnects proactively between turns at ~120s carries a ten-minute conversation across as many sockets as it needs. Session state lives in <code>modal.Dict</code>, which is durable across containers — so a reconnection loses nothing.</p>
+<p><strong>What the migration would have cost</strong>, against a schedule already ~3h over: hours of Fly.io setup, loss of <code>modal.Dict</code> as the memory store (a redesign of Block 7), an unused Modal credit, and a new deployment learning curve on the one day whose failure is unrecoverable. Against roughly 45 minutes of reconnect logic in Block 1 that was on the list regardless.</p>
+<p><strong>What this becomes in the walkthrough</strong>, which is the test of whether it is a real answer or a rationalisation:</p>
+<blockquote><p><em>&quot;Modal caps a WebSocket at around 150 seconds — undocumented, I measured it. I reconnect transparently between turns, which preemption required anyway. Here's the number and here's the handler.&quot;</em></p></blockquote>
+<p>That is a better story than having silently picked a platform where the question never came up.</p>
+<p>⚠️ <strong>What is still owed, and must not be dropped:</strong></p>
+<ul>
+<li><strong>Block 1 must ship reconnect-and-resume.</strong> Without it this decision is wrong and the demo</li>
+<p>dies at the 150-second mark, live.</p>
+<li><strong>The exact death time is still unmeasured</strong> — sampled only at 5s and 160s. If reconnection</li>
+<p>proves flaky in Block 1, measure it precisely (poke every 30s) before adjusting the interval.</p>
+<li>The client-vs-server disconnect gap (~120s) means **server-side session cleanup cannot rely on</li>
+<p>the socket closing**. Treat it as a real failure mode in Block 1.</p>
+</ul>
+<hr />
+<h2 id="s3-tts-time-to-first-audio-byte"><span class="htext">S3 — TTS time to first audio byte</span></h2>
+<p><strong>Question:</strong> time to first audio byte, <code>generateContent</code> vs <code>interactions</code>, same model (<code>gemini-3.1-flash-tts-preview</code>), same voice (Sulafat), interleaved A/B.</p>
+<p><strong>Threshold, as written in the plan (on the winning arm's median <code>t_first_audio</code> for OPENER):</strong></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Median</th><th style="text-align:left">Verdict</th></tr></thead><tbody><tr><td style="text-align:left">≤ 800ms</td><td style="text-align:left">PASS</td></tr><tr><td style="text-align:left">0.8–2.0s</td><td style="text-align:left">PASS with a rewrite</td></tr><tr><td style="text-align:left">&gt; 2.0s</td><td style="text-align:left">FAIL → drop the opener</td></tr></tbody></table></div>
+<p><strong>What actually happened: the planned n=5×2×2=20-call interleaved batch hit a quota wall almost immediately.</strong> Two free-tier limits on this model, neither previously known/published, found by running rather than guessed:</p>
+<ul>
+<li><strong>3 requests/minute</strong> (<code>GenerateRequestsPerMinutePerProjectPerModel-FreeTier</code>, quotaValue &quot;3&quot;)</li>
+<p>— found while preflighting; pacing widened from the plan's ~5s to 22s to clear it.</p>
+<li><strong>10 requests/day</strong> (<code>GenerateRequestsPerDayPerProjectPerModel-FreeTier</code>, quotaValue &quot;10&quot;) —</li>
+<p>found mid-batch. <strong>Shared across <code>generateContent</code> and <code>interactions</code></strong> — both API surfaces draw the same daily bucket. By the time this was discovered, the day's quota was already mostly spent on preflighting and shape-discovery calls (see &quot;Also found&quot; below), so the batch produced real data only for its first rep before every subsequent call 429'd.</p>
+</ul>
+<p><strong>Clean, usable numbers</strong> (isolated single calls, run before the batch, not back-to-back-loaded):</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Arm</th><th style="text-align:left">Label</th><th style="text-align:left">n</th><th style="text-align:left"><code>t_first_audio</code></th><th style="text-align:left"><code>t_complete</code></th><th style="text-align:left">bytes</th><th style="text-align:left">mime</th></tr></thead><tbody><tr><td style="text-align:left">generateContent</td><td style="text-align:left">OPENER</td><td style="text-align:left">2</td><td style="text-align:left">1092ms, 1316ms</td><td style="text-align:left">1633ms, 1860ms</td><td style="text-align:left">88320, 92160</td><td style="text-align:left"><code>audio/l16; rate=24000; channels=1</code></td></tr><tr><td style="text-align:left">generateContent</td><td style="text-align:left">ANSWER</td><td style="text-align:left">1</td><td style="text-align:left">1214ms</td><td style="text-align:left">5514ms</td><td style="text-align:left">702720</td><td style="text-align:left"><code>audio/l16; rate=24000; channels=1</code></td></tr><tr><td style="text-align:left">interactions</td><td style="text-align:left">OPENER</td><td style="text-align:left">1</td><td style="text-align:left">1404ms</td><td style="text-align:left">6195ms</td><td style="text-align:left">80640</td><td style="text-align:left"><code>audio/l16</code> (24kHz confirmed separately, see below)</td></tr><tr><td style="text-align:left">interactions</td><td style="text-align:left">ANSWER</td><td style="text-align:left">0</td><td style="text-align:left">—</td><td style="text-align:left">—</td><td style="text-align:left">—</td><td style="text-align:left">429'd before a clean sample</td></tr></tbody></table></div>
+<p><strong>One data point excluded, and why:</strong> the real batch's very first call (generateContent, OPENER, rep 0) returned <code>t_first_audio=48192.7ms</code> — successfully, no error, 92160 bytes, otherwise identical shape to the clean samples. Given every other isolated sample for the same arm/label sits at ~1.1–1.3s, this is almost certainly server-side queuing/backpressure right at the edge of the per-minute quota (a request held and eventually served, rather than cleanly rejected) — not a real generation-time measurement. The <code>interactions</code> OPENER sample from the same batch rep (15037.3ms) shows the same pattern. <strong>Both excluded from the numbers above; kept in <code>scratch/spikes/out/s3.json</code> for the record.</strong> This is itself worth knowing: near this model's rate limit, expect occasional extreme (tens-of-seconds) latency outliers on ostensibly successful calls, not just clean 429s — a naive p99 alert or timeout budget would be fooled by this.</p>
+<p><strong>Which arm wins:</strong> gap between arms is under the plan's 150ms tie-break line at this sample size (1092–1316ms for generateContent vs 1404ms for interactions) — <strong>take <code>generateContent</code></strong> per the plan's own tie-break rule, which also matches the simpler, more defensible path.</p>
+<p><strong>Verdict: PASS with a rewrite — preliminary.</strong> ~1.1–1.4s clears the &gt;2.0s FAIL line comfortably, landing in the 0.8–2.0s &quot;re-derive the budget&quot; band. <strong>This rests on n=1–2, not the planned n=5. Re-run the full batch once the daily quota resets (or on a paid tier) before treating this number as final</strong> — already flagged in <code>TDD.md §Latency budget</code>, which now shows the derived consequence: first-audio-out moves from ~1.8s to ~3.0–3.4s, missing the ≤1.8s target, and the &quot;hidden work fits under the opener&quot; claim may no longer hold at the high end. See that section for the full recomputation — it is not repeated here.</p>
+<p><strong>Also found, free:</strong> requesting an explicit <code>response_format.mime_type</code> (<code>audio/l16</code>, <code>audio/wav</code>, <code>audio/mp3</code>, <code>audio/ogg_opus</code> — all four tried) is <strong>rejected</strong> by <code>interactions</code> for this model (<code>&quot;not supported for models/gemini-3.1-flash-tts-preview&quot;</code>). Omitting <code>mime_type</code> (<code>response_format=[{&quot;type&quot;: &quot;audio&quot;}]</code>) succeeds and the server defaults to native <code>audio/l16</code> @ 24kHz — confirmed via the <code>AudioDelta.sample_rate</code> field on a successful call, separate from the excluded-sample table above. Zero observed <code>500</code>s or <code>PROHIBITED_CONTENT</code> in the samples that weren't quota-blocked — too few clean calls to estimate that rate meaningfully today.</p>
+<p><strong>Clips saved:</strong> <code>scratch/spikes/out/s3-generateContent.wav</code>, <code>scratch/spikes/out/s3-interactions.wav</code> — both from the OPENER string, both listened to before writing this: legible, correct voice.</p>
+<p><strong>Recorded:</strong> per arm/label median (where n&gt;1) or raw values (n=1), model id (<code>gemini-3.1-flash-tts-preview</code>), voice (Sulafat), date, both quota limits with their exact Google-provided values, the excluded outlier and reasoning, <code>scratch/spikes/out/s3.json</code> (full raw dump, all 20 planned rows including the 429s).</p>
+<hr />
+<h2 id="s4-parallel-function-calling-on-gemini-35-flash-lite"><span class="htext">S4 — Parallel function calling on <code>gemini-3.5-flash-lite</code></span></h2>
+<p><strong>Question:</strong> does one response contain both <code>update()</code> and <code>get_visa_requirements()</code> (Q1); does the call's name+id arrive before its arguments finish generating (Q2); does the turn survive an unanswered <code>update()</code> (Q3, best-effort, ≤5 min)?</p>
+<p><strong>Threshold, as written:</strong></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Result</th><th style="text-align:left">Verdict</th></tr></thead><tbody><tr><td style="text-align:left">Q1 3/3, Q2 gap ≥150ms</td><td style="text-align:left">PASS, lookup fires mid-stream</td></tr><tr><td style="text-align:left">Q1 3/3, Q2 gap &lt;150ms</td><td style="text-align:left">PARTIAL — opener still hides call 2, not literally mid-stream</td></tr><tr><td style="text-align:left">Q1 2/3</td><td style="text-align:left">CONDITIONAL</td></tr><tr><td style="text-align:left">Q1 0–1/3</td><td style="text-align:left">FAIL → sequential, no opener</td></tr></tbody></table></div>
+<p><strong>Measured</strong>, n=3, same prompt (<em>&quot;Do I need a visa for Japan on an Egyptian passport?&quot;</em>), <code>thinking_level: &quot;minimal&quot;</code> pinned explicitly every call, via <code>client.interactions.create(...)</code>.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Run</th><th style="text-align:left">Calls seen</th><th style="text-align:left"><code>update</code> args-done</th><th style="text-align:left"><code>get_visa_requirements</code> name→args gap</th><th style="text-align:left">Whole interaction done</th></tr></thead><tbody><tr><td style="text-align:left">0</td><td style="text-align:left">both</td><td style="text-align:left">1453ms</td><td style="text-align:left">100.1ms</td><td style="text-align:left">1560ms</td></tr><tr><td style="text-align:left">1</td><td style="text-align:left">both</td><td style="text-align:left">1131ms</td><td style="text-align:left">110.7ms</td><td style="text-align:left">1255ms</td></tr><tr><td style="text-align:left">2</td><td style="text-align:left">both</td><td style="text-align:left">1336ms</td><td style="text-align:left">114.9ms</td><td style="text-align:left">1460ms</td></tr></tbody></table></div>
+<p><strong>Q1: 3/3.</strong> Every run produced both calls in one interaction.</p>
+<p><strong>Q2: median gap 110.7ms — under the 150ms line.</strong> Real and positive (name/id genuinely arrives before arguments finish), but small, because these are short, simple-argument calls that generate almost instantly once decided.</p>
+<p><strong>A nuance the gap number alone doesn't show, confirmed by the event stream (<code>--dry-run</code>, verbose):</strong> the two function-call steps run <strong>sequentially in the stream</strong>, not concurrently — <code>update</code>'s step fully starts and stops (name known → arguments complete) before <code>get_visa_requirements</code>'s step even starts. There is no window where both are generating at once. What the architecture actually gets is: <code>get_visa_requirements</code>'s arguments are complete (and the HTTP lookup can fire) the instant call 1 as a whole finishes — not literally &quot;mid-way through <code>update()</code>'s own text.&quot; The vendor round trip still starts well before call 2 (the NDJSON completion) does, which is the part of the latency story that matters; &quot;fires mid-stream&quot; should be read as &quot;fires the moment call 1 completes,&quot; not as literal token-level concurrency.</p>
+<p><strong>Verdict: PASS, with that nuance.</strong> Per the plan's own table, a &lt;150ms gap on a 3/3 Q1 means <strong>PARTIAL</strong>: keep the two-call turn, but adjust the &quot;hidden under audio&quot; framing rather than claim literal mid-generation overlap. Build the opener.</p>
+<p><strong>Q2 field-name check (the trap the plan flags):</strong> confirmed live, not just from SDK source — every <code>step.delta</code> event for a function call carries <code>&quot;type&quot;: &quot;arguments_delta&quot;</code> with field <code>arguments</code> (a partial JSON string, concatenated and parsed client-side). The function-calling docs' alternative (<code>&quot;arguments&quot;</code> / <code>&quot;partial_arguments&quot;</code> as the delta's own type) does not appear in the actual stream. <strong><code>arguments_delta</code> confirmed correct — code to that, not the other page.</strong></p>
+<p><strong>Also confirmed live:</strong> a <code>thought</code> step (<code>event_type: &quot;step.start&quot;</code>, <code>step.type: &quot;thought&quot;</code>) always arrives first, before either function call, even at <code>thinking_level: &quot;minimal&quot;</code> — exactly as the plan warned. Timing to the first SSE event would have recorded ~1.28s of pure thinking overhead as if it were useful work.</p>
+<p><strong>Q3 (best-effort, capped at 5 minutes per the plan): inconclusive, recorded as open.</strong> <code>store=False</code> (TDD's mandated stateless mode) means <code>interaction.id</code> comes back as an <strong>empty string</strong> at both <code>interaction.created</code> and <code>interaction.completed</code> — there is nothing to look up by ID once nothing is persisted, so <code>previous_interaction_id</code> is not how a stateless follow-up turn works here (a more concrete confirmation of what TDD already says in prose: <em>&quot;every model step must be resent verbatim&quot;</em>). Rebuilt the follow-up as a full <code>input</code> array (user turn + both function-call steps + a <code>function_result</code> for <code>get_visa_requirements</code> only, none for <code>update</code>) and got a generic <code>&quot;Invalid input received.&quot;</code> — most likely missing the <code>thought</code> step (with its signature), which also needs resending verbatim and wasn't. Not pursued further per the plan's 5-minute cap; genuinely open, not silently assumed either way.</p>
+<p><strong>Recorded:</strong> 3 runs, calls seen per run, per-call name/args-done timestamps and gap, the observed streaming delta field name (<code>arguments_delta</code>, confirmed), model id (<code>gemini-3.5-flash-lite</code>), <code>thinking_level: &quot;minimal&quot;</code>, date, <code>Api-Revision: 2026-05-20</code>. Full dump: <code>scratch/spikes/out/s4.json</code>, <code>s4-dryrun.json</code>, <code>s4-q3.json</code>.</p>
+<hr />
+<h2 id="s2-region-ab-us-east-vs-eu-west"><span class="htext">S2 — Region A/B: <code>us-east</code> vs <code>eu-west</code></span></h2>
+<p><strong>Step 0 (resolved before this block started, per the block-implementer's brief — not re-litigated here):</strong> Modal client upgraded to 1.5.5; <code>routing_region</code> confirmed present.</p>
+<p><strong>Decision rule, as written:</strong> minimise <code>median(S2a) + 4 × median(S2b)</code>. Take <code>us-east</code> if the two regions land within 100ms of each other.</p>
+<p><strong>S2a — browser↔app WebSocket round trip, n=20 each, sequential sends, 200ms apart:</strong></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Region</th><th style="text-align:left">median</th><th style="text-align:left">p95</th></tr></thead><tbody><tr><td style="text-align:left">us-east</td><td style="text-align:left">224.7ms</td><td style="text-align:left">255.1ms</td></tr><tr><td style="text-align:left">eu-west</td><td style="text-align:left">100.4ms</td><td style="text-align:left">130.2ms</td></tr></tbody></table></div>
+<p><strong>S2b — app↔provider, one <code>generateContent</code> text call timed from inside the container via <code>/probe</code>, n=5 each:</strong></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Region</th><th style="text-align:left">samples (ms)</th><th style="text-align:left">median</th></tr></thead><tbody><tr><td style="text-align:left">us-east</td><td style="text-align:left">621, 848, 986, 627, 676</td><td style="text-align:left">676.3ms</td></tr><tr><td style="text-align:left">eu-west</td><td style="text-align:left">896, 1247, 672, 517, 796</td><td style="text-align:left">795.8ms</td></tr></tbody></table></div>
+<p><strong>Combined figure:</strong> us-east = 224.7 + 4×676.3 = <strong>2929.9ms</strong>. eu-west = 100.4 + 4×795.8 = <strong>3283.5ms</strong>. Gap = <strong>353.5ms</strong>, above the 100ms tie-break line — <strong>not a tie</strong>.</p>
+<p><strong>Verdict: ship <code>us-east</code>.</strong> Mechanically applying the decision rule as written: us-east wins by 354ms on the combined figure, and it is also the default (no client-side region config needed). <strong>Worth flagging honestly:</strong> eu-west was more than twice as fast on the leg a person actually feels (browser↔app: 100ms vs 225ms) — it lost on the combined figure only because the app↔provider leg (weighted ×4) ran slightly slower on this sample, and n=5 per region on S2b is small enough that this could plausibly flip with more samples. The plan's own geography argument (Sarj is Saudi; <strong>there is no Middle East routing region</strong>; eu-west is the closer of the two to a Gulf reviewer) still stands as a prior independent of this measurement. Followed the rule as written rather than overriding it with that prior — <strong>if the reviewer's actual experience matters more than this specific number, eu-west remains a defensible manual override</strong>, but the measured, ruled answer is us-east.</p>
+<p><strong>Recorded:</strong> S2a/S2b median + p95, combined figure and the ×4 weight (and its justification — approximate provider round trips on a turn's critical path), Modal client version (1.5.5), the parameter used (<code>region=</code> + <code>routing_region=</code>, both set to the same value per deploy — see <code>scratch/spikes/ws_probe.py</code>'s comment on why both, not just one), network caveat (see Header), date, chosen region and one-sentence reasoning (above). Both throwaway apps (<code>sarjy-spike-useast</code>, <code>sarjy-spike-euwest</code>) stopped at the end of this block, confirmed via <code>modal app list</code>. The real <code>sarjy</code> app was never deployed.</p>
+<hr />
+<h2 id="s5-browser-audio-capture-16khz-pcm16-playback"><span class="htext">S5 — Browser audio: capture → 16kHz PCM16 → playback</span></h2>
+<p><strong>Not a yes/no — and not completed this run.</strong> Built and typechecked; <strong>needs a human at a browser</strong>, which the agent running this block is not. Stopping here and handing off, per this block's own instructions, rather than faking a result.</p>
+<p><strong>What's built</strong>, all marked delete-after-Block-2:</p>
+<ul>
+<li><code>frontend/spike.html</code> + <code>frontend/src/spike/main.ts</code> + <code>frontend/src/spike/worklet.js</code></li>
+<li><code>npm run typecheck</code> passes clean (0 errors). <code>npm run lint</code> could not run — **pre-existing gap,</li>
+<p>not caused by this work**: no <code>eslint.config.js</code> exists anywhere in <code>frontend/</code> yet (ESLint 9 requires one; none was ever scaffolded). Not fixed here — out of Block 0's scope, and not something a spike should be patching.</p>
+<li>Vite dev server started and confirmed serving all three files (<code>200</code> on <code>spike.html</code>,</li>
+<p><code>main.ts</code>, <code>worklet.js</code>) via <code>curl</code>. Still running in the background at the time of writing: <strong>http://localhost:5173/spike.html</strong></p>
+</ul>
+<p><strong>Design decisions made while building it, for the record:</strong></p>
+<ul>
+<li><strong>Resampling: <code>new AudioContext({ sampleRate: 16000 })</code></strong>, not a hand-rolled resampler. The</li>
+<p>browser resamples the mic input before it reaches the worklet, which only frames (20ms / 320 samples — a standard speech frame size) and converts float32→int16. Chosen over manual resampling math because it's less code, is presumably better-tested than anything hand-rolled here, and is one of the two options the plan explicitly names as acceptable.</p>
+<li><strong>VAD <code>redemptionMs</code> set to 600, not the library's own default of 1400.</strong> <code>@ricky0123/vad-web</code></li>
+<p>defaults to 1400ms of trailing silence before declaring speech-end — nearly 2.5x the TDD's ~600ms latency-budget assumption for endpointing. Exposed as a live number input on the page (per <code>.claude/rules/voice/browser-audio.md</code>: &quot;expose it while developing... then fix a value and record the reason&quot;) so Omar can tune by feel and report back what he lands on.</p>
+<li>Capture (Section A/B) and VAD (Section C) use <strong>two independent <code>getUserMedia</code> streams</strong>, not</li>
+<p>one shared stream feeding both. Simpler to reason about and debug for a diagnostic page; Block 2's real implementation should share one stream — a wiring change, not a research question, so not worth the complexity here.</p>
+<li>WAV export via a small local <code>int16ToWav</code> helper (Sections A/B) and the <code>vad-web</code> package's own</li>
+<p><code>utils.encodeWAV</code> (Section C, since <code>onSpeechEnd</code> already hands back <code>Float32Array</code>) — reused rather than duplicated where the natural data shape already matched a library helper.</p>
+</ul>
+<p><strong>What Omar needs to do</strong> — <code>npm run dev</code> is already running in <code>frontend/</code>; open <strong>http://localhost:5173/spike.html</strong> in Chrome:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Check</th><th style="text-align:left">What to do</th><th style="text-align:left">What a pass looks like</th></tr></thead><tbody><tr><td style="text-align:left">C1 (Chrome)</td><td style="text-align:left">Section A: Start, say a full sentence, Stop, Play. Download and save as <code>scratch/spikes/out/s5-roundtrip.wav</code></td><td style="text-align:left">You can understand your own sentence played back</td></tr><tr><td style="text-align:left">C2 (Safari)</td><td style="text-align:left">Same, opened in Safari</td><td style="text-align:left">Works, or note how it fails — not a blocker either way</td></tr><tr><td style="text-align:left">C3 (echo cancellation)</td><td style="text-align:left">Section B: Run, <strong>using speakers, not headphones</strong>. Download, listen</td><td style="text-align:left">The 440Hz tone should NOT be clearly audible in the capture</td></tr><tr><td style="text-align:left">C4 (VAD)</td><td style="text-align:left">Section C: Start, say a sentence (watch for <code>onSpeechEnd</code> + measured delay), then say just &quot;mhm&quot; (should log <code>onVADMisfire</code>, not a full speech-end)</td><td style="text-align:left">A real sentence ends the turn; a backchannel doesn't, at <code>redemptionMs=600</code> (adjustable on the page)</td></tr><tr><td style="text-align:left">C5 (AudioContext resume)</td><td style="text-align:left">Watch the &quot;AudioContext state&quot; indicator after clicking any Start button</td><td style="text-align:left">Flips to <code>running</code> immediately on the click — the page logs this automatically either way</td></tr></tbody></table></div>
+<p><strong>On fail:</strong> C1 failing means +1h for Block 2 and a <code>MediaRecorder</code>→webm/opus→server-side-decode fallback goes on the table. C3 failing means budget one constraint-line fix in Block 2, not an architecture change. C2 and C5 are recorded, not blockers, per the plan's own thresholds.</p>
+<p><strong>Not yet recorded</strong> (blocked on the above): actual mic <code>sampleRate</code> from <code>track.getSettings()</code> (the page logs it live, on-screen, the moment mic access is granted), measured VAD end-of-speech delay at whatever threshold Omar lands on, C1–C5 pass/fail, browser versions.</p>
+<hr />
+<h2 id="carried-into-block-2"><span class="htext">Carried into Block 2</span></h2>
+<ul>
+<li><strong>Resampling approach:</strong> <code>new AudioContext({ sampleRate: 16000 })</code>, browser-side resample —</li>
+<p>not manual. Lift <code>frontend/src/spike/worklet.js</code>'s framing/int16-conversion logic (20ms / 320-sample frames) directly; it has no spike-only shortcuts in it.</p>
+<li><strong>VAD config:</strong> <code>redemptionMs</code> exposed as a tunable, seeded at 600 (library default is 1400 —</li>
+<p>too slow, do not ship the default). Final value and its measured end-of-speech delay: <strong>pending Omar's S5 run</strong> — do not carry forward the ~600ms TDD estimate as measured until then.</p>
+<li><strong>Mic sample rate:</strong> not yet observed (pending S5). Do not assume 48000.</li>
+<li><strong>TTS latency:</strong> ~1.1–1.4s to first audio byte (n=1–2, <code>generateContent</code> arm) — re-measure at</li>
+<p>full n once the daily quota resets, but do not plan around the old 500ms estimate in the meantime.</p>
+<li><strong>TTS daily quota:</strong> 10 requests/day, shared across API surfaces. Block 2's retry/backoff logic</li>
+<p>needs to distinguish this from the per-request 500/<code>PROHIBITED_CONTENT</code> case TDD already planned for — a daily cap has no useful &quot;retry in 250ms&quot; response; the only correct behaviour is fail visibly and say so, same as any other exhausted-quota case.</p>
+<li><strong>Deployment target:</strong> Fly.io, not Modal (S1). Everything downstream that assumed Modal-specific</li>
+<p>behaviour (the <code>@modal.concurrent</code> WebSocket-as-one-input pattern, <code>modal.Dict</code> for memory, <code>routing_region</code>) needs re-deriving for whatever Fly.io's equivalent primitives are — <strong>not done in this block</strong>, belongs to whichever block now owns the deployment decision.</p>
+</ul>
+<hr />
+<h2 id="open"><span class="htext">Open</span></h2>
+<ul>
+<li><strong>S5 fully</strong> — needs a human at a browser. See that section for exactly what to run.</li>
+<li><strong>S3 at full n=5</strong> — blocked on the free-tier daily quota resetting (or a paid tier / quota</li>
+<p>increase). Today's n=1–2 numbers are directionally useful, not final.</p>
+<li><strong>S4 Q3</strong> — does an unanswered <code>update()</code> invalidate the turn? Attempted, inconclusive</li>
+<p>(<code>&quot;Invalid input received&quot;</code>, likely a missing <code>thought</code>-step resend), not pursued past the plan's 5-minute cap.</p>
+<li><strong>The region tension in S2</strong> — the measured, ruled answer is <code>us-east</code>, but eu-west was more</li>
+<p>than 2x faster on the leg a person actually feels, and lost only on a small (n=5) S2b sample. Not re-opened here; flagged for whoever owns the final call before the URL is shared with Sarj.</p>
+<li><strong>Whether Fly.io's own WebSocket lifetime is actually longer than Modal's</strong> — S1 tells us Modal</li>
+<p>fails this test; it does not yet tell us Fly.io passes it. <strong>The next spike, not assumed.</strong></p>
+</ul>
+<hr />
+<h2 id="gate-checklist"><span class="htext">Gate checklist</span></h2>
+<ul>
+<li>[x] <code>modal app stop sarjy-spike-useast</code> and <code>...-euwest</code> — confirmed via <code>modal app list</code></li>
+<p>(both <code>stopped</code>, 0 tasks).</p>
+<li>[x] <code>scratch/</code> in <code>.gitignore</code> (already was, confirmed).</li>
+<li>[x] The real <code>sarjy</code> app was never deployed — confirmed via <code>modal app list</code>.</li>
+<li>[x] <code>MASTER-PLAN.md</code> §Trigger points and <code>TDD.md</code> §Latency budget / §Open updated.</li>
+<li>[ ] S5's five checks — handed off to Omar, not yet run.</li>
+</ul>
+  </main>
+</div>

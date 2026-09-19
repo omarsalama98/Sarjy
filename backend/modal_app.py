@@ -17,9 +17,14 @@ them is the single most likely way this app shape breaks in front of a reviewer.
   min_containers=     A floor, not a cap. Keeps one container warm so the
                       reviewer never waits on a cold start.
 
-  routing_region=     CANNOT BE CHANGED AFTER THE FIRST DEPLOY. A new Function
-                      has to be created instead. Default is us-east; there is
-                      no Middle East routing region.
+  routing_region=     Where requests ENTER Modal's network. Distinct from
+                      `region=`, which constrains where the container runs.
+                      NOT A PARAMETER IN THE INSTALLED CLIENT (1.4.2) — it
+                      arrived later; `pip install -U modal` for 1.5.5. Fixed
+                      per Function once deployed, so a change means a new
+                      Function and therefore A NEW URL. That only matters
+                      once the URL has been shared. Default us-east; there
+                      is no Middle East routing region.
 
 ## On the timeout, honestly
 
@@ -56,7 +61,7 @@ app = modal.App("sarjy", image=image)
     max_containers=2,      # The actual cap.
     scaledown_window=300,  # Default is 60 s; too eager for a conversational app.
     secrets=[modal.Secret.from_name("sarjy-secrets")],
-    # routing_region="eu-west",  # Decide BEFORE the first deploy — it is immutable after.
+    # routing_region="eu-west",  # Needs modal >= 1.5.5. Fixed per Function once deployed.
 )
 @modal.concurrent(max_inputs=8, target_inputs=4)
 @modal.asgi_app()

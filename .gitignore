@@ -36,3 +36,6 @@ venv/
 
 # Local data caches (vendored reference data IS committed — see data/README)
 data/cache/
+
+# Block 0 spike scratch — throwaway, never committed
+scratch/
