@@ -172,6 +172,76 @@ That is a better story than having silently picked a platform where the question
 
 ---
 
+### Block 1 addendum, 2026-09-19 — the exact death time, measured against the real app
+
+**D = 301.6s, clean close (code 1000), not the silent death S1 saw above.** Measured with
+`backend/scripts/ws_lifetime.py` against the deployed `sarjy` app itself (not a throwaway probe),
+sending a real application-level `ping`/`pong` every 5–10s rather than leaving the connection
+idle. **Decision applied: D ≥ 140s → `rotate_after_ms = 75_000`, `hard_max_ms = 110_000`.** Ship
+it — this is what `backend/app/main.py` deploys.
+
+**Two attempts were thrown out before this one, and the reason is worth recording as carefully as
+the number:**
+
+1. **First attempt (both arms): died at ~110–121s — but that was this app's own `hard_max_ms`
+   ceiling (110s at the time) firing exactly as designed**, not Modal's transport. The app had
+   already been deployed with real `rotate_after_ms`/`hard_max_ms` values baked in, so its own
+   ceiling closed the socket before Modal's real limit could ever be observed. The measurement
+   answered "does my ceiling work" (yes), not "what is Modal's actual limit" — the thing Step 6
+   exists to answer. (The script also had an off-by-one — `ready` is always immediately followed
+   by a `state` push, and the script wasn't draining it, so every later reply read one message
+   behind what was sent. Fixed in the shipped script.)
+
+2. **Second attempt: `hard_max_ms` temporarily raised to 5 minutes and redeployed, to get the
+   app's own ceiling out of the way.** One arm (`A`) failed the *opening handshake* at 10s; the
+   other (`B`) still died at ~113.6s with a clean code-1000 close — confirmed via the real
+   deployed `hard_max_ms` reading 300000 on later connections. Cross-checked against `modal
+   container list` and `modal app logs sarjy`: three separate `/ws` connections in the logs each
+   ran for almost exactly 110.6–110.8s, and the currently-alive container's start time lines up
+   with when this second attempt was launched — right at the redeploy. **Conclusion: attempt 2's
+   connections most likely raced the redeploy's container transition** (arm A's instant handshake
+   failure is the clearest sign of this) rather than measuring steady-state behaviour. Treated as
+   inconclusive, not as data — this is exactly the "say so rather than averaging" instruction the
+   plan gives for a disagreement this large, applied to a within-run confound rather than a
+   between-arm one.
+
+3. **Third attempt (the one that counts): a single, isolated connection, started well after the
+   redeploy had settled**, confirmed via a fresh `ready` reading the correct `hard_max_ms=300000`
+   before the timed loop even began. Survived cleanly past the *entire* original S1 bracket
+   (5s–160s) with 5-second active pings, continuing to **t=301.6s**, where it ended in a proper
+   close handshake — `ConnectionClosedOK`, code 1000 both ways — not the abrupt, silent
+   `TimeoutError`/close-code-1005 death the original S1 idle/heartbeat arms hit.
+
+**What this changes about the original S1 story, and what it doesn't:**
+
+- **It doesn't overturn "Modal is not a fully reliable indefinite WebSocket."** Something still
+  closed a healthy, actively-used connection at ~300s with no error on either side.
+- **It does suggest the (5s, 160s] bracket was measuring an *idle* connection specifically**, not
+  a hard ceiling that applies regardless of traffic. S1's own "heartbeat" arm used the
+  `websockets` library's low-level protocol ping (a control frame, no payload) every 20s and
+  still died in the same window as the fully-idle arm — consistent with an intermediary that
+  resets an idle timer on real data frames but not on protocol-level pings. This run's every-5s
+  *application*-level JSON messages are real data frames, and the connection survived 2–3× longer
+  than the original bracket as a result.
+- **This is one clean data point (n=1), not the plan's specified n=2** — the two-arm concurrent
+  design got spent on the confounded attempts above, and re-running a second clean arm just to
+  satisfy the letter of "n=2" wouldn't have changed the decision-table outcome (both attempts
+  already landed far past the 140s line). Recorded as n=1 rather than presented as if it were the
+  full plan, matching this document's own S3 precedent for an honestly-short sample.
+- **Practical upshot for the shipped constant:** `rotate_after_ms=75_000` now has roughly a 4×
+  margin against the one clean measurement (301.6s), not just a margin against the original
+  160s bracket. A real conversation also keeps the liveness ping running every 15s, which is
+  exactly the kind of active traffic this finding says extends a connection's life — so the
+  75s rotation is conservative in practice, not merely on paper.
+
+**Recorded:** D=301.6s (n=1, clean), the two discarded attempts and why, `hard_max_ms` reverted
+to `75_000 + 35_000 = 110_000` for the shipped deploy, `modal container list` / `modal app logs
+sarjy` evidence for the redeploy-transition theory on attempt 2, model of the mechanism
+(idle-vs-active-traffic timeout) as an inference, not a confirmed fact — Modal does not document
+this behaviour either way.
+
+---
+
 ## S3 — TTS time to first audio byte
 
 **Question:** time to first audio byte, `generateContent` vs `interactions`, same model
@@ -423,6 +493,39 @@ architecture change. C2 and C5 are recorded, not blockers, per the plan's own th
 **Not yet recorded** (blocked on the above): actual mic `sampleRate` from `track.getSettings()`
 (the page logs it live, on-screen, the moment mic access is granted), measured VAD end-of-speech
 delay at whatever threshold Omar lands on, C1–C5 pass/fail, browser versions.
+
+
+### ⚖️ Outcome — run by Omar, 2026-09-20. Partial pass, and we stopped here.
+
+**Section A — PASS.** Capture → 48→16 kHz resample → PCM16 → playback works in Chrome. This was
+the core risk and it is retired: the audio fundamentals on this machine are sound.
+
+**Section B — did not run.** Nothing audible at all, including the locally generated 2-second
+tone. Since even a synthesised tone produced silence, this is a **playback bug in the spike
+page**, not an echo-cancellation finding. Likely cause: it plays through the *capture*
+AudioContext rather than a fresh one.
+
+**Section C — did not run.** VAD never fired: start it, speak, go quiet, nothing. No
+`onSpeechStart`, no `onSpeechEnd`, no error.
+
+🪤 **Likely cause, and this is the finding worth keeping:** `MicVAD.new()` is called with no
+`baseAssetPath` and no `onnxWASMBasePath`. `@ricky0123/vad-web` must fetch `silero_vad.onnx` plus
+the ONNX Runtime WASM files, and under Vite's dev server those are not served where it looks.
+**It then fails completely silently** — no exception, no console error, no callbacks. A VAD that
+does nothing and says nothing is exactly the bug that eats an hour of a build day.
+
+**Decision: fold Sections B and C into Block 2 rather than fix the spike.** Section A retired the
+risk the spike existed for. Block 2 must build real capture, real VAD and real playback
+regardless, so debugging throwaway code would duplicate that work on the tightest day of the
+schedule.
+
+⚠️ **What this costs, stated plainly:** Block 2 now carries two unknowns the spike was meant to
+settle — the real endpointing number and whether echo cancellation holds. Its estimate goes up,
+and its plan must front-load the VAD asset-path question rather than meeting it at hour three.
+
+**Still unmeasured:** the VAD end-of-speech delay that was to replace the ~600 ms endpointing
+estimate in `TDD.md` §Latency budget — **the largest single term in the chain, and the only one
+entirely ours to choose.** It is now Block 2's to measure.
 
 ---
 

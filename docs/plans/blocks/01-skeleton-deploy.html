@@ -1,0 +1,515 @@
+<title>Block 1 — Skeleton that deploys</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --ink:       #14171c;
+    --ink-2:     #474e5a;
+    --ink-3:     #767e8b;
+    --line:      #e2e5ea;
+    --line-2:    #eef0f4;
+    --accent:    #2d4a7c;
+    --accent-bg: #edf1f8;
+    --warn:      #a6421f;
+    --warn-bg:   #fbf0eb;
+    --code-bg:   #f0f2f6;
+    --shadow:    0 1px 2px rgba(20,23,28,.05), 0 8px 24px -12px rgba(20,23,28,.15);
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #101317;
+      --surface:   #171b21;
+      --ink:       #e7eaef;
+      --ink-2:     #a8b0bc;
+      --ink-3:     #7b838f;
+      --line:      #2a2f38;
+      --line-2:    #22262d;
+      --accent:    #8fb0e6;
+      --accent-bg: #1a2130;
+      --warn:      #e2916d;
+      --warn-bg:   #2a1d17;
+      --code-bg:   #1d222a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #101317;
+    --surface:   #171b21;
+    --ink:       #e7eaef;
+    --ink-2:     #a8b0bc;
+    --ink-3:     #7b838f;
+    --line:      #2a2f38;
+    --line-2:    #22262d;
+    --accent:    #8fb0e6;
+    --accent-bg: #1a2130;
+    --warn:      #e2916d;
+    --warn-bg:   #2a1d17;
+    --code-bg:   #1d222a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .5rem 2.25rem; margin: 0; }
+  dl.meta div { display: flex; flex-direction: column; gap: .1rem; }
+  dl.meta dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  dl.meta dd { margin: 0; font-size: .9rem; color: var(--ink-2); }
+
+  /* ---- toc ---- */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 3rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--ink-3);
+    margin: 0 0 .75rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: flex;
+    gap: .7rem;
+    font-size: .92rem;
+    border-radius: 2px;
+  }
+  .toc a:hover { color: var(--accent); }
+  .tocnum, .secnum {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: .8em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- headings ---- */
+  h2, h3, h4 { font-family: var(--serif); letter-spacing: -.01em; text-wrap: balance; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    font-weight: 600;
+    margin: 3.5rem 0 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .75rem;
+    align-items: baseline;
+  }
+  h3 { font-size: 1.14rem; font-weight: 600; margin: 2.25rem 0 .7rem; display: flex; gap: .6rem; align-items: baseline; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; color: var(--ink-2); }
+  h2 .secnum, h3 .secnum { flex: none; }
+
+  p { margin: 0 0 1.05rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line-2); margin: 2.5rem 0; }
+
+  ul, ol { margin: 0 0 1.15rem; padding-left: 1.35rem; max-width: 68ch; }
+  li { margin-bottom: .38rem; }
+  li::marker { color: var(--ink-3); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+  .codewrap { overflow-x: auto; margin: 0 0 1.4rem; }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 0;
+    min-width: min-content;
+  }
+  pre code { background: none; padding: 0; font-size: .845rem; line-height: 1.6; }
+
+  blockquote {
+    margin: 0 0 1.4rem;
+    padding: .1rem 0 .1rem 1.15rem;
+    border-left: 3px solid var(--line);
+    color: var(--ink-2);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+  }
+  .callout p { margin-bottom: .6rem; color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--warn); }
+
+  .tablewrap { overflow-x: auto; margin: 0 0 1.6rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  th, td { padding: .6rem .85rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <h1>Block 1 — Skeleton that deploys</h1>
+    <dl class="meta"><div><dt>Date</dt><dd>2026-09-19 · <strong>Budget:</strong> ~3.5 h (the master plan says 2 h — see §The estimate changed)</dd></div><div><dt>Plan of record</dt><dd><code>docs/plans/MASTER-PLAN.md</code> §Block 1 · <strong>Design:</strong> <code>docs/plans/TDD.md</code> §Deployment, §Architecture</dd></div><div><dt>Depends on</dt><dd>Block 0 (<code>docs/measurements/day1-spikes.md</code>, especially §S1 and the decision under it)</dd></div><div><dt>Lands</dt><dd>requirement <strong>#4 — a deployed URL a stranger can open.</strong> The one deliverable that scores zero if missing.</dd></div></dl>
+  </header>
+  <nav class="toc" aria-label="Contents"><p class="eyebrow">Contents</p><ol><li><a href="#summary-read-this-page">Summary — read this page</a></li><li><a href="#what-block-0-changed-and-what-it-costs">What Block 0 changed, and what it costs</a></li><li><a href="#the-estimate-changed">The estimate changed</a></li><li><a href="#prerequisites-omar-does-these-himself">Prerequisites — Omar does these himself</a></li><li><a href="#the-design">The design</a></li><li><a href="#build-order">Build order</a></li><li><a href="#step-6-measure-the-exact-death-time">Step 6 — measure the exact death time</a></li><li><a href="#failure-paths-build-these-before-the-happy-path">Failure paths — build these before the happy path</a></li><li><a href="#tests-make-test">Tests (<code>make test</code>)</a></li><li><a href="#the-gate-observational-walked-in-order">The gate — observational, walked in order</a></li><li><a href="#out-of-scope-say-no-to-all-of-these">Out of scope — say no to all of these</a></li><li><a href="#spike-files-keep-until-block-2">Spike files — keep until Block 2</a></li><li><a href="#what-omar-must-do-himself">What Omar must do himself</a></li><li><a href="#draft-commits">Draft commits</a></li><li><a href="#carried-into-block-2">Carried into Block 2</a></li><li><a href="#open-assumed-stated-rather-than-buried">Open / assumed, stated rather than buried</a></li></ol></nav>
+  <main>
+<h2 id="summary-read-this-page"><span class="htext">Summary — read this page</span></h2>
+<p>Block 1 builds the pipe, not what flows through it. A FastAPI <strong>async</strong> WebSocket handler, the message protocol every later block extends, a React shell that connects and shows its state, the <code>StaticFiles</code> mount that serves that shell from the same origin, and — new since the master plan was written — <strong>transparent reconnect-and-resume</strong>, because Block 0 measured Modal killing a WebSocket somewhere inside the first 160 seconds.</p>
+<p><strong>Four things decide whether this block succeeds:</strong></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">The thing</th><th style="text-align:left">Why it decides the block</th></tr></thead><tbody><tr><td style="text-align:left">1</td><td style="text-align:left"><strong>A turn never spans a connection</strong></td><td style="text-align:left">The whole reconnect design collapses to &quot;re-present an id&quot; if this holds, and grows mid-turn resume state if it doesn't. It is an invariant, enforced by the client refusing to start a turn it cannot finish.</td></tr><tr><td style="text-align:left">2</td><td style="text-align:left"><strong>A connection is not a session</strong></td><td style="text-align:left">Session identity is server-minted, opaque, and survives the socket. Block 7 hangs memory on exactly this record.</td></tr><tr><td style="text-align:left">3</td><td style="text-align:left"><strong>The server learns about disconnects up to ~120 s late</strong></td><td style="text-align:left">Measured in S1. Cleanup driven by the socket closing is therefore wrong, and a late <code>finally</code> from a dead connection can tear down the live one. A generation counter closes it.</td></tr><tr><td style="text-align:left">4</td><td style="text-align:left"><strong>Deploy at the 45-minute mark, not at the end</strong></td><td style="text-align:left">Requirement #4 is landed by a URL existing, not by the URL being good. Everything after the first deploy is improvement on something already banked.</td></tr></tbody></table></div>
+<p><strong>The gate is observational, not a test suite:</strong> open the public URL, the socket connects, a message round-trips, and the page is still connected six minutes later with the same session id.</p>
+<hr />
+<h2 id="what-block-0-changed-and-what-it-costs"><span class="htext">What Block 0 changed, and what it costs</span></h2>
+<h3 id="1-modal-websockets-die-inside-the-first-160-seconds-we-stay-"><span class="secnum">1</span><span class="htext">🚨 Modal WebSockets die inside the first 160 seconds. We stay anyway.</span></h3>
+<p>Measured, both idle and with protocol-level pings: alive at t=5.2 s, dead by t=160 s, in both arms. A control against an unrelated public WebSocket survived past 200 s from the same network, so this is Modal (or something in front of it), not the network.</p>
+<p>The pre-committed trigger said <em>migrate to Fly.io</em>. It was <strong>consciously overridden</strong> — reasoning in <code>day1-spikes.md</code> §S1. The override is only correct if this block ships reconnect. If it doesn't, the demo dies at the ~150-second mark, live, in front of the reviewer, and the override becomes a mistake with a paper trail.</p>
+<p><strong>Modal Functions are preemptible regardless</strong>, so reconnect was owed either way. This finding raises it from &quot;handle preemption gracefully&quot; to &quot;rotate the socket on a timer.&quot;</p>
+<p>⚠️ <strong>The exact death time is unknown</strong> — sampled only at 5 s and 160 s. Everything in §Rotation depends on a number we do not have yet, so <strong>§Step 6 measures it</strong> against the real deployment before the interval is fixed. Do not hard-code 75 s on the strength of a 150 s HTTP timeout we have not observed directly.</p>
+<h3 id="2-region-us-east"><span class="secnum">2</span><span class="htext">Region: <code>us-east</code></span></h3>
+<p>Won the combined figure by 354 ms. <code>routing_region</code> <strong>exists in the installed client</strong> — verified locally: <code>modal 1.5.5</code>, <code>App.function(..., routing_region=...)</code> present in the signature.</p>
+<p>🚨 <strong>It is fixed per Function once deployed.</strong> A change means a new Function and a <strong>new URL</strong>. That is free until the URL is shared with Sarj, and expensive after. Set it on the first deploy.</p>
+<p>🪤 <code>backend/modal_app.py</code> line 64 currently carries a commented <code>routing_region=&quot;eu-west&quot;</code>. That is the <strong>wrong region</strong> and the wrong client-version note beside it. Uncommenting it as-is ships the loser of the A/B. Fix the line, don't just uncomment it.</p>
+<h3 id="3-modalconcurrent-is-mandatory-and-the-handler-must-be-async"><span class="secnum">3</span><span class="htext"><code>@modal.concurrent</code> is mandatory, and the handler must be <code>async</code></span></h3>
+<p>Already scaffolded. One WebSocket is one input; without <code>@modal.concurrent</code>, every concurrent connection gets its own container and <code>min_containers=1</code> does not prevent it. With input concurrency, <strong>a sync handler dies entirely when one input is cancelled</strong> — and a closed browser tab is a cancellation. One reviewer closing a tab would kill everyone else's session, silently.</p>
+<p><code>async def</code> is not a style preference here. It is the difference between a demo and an outage.</p>
+<hr />
+<h2 id="the-estimate-changed"><span class="htext">The estimate changed</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left"></th><th style="text-align:left">Hours</th></tr></thead><tbody><tr><td style="text-align:left">Master plan, Block 1</td><td style="text-align:left">~2.0</td></tr><tr><td style="text-align:left">Reconnect, rotation, session registry, the late-<code>finally</code> defence</td><td style="text-align:left">+1.0</td></tr><tr><td style="text-align:left">Tooling debts this block inherits (no eslint config, no <code>tests/</code>, <code>modal</code> not a dependency)</td><td style="text-align:left">+0.25</td></tr><tr><td style="text-align:left">The exact-death-time measurement (mostly unattended, overlapped)</td><td style="text-align:left">+0.25</td></tr><tr><td style="text-align:left"><strong>Honest estimate</strong></td><td style="text-align:left"><strong>~3.5</strong></td></tr></tbody></table></div>
+<p>The master plan was already ~3 h over ~21 h available. This makes it ~4.5 h over. <strong>Overflow cuts #1 (Wikipedia imagery, 0.75 h) and #2 (UI polish beyond functional, 1.25 h) should be treated as already taken</strong>, not as decisions still pending. Say so to Omar at the start of the block, not at the end.</p>
+<p><strong>Cut line, pre-committed:</strong> if rotation is not working at <strong>3 h elapsed</strong>, ship reactive-only reconnect (§Rotation, reduced scope — roughly 15 minutes of the work) and move to Block 2. Block 2 is the requirement-#1 blocker and it is the longest block on the chain. A demo that reconnects after a visible half-second stall beats a demo that never reached audio.</p>
+<hr />
+<h2 id="prerequisites-omar-does-these-himself"><span class="htext">Prerequisites — Omar does these himself</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Command / action</th><th style="text-align:left">Blocks</th><th style="text-align:left">Note</th></tr></thead><tbody><tr><td style="text-align:left">P1.1</td><td style="text-align:left"><code>modal secret list</code> — confirm <code>sarjy-secrets</code> exists</td><td style="text-align:left">deploy</td><td style="text-align:left">Created in Block 0 P0.3. <code>modal.Secret.from_name</code> fails <strong>at deploy time</strong> if it is missing. Block 1 needs no key <em>inside</em> it, but the Function declares it.</td></tr><tr><td style="text-align:left">P1.2</td><td style="text-align:left"><code>modal profile current</code></td><td style="text-align:left">deploy</td><td style="text-align:left">Should already be good from Block 0.</td></tr><tr><td style="text-align:left">P1.3</td><td style="text-align:left">Confirm the deployed URL is <strong>not yet shared with anyone</strong></td><td style="text-align:left">region</td><td style="text-align:left">The region is irreversible once the URL is committed to.</td></tr><tr><td style="text-align:left">P1.4</td><td style="text-align:left"><em>(ahead of Block 2, not this block)</em> Deepgram account + API key</td><td style="text-align:left">Block 2</td><td style="text-align:left">The TDD's stack line names <code>aura-2</code> for English TTS and <strong>no key exists</strong>. Getting one is lead time Omar owns, and Block 2 stalls without it.</td></tr></tbody></table></div>
+<p>Agents never read or write <code>.env</code>. Nothing in Block 1 needs a provider key.</p>
+<hr />
+<h2 id="the-design"><span class="htext">The design</span></h2>
+<h3 id="two-state-machines-deliberately-separate"><span class="htext">Two state machines, deliberately separate</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Machine</th><th style="text-align:left">Values</th><th style="text-align:left">Owner</th><th style="text-align:left">Visible as</th></tr></thead><tbody><tr><td style="text-align:left"><strong>Connection</strong></td><td style="text-align:left"><code>connecting · ready · rotating · reconnecting · offline · stale</code></td><td style="text-align:left">client</td><td style="text-align:left">a small, quiet status line</td></tr><tr><td style="text-align:left"><strong>Conversation</strong></td><td style="text-align:left"><code>idle · listening · thinking · speaking</code></td><td style="text-align:left">server, pushed as <code>state</code></td><td style="text-align:left">the main UI</td></tr></tbody></table></div>
+<p>Conflating them is the classic mistake: a reconnect would then look like the assistant started thinking, and a long &quot;thinking&quot; would look like a dropped connection. <strong>In Block 1 the conversation machine only ever holds <code>idle</code></strong> — it exists so Block 2 has somewhere to put <code>listening</code>, and so the reserved space is real rather than promised.</p>
+<h3 id="the-protocol"><span class="htext">The protocol</span></h3>
+<p>Envelope key stays <strong><code>t</code></strong> (already the de facto contract in <code>backend/app/pipeline/protocol.py</code>). Every message is JSON on the text channel; <strong>binary frames are audio and are rejected in Block 1</strong> with <code>error{code:&quot;unsupported&quot;}</code>.</p>
+<p>Every server message carries <code>seq</code> and <code>ts_ms</code>. <code>seq</code> is <strong>monotonic per session, not per connection</strong> — it continues across a reconnect, which is the visible proof that the session survived and is this block's thesis on screen. <code>ts_ms</code> is wall clock for display only; <strong>Block 3's latency measurement uses monotonic clocks and must not reuse this field.</strong></p>
+<h4 id="client-server-block-1-implements-all-three"><span class="htext">Client → server (Block 1 implements all three)</span></h4>
+<div class="codewrap"><pre><code class="lang-jsonc">{&quot;t&quot;:&quot;hello&quot;,&quot;v&quot;:1,&quot;session_id&quot;:null,          &quot;client_ts_ms&quot;:1758300000000}
+{&quot;t&quot;:&quot;ping&quot;,&quot;id&quot;:&quot;c7&quot;,&quot;client_ts_ms&quot;:1758300001000}
+{&quot;t&quot;:&quot;bye&quot;,&quot;reason&quot;:&quot;rotate&quot;}   // reason: &quot;rotate&quot; | &quot;leave&quot;</code></pre></div>
+<p><code>hello</code> is the <strong>first message on every connection, including reconnects.</strong> <code>session_id</code> is <code>null</code> on a cold start and the previously issued id on a reconnect.</p>
+<h4 id="server-client-block-1-implements-all-five"><span class="htext">Server → client (Block 1 implements all five)</span></h4>
+<div class="codewrap"><pre><code class="lang-jsonc">{&quot;t&quot;:&quot;ready&quot;,&quot;v&quot;:1,&quot;session_id&quot;:&quot;…&quot;,&quot;resumed&quot;:true,&quot;connection_n&quot;:3,
+ &quot;rotate_after_ms&quot;:75000,&quot;hard_max_ms&quot;:110000,&quot;server_started_at_ms&quot;:…,&quot;seq&quot;:42,&quot;ts_ms&quot;:…}
+{&quot;t&quot;:&quot;state&quot;,&quot;value&quot;:&quot;idle&quot;,&quot;seq&quot;:43,&quot;ts_ms&quot;:…}
+{&quot;t&quot;:&quot;pong&quot;,&quot;id&quot;:&quot;c7&quot;,&quot;client_ts_ms&quot;:…,&quot;seq&quot;:44,&quot;ts_ms&quot;:…}
+{&quot;t&quot;:&quot;error&quot;,&quot;code&quot;:&quot;bad_message&quot;,&quot;message&quot;:&quot;…&quot;,&quot;recoverable&quot;:true,&quot;seq&quot;:45,&quot;ts_ms&quot;:…}
+{&quot;t&quot;:&quot;closing&quot;,&quot;reason&quot;:&quot;rotate_ceiling&quot;,&quot;reconnect&quot;:true,&quot;seq&quot;:46,&quot;ts_ms&quot;:…}</code></pre></div>
+<p><code>error.code</code> in Block 1 is a closed set: <code>bad_message · protocol_version · unsupported · internal</code>. <code>closing.reason</code>: <code>rotate_ceiling · shutdown · superseded · protocol_version</code>.</p>
+<h4 id="reserved-named-now-built-later-do-not-build-these-payloads-i"><span class="htext">Reserved — named now, built later. <strong>Do not build these payloads in Block 1.</strong></span></h4>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left"><code>t</code></th><th style="text-align:left">Direction</th><th style="text-align:left">Block</th><th style="text-align:left">Shape sketch</th></tr></thead><tbody><tr><td style="text-align:left"><code>start</code> / <code>end</code> / <code>barge</code></td><td style="text-align:left">c→s</td><td style="text-align:left">2</td><td style="text-align:left"><code>{&quot;t&quot;:&quot;start&quot;,&quot;turn_id&quot;:&quot;…&quot;}</code> — client VAD drives all three</td></tr><tr><td style="text-align:left"><em>(binary)</em></td><td style="text-align:left">both</td><td style="text-align:left">2</td><td style="text-align:left">16 kHz PCM16 in, 24 kHz PCM out</td></tr><tr><td style="text-align:left"><code>transcript</code></td><td style="text-align:left">s→c</td><td style="text-align:left">2</td><td style="text-align:left"><code>{&quot;text&quot;:…,&quot;final&quot;:bool,&quot;turn_id&quot;:…}</code></td></tr><tr><td style="text-align:left"><code>state</code> values <code>listening/thinking/speaking</code></td><td style="text-align:left">s→c</td><td style="text-align:left">2</td><td style="text-align:left">already in the union, unused</td></tr><tr><td style="text-align:left"><code>timings</code></td><td style="text-align:left">s→c</td><td style="text-align:left">3</td><td style="text-align:left"><code>{&quot;turn_id&quot;:…,&quot;stages&quot;:{&quot;endpoint_ms&quot;:…,&quot;stt_ms&quot;:…,&quot;llm_ttft_ms&quot;:…,&quot;tool_ms&quot;:…,&quot;tts_ttfb_ms&quot;:…,&quot;first_audio_ms&quot;:…}}</code></td></tr><tr><td style="text-align:left"><code>segments</code></td><td style="text-align:left">s→c</td><td style="text-align:left">4/6</td><td style="text-align:left">`[{&quot;kind&quot;:&quot;sourced\</td><td style="text-align:left">judgement&quot;,&quot;text&quot;:…,&quot;citation&quot;:{…}\</td><td style="text-align:left">null,&quot;layer&quot;:…}]`</td></tr><tr><td style="text-align:left"><code>quota</code></td><td style="text-align:left">s→c</td><td style="text-align:left">5</td><td style="text-align:left"><code>{&quot;remaining&quot;:int,&quot;reserve&quot;:int}</code></td></tr><tr><td style="text-align:left"><code>memory</code></td><td style="text-align:left">s→c</td><td style="text-align:left">7</td><td style="text-align:left">the &quot;what Sarjy remembers&quot; panel</td></tr></tbody></table></div>
+<p>The envelope accommodates every one of these without a redesign: a new <code>t</code>, a new model in the union, a new branch in the dispatcher. <strong>That is the whole point of spending time on this now.</strong></p>
+<h4 id="validation-both-ends"><span class="htext">Validation, both ends</span></h4>
+<ul>
+<li><strong>Server:</strong> pydantic v2 discriminated union on <code>t</code>, <code>model_config = ConfigDict(extra=&quot;forbid&quot;)</code>,</li>
+<p>decoded through a single <code>TypeAdapter</code>. One boundary function, nothing else parses raw input. <em>(§Invariant 5 — the user's speech is untrusted; so is the user's JSON.)</em></p>
+<li><strong>Client:</strong> a hand-rolled <code>parseServerMessage(raw): ServerMessage | null</code> — a <code>switch</code> on <code>t</code></li>
+<p>with explicit field checks. <strong>No zod.</strong> Twenty lines Omar can read out loud beats a dependency whose failure modes he'd have to explain.</p>
+<li><strong>Forward compatibility, in the direction that matters</strong> (the server is newer than a cached</li>
+<p>browser bundle): an unknown <code>t</code> is logged once and ignored, never thrown; an unknown <code>error.code</code> renders <code>message</code> and respects <code>recoverable</code>. A <em>version</em> mismatch is the hard stop — see below.</p>
+<li><strong>Version handshake:</strong> <code>hello.v</code> must equal the server's <code>PROTOCOL_VERSION</code>. Mismatch →</li>
+<p><code>error{code:&quot;protocol_version&quot;, recoverable:false}</code> then <code>closing{reconnect:false}</code>, and the client shows <strong>&quot;A new version is available — reload.&quot;</strong> We will redeploy repeatedly this weekend with tabs left open; this turns a baffling failure into a legible one for five lines.</p>
+<li><strong>A malformed message does not close the socket.</strong> <code>error{recoverable:true}</code> and carry on. One</li>
+<p>bad frame must not cost a conversation. The exception is a missing or invalid <code>hello</code> as the first message → close.</p>
+</ul>
+<h3 id="session-identity"><span class="htext">Session identity</span></h3>
+<div class="codewrap"><pre><code>Session = {session_id, created_at_ms, last_seen_ms, connection_n, generation, seq, live: WS|None}</code></pre></div>
+<ul>
+<li><strong>Server-minted <code>uuid4</code>, opaque, high entropy.</strong> The client never proposes an id. A guessable id</li>
+<p>would let one browser resume another's session — which is exactly the cross-session leakage Block 7's gate asserts against. One unguessable id is the whole defence; <strong>no second resume token</strong> — that is ceremony Omar would have to justify.</p>
+<li>Never log the full id. Log <code>session_id[:8]</code>. The UI may show the short form — it is the visible</li>
+<p>proof of continuity.</p>
+<li><strong>Registry is an in-process <code>dict</code> in Block 1.</strong> <code>modal.Dict</code> arrives in Block 7 with memory.</li>
+<p>This is why <code>max_containers</code> drops to <strong>1</strong> (§Modal config): a reconnect that lands on a second container would find no session and silently start a new one.</p>
+<li><strong>TTL sweep, not socket-driven cleanup.</strong> Records expire on <code>last_seen_ms</code> older than</li>
+<p><code>SESSION_TTL = 15 min</code>, swept lazily on each <code>hello</code> (no background task — cheaper, and one fewer thing to explain). <strong>This is the direct consequence of S1's ~120 s client/server disconnect gap: the socket closing is not a reliable signal, so it is not the signal.</strong></p>
+</ul>
+<h4 id="the-late-finally-bug-and-the-generation-counter"><span class="htext">⚠️ The late-<code>finally</code> bug, and the generation counter</span></h4>
+<p>S1 measured the server not noticing a dead client for <strong>~281 s — about 120 s after the client gave up.</strong> By then the client has already reconnected, twice. The handler's <code>finally</code> block for the <em>dead</em> connection then runs and tears down state belonging to the <em>live</em> one.</p>
+<div class="codewrap"><pre><code>t=0     conn A  → session S, generation 1
+t=75    client rotates → conn B → session S, generation 2
+t=150   client rotates → conn C → session S, generation 3
+t=195   conn A's finally FINALLY runs  ← must be a no-op, not a teardown</code></pre></div>
+<p><strong>Rule:</strong> every connection captures its <code>generation</code> at <code>hello</code>. On disconnect, it clears <code>session.live</code> <strong>only if <code>session.generation == my_generation</code>.</strong> Any write attempted from a superseded generation is dropped. On a <code>hello</code> for a session that already has a live connection, the server increments <code>generation</code>, sends <code>closing{reason:&quot;superseded&quot;}</code> on the old socket and closes it.</p>
+<p>Ten lines, one paragraph of explanation, and it is the difference between &quot;reconnect works&quot; and &quot;reconnect works until the ghost arrives.&quot;</p>
+<h3 id="reconnect-and-rotation"><span class="htext">Reconnect and rotation</span></h3>
+<p><strong>Rotate proactively between turns. Never reactively, mid-utterance.</strong> A socket that dies during a turn loses the turn; a socket replaced between turns costs ~200 ms nobody perceives.</p>
+<p><strong>The invariant that keeps this small:</strong></p>
+<blockquote><p><strong>A turn never spans a connection.</strong></p></blockquote>
+<p>Because of it, &quot;resume&quot; carries identity and nothing else — no audio buffer replay, no mid-turn tool state, in this block or any later one. It is enforced by two rules, not by hope:</p>
+<ol>
+<li><strong>Rotate only when the conversation state is <code>idle</code>.</strong> If the timer fires mid-turn, set</li>
+<p><code>rotatePending</code> and rotate on the next <code>idle</code>.</p>
+<li><strong>Refuse to start a turn that cannot finish.</strong> The connection manager exposes</li>
+<p><code>ensureFresh(): Promise&lt;void&gt;</code> — if <code>elapsed &gt; rotateAfterMs − TURN_BUDGET_MS</code> it rotates first, then resolves. Block 2 awaits it before sending <code>start</code>. <strong>Implement it in Block 1</strong> (it is connection logic and it is testable); Block 2 is the first caller. <code>TURN_BUDGET_MS = 30_000</code> — a long utterance plus the full pipeline plus the answer audio.</p>
+</ol>
+<p><strong>The rotation itself is an ordinary close.</strong> Client sends <code>bye{reason:&quot;rotate&quot;}</code>, sets <code>rotating = true</code>, calls <code>socket.close(1000)</code>. The <code>onclose</code> handler is the <em>only</em> reconnect path; <code>rotating</code> decides whether it backs off and shows an error (no) or reconnects immediately (yes). <strong>One reconnect code path, one flag</strong> — and because rotation exercises it every ~75 seconds, the reconnect path is the best-tested code in the app by the time of the demo.</p>
+<p><code>bye</code> is not politeness — it is capacity. A server-side <code>await ws.close()</code> ends the Modal input immediately; without it the zombie holds one of the container's concurrent input slots for ~2 minutes (§Modal config).</p>
+<p><strong>Reactive path</strong> (real drop, preemption, redeploy): attempt at 0 ms, then 250 ms → 500 ms → 1 s → 2 s → 4 s, capped at 5 s, ±20 % jitter, retrying indefinitely. After 5 consecutive failures the UI stops implying progress and offers a manual <strong>Retry</strong>. <strong>Never a spinner that can outlive its operation</strong> (<code>rules/voice/browser-audio.md</code>).</p>
+<p><strong>Liveness:</strong> <code>ping</code> every 15 s with a 3 s <code>pong</code> deadline; a missed deadline marks the connection <code>stale</code> and reconnects immediately, rather than waiting for TCP to notice. ⚠️ <strong>Write in the comment that this is detection, not a keepalive</strong> — S1 measured a 20 s protocol-level ping failing to save the connection. Someone will otherwise &quot;optimise&quot; it later into a keepalive it never was.</p>
+<p>🪤 <strong>Backgrounded tabs throttle timers to ≥ 1 min in Chrome</strong>, which can push a rotation past the death window while Omar is showing the reviewer the code in another tab. On <code>visibilitychange → visible</code>: if <code>elapsed &gt; rotateAfterMs</code>, rotate immediately; otherwise send a ping and wait for the pong before trusting the socket.</p>
+<p><strong>Server ceiling.</strong> The client owns rotation because the client owns the VAD and therefore knows when a turn is really in flight. The server holds a backstop: a connection alive past <code>hard_max_ms</code> (= <code>rotate_after_ms + 35 s</code>) gets <code>closing{reason:&quot;rotate_ceiling&quot;, reconnect:true}</code> and is closed, so a stale bundle or a buggy client cannot sit on a doomed socket forever.</p>
+<h4 id="fixing-the-interval-a-decision-rule-not-a-guess"><span class="htext">Fixing the interval — a decision rule, not a guess</span></h4>
+<p>After §Step 6 measures the first-failure time <strong>D</strong> against the real deployment:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Measured D</th><th style="text-align:left"><code>rotate_after_ms</code></th><th style="text-align:left">Then</th></tr></thead><tbody><tr><td style="text-align:left"><strong>D ≥ 140 s</strong> (consistent with the documented 150 s HTTP cap)</td><td style="text-align:left"><strong>75 s</strong></td><td style="text-align:left">Ship it. Write D into <code>day1-spikes.md</code> §S1 and quote it in the walkthrough.</td></tr><tr><td style="text-align:left"><strong>60 s ≤ D &lt; 140 s</strong></td><td style="text-align:left"><code>⌊D/2⌋</code> rounded down to 5 s</td><td style="text-align:left">Ship it. Note the tighter margin in the PR doc.</td></tr><tr><td style="text-align:left"><strong>D &lt; 60 s</strong></td><td style="text-align:left">20 s, <strong>and escalate to Omar</strong></td><td style="text-align:left">Rotation churn becomes user-visible at this rate. The Fly.io trigger un-overrides — this is a different finding from the one that was overridden, and it deserves a fresh decision, not an inherited one.</td></tr></tbody></table></div>
+<p>The constant lives <strong>once</strong>, server-side, and reaches the client in <code>ready</code>. Retuning is a one-line change, not a coordinated two-end change.</p>
+<h3 id="serving-the-frontend-from-the-same-asgi-app"><span class="htext">Serving the frontend from the same ASGI app</span></h3>
+<p><code>StaticFiles</code> on <code>frontend/dist</code>, same origin, <strong>no CORS anywhere in this project.</strong></p>
+<div class="codewrap"><pre><code class="lang-python">DIST = Path(__file__).resolve().parent.parent.parent / &quot;frontend&quot; / &quot;dist&quot;</code></pre></div>
+<p>🪤 <strong>Four traps, all cheap, all demo-fatal if missed:</strong></p>
+<ol>
+<li><strong>Mount last.</strong> Starlette matches routes in registration order and a mount at <code>/</code> swallows</li>
+<p>everything beneath it. <code>/health</code> and <code>/ws</code> are registered first; the mount is the last line of <code>main.py</code>.</p>
+<li><strong>A missing <code>dist/</code> raises at startup</strong> and takes <code>/health</code> and <code>/ws</code> down with it. Guard:</li>
+<p><code>if DIST.is_dir(): mount(...)</code> <code>else:</code> log a warning and register a plain-text route at <code>/</code> saying the frontend is not built. This also makes <code>make dev</code> usable without a build.</p>
+<li><strong><code>index.html</code> must not be cached.</strong> Vite hashes asset filenames, so JS/CSS are safe forever,</li>
+<p>but a cached <code>index.html</code> after a redeploy serves an old bundle against a new protocol — mid demo. Subclass <code>StaticFiles</code> and set <code>Cache-Control: no-cache</code> on <code>text/html</code> responses. Four lines.</p>
+<li><strong><code>html=True</code> is not SPA fallback.</strong> It serves <code>index.html</code> for directory paths. We have no</li>
+<p>client-side routing, so this is correct — just don't promise more than it does.</p>
+</ol>
+<p><strong><code>npm run build</code> must precede <code>modal deploy</code>, every time.</strong> <code>add_local_dir</code> reads the local tree at deploy time; a stale <code>dist/</code> deploys a stale UI with no error anywhere. Make it structural: <code>make deploy</code> depends on the frontend build.</p>
+<p>✅ <strong>Verified locally, not assumed:</strong> <code>npm run build</code> succeeds today (vite 6.4.3, 25 modules, <code>dist/index.html</code> + one hashed chunk) and — importantly — <strong><code>spike.html</code> is not an entry point, so the Block 0 spike files do not reach <code>dist/</code>.</strong> See §Spike files.</p>
+<h3 id="modal-function-config"><span class="htext">Modal function config</span></h3>
+<p>Verified against the <strong>installed</strong> client (1.5.5) by inspecting the signatures, not from memory: <code>timeout</code>, <code>min_containers</code>, <code>max_containers</code>, <code>buffer_containers</code>, <code>scaledown_window</code>, <code>region</code>, <code>routing_region</code>, <code>secrets</code> all present on <code>App.function</code>; <code>modal.concurrent(max_inputs=, target_inputs=)</code> present; <code>Image.add_local_dir(local_path, remote_path, *, copy=False, ignore=[])</code> present.</p>
+<div class="codewrap"><pre><code class="lang-python">@app.function(
+    timeout=30 * 60,
+    min_containers=1,
+    max_containers=1,        # CHANGED from 2 — see below
+    scaledown_window=300,
+    routing_region=&quot;us-east&quot;,  # Block 0 S2. Fixed per Function once deployed: a change = a new URL.
+    secrets=[modal.Secret.from_name(&quot;sarjy-secrets&quot;)],
+)
+@modal.concurrent(max_inputs=16, target_inputs=8)   # RAISED from 8/4 — see below
+@modal.asgi_app()</code></pre></div>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Change</th><th style="text-align:left">Why</th></tr></thead><tbody><tr><td style="text-align:left"><code>max_containers=2 → 1</code></td><td style="text-align:left">The session registry is in-process until Block 7. With two containers a reconnect can land on the wrong one and silently lose the session — the exact failure this block exists to prevent. Revisit when the registry moves to <code>modal.Dict</code>.</td></tr><tr><td style="text-align:left"><code>max_inputs=8 → 16</code></td><td style="text-align:left">Each client holds one live input plus up to two <strong>zombie</strong> inputs for ~2 minutes (S1's 120 s server-side gap × a 75 s rotation). Two viewers ≈ 6–9 slots against a cap of 8. Headroom is free for an I/O-bound handler; being at the cap is a silent hang. <code>bye</code> + a server-side close is the primary fix; this is the belt.</td></tr><tr><td style="text-align:left">Image</td><td style="text-align:left"><code>.add_local_dir(&lt;repo&gt;/frontend/dist, remote_path=&quot;/root/frontend/dist&quot;)</code>. Default <code>copy=False</code> mounts at container start rather than baking a layer — faster deploys, same result. The TDD says &quot;image-baked&quot;; either is fine, but <strong>choose deliberately and note it</strong>, because <code>copy=True</code> rebuilds the image on every UI change.</td></tr><tr><td style="text-align:left">Paths</td><td style="text-align:left"><code>pip_install_from_pyproject(&quot;pyproject.toml&quot;)</code> and the new <code>add_local_dir</code> both resolve relative to the <strong>deploy cwd</strong>. Derive both from <code>Path(__file__)</code> so <code>modal deploy backend/modal_app.py</code> from the repo root behaves identically to <code>make deploy</code> from <code>backend/</code>.</td></tr></tbody></table></div>
+<p><strong><code>backend/app/main.py</code> must not import <code>app.config</code>, <code>groq</code>, or <code>google-genai</code>.</strong> Block 1 needs no provider key and no provider SDK; keeping them out means the deploy cannot be broken by a missing key or a provider SDK change, and the container starts faster. <code>load_settings()</code> raises on a missing key — do not put that on the boot path this week.</p>
+<hr />
+<h2 id="build-order"><span class="htext">Build order</span></h2>
+<p>Deploy early. Everything after step 5 is improvement on a requirement already banked.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Step</th><th style="text-align:left">Files</th><th style="text-align:left">Est</th></tr></thead><tbody><tr><td style="text-align:left">1</td><td style="text-align:left"><strong>Tooling debts</strong> (§Inherited debts)</td><td style="text-align:left"><code>frontend/eslint.config.js</code>, <code>backend/tests/</code>, <code>backend/pyproject.toml</code></td><td style="text-align:left">15 m</td></tr><tr><td style="text-align:left">2</td><td style="text-align:left"><strong>Protocol, server side</strong> — models, union, <code>TypeAdapter</code>, <code>PROTOCOL_VERSION</code></td><td style="text-align:left"><code>backend/app/pipeline/protocol.py</code></td><td style="text-align:left">25 m</td></tr><tr><td style="text-align:left">3</td><td style="text-align:left"><strong>Session registry</strong> — record, mint, resume, generation, TTL sweep</td><td style="text-align:left"><code>backend/app/session.py</code>, tests</td><td style="text-align:left">25 m</td></tr><tr><td style="text-align:left">4</td><td style="text-align:left"><strong>Handler + health + static mount</strong> — failure paths first</td><td style="text-align:left"><code>backend/app/main.py</code>, tests</td><td style="text-align:left">20 m</td></tr><tr><td style="text-align:left">5</td><td style="text-align:left">🚩 <strong>Deploy #1.</strong> <code>npm run build &amp;&amp; make deploy</code>. Open the URL. <strong>Requirement #4 is banked here.</strong></td><td style="text-align:left"><code>backend/modal_app.py</code>, <code>Makefile</code></td><td style="text-align:left">15 m</td></tr><tr><td style="text-align:left">6</td><td style="text-align:left"><strong>Start the lifetime probe in the background</strong> (§Step 6)</td><td style="text-align:left"><code>backend/scripts/ws_lifetime.py</code></td><td style="text-align:left">10 m attended</td></tr><tr><td style="text-align:left">7</td><td style="text-align:left"><strong>Protocol + connection manager, client side</strong></td><td style="text-align:left"><code>frontend/src/protocol.ts</code>, <code>frontend/src/net/connection.ts</code></td><td style="text-align:left">35 m</td></tr><tr><td style="text-align:left">8</td><td style="text-align:left"><strong>React shell</strong> — both state machines visible</td><td style="text-align:left"><code>frontend/src/App.tsx</code>, <code>main.tsx</code></td><td style="text-align:left">25 m</td></tr><tr><td style="text-align:left">9</td><td style="text-align:left"><strong>Rebuild, redeploy, walk the gate</strong></td><td style="text-align:left">—</td><td style="text-align:left">20 m</td></tr><tr><td style="text-align:left">10</td><td style="text-align:left"><strong>Walkthrough with Omar · PR doc · commit drafts</strong></td><td style="text-align:left"><code>docs/PRs/PR_SKELETON_DEPLOY.md</code></td><td style="text-align:left">20 m</td></tr></tbody></table></div>
+<p>≈ <strong>3 h 30 m.</strong> Steps 2–4 collapse to ~45 m if nothing surprises; steps 7–9 are where the time actually goes, and they are where a demo breaks.</p>
+<h3 id="inherited-debts-step-1-none-of-these-are-optional-all-are-pr"><span class="htext">Inherited debts (step 1) — none of these are optional, all are pre-existing</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Debt</th><th style="text-align:left">Effect if skipped</th><th style="text-align:left">Fix</th></tr></thead><tbody><tr><td style="text-align:left"><strong>No <code>frontend/eslint.config.js</code></strong> (flagged in Block 0 S5, never fixed)</td><td style="text-align:left"><code>npm run lint</code> fails → the <code>Stop</code> hook blocks every turn</td><td style="text-align:left">Flat config, ESLint 9: <code>npm i -D @eslint/js typescript-eslint</code>, recommended rulesets, <code>ignores: [&quot;dist/**&quot;, &quot;src/spike/**&quot;]</code></td></tr><tr><td style="text-align:left"><strong>No <code>backend/tests/</code></strong></td><td style="text-align:left"><code>make lint</code> (<code>ruff check app tests</code>) errors on a missing path; <code>make test</code> exits non-zero with nothing collected</td><td style="text-align:left">Create it in step 1, with the step-2/3/4 tests landing into it</td></tr><tr><td style="text-align:left"><strong><code>modal</code> is not a dependency</strong> but <code>make deploy</code> runs <code>uv run modal deploy</code></td><td style="text-align:left">Falls through to the global client, or fails outright</td><td style="text-align:left">Add <code>modal&gt;=1.5.5</code> to <code>[project.optional-dependencies].dev</code></td></tr></tbody></table></div>
+<hr />
+<h2 id="step-6-measure-the-exact-death-time"><span class="htext">Step 6 — measure the exact death time</span></h2>
+<p>The rotation interval is a number Omar will be asked to defend. Right now it would be a guess bracketed by (5 s, 160 s]. This makes it a measurement, for ~10 attended minutes.</p>
+<p><code>backend/scripts/ws_lifetime.py</code> — kept, not throwaway, because it is the evidence behind a constant we ship:</p>
+<ol>
+<li>Connect to the <strong>deployed</strong> <code>wss://…/ws</code> (the real app, not a throwaway probe).</li>
+<li><code>hello</code> → expect <code>ready</code>.</li>
+<li><code>ping</code> every <strong>10 s</strong>, 5 s pong deadline, printing <code>t=NNs ok</code>.</li>
+<li>On the first failure, print <strong>last-ok</strong> and <strong>first-fail</strong> and exit.</li>
+<li><code>n = 2</code>, run concurrently in the background while steps 7–8 proceed. ~6 minutes wall clock.</li>
+</ol>
+<p><strong>Output:</strong> append to <code>docs/measurements/day1-spikes.md</code> §S1 as a dated <em>Block 1 addendum</em> — same document, one source of truth for that fact. Then apply §Rotation's decision table.</p>
+<p>⚠️ <strong>If the two runs disagree by more than 30 s</strong>, the cap is not a fixed timeout and the interval needs a bigger safety margin (use the lower value, halved). Say so rather than averaging them.</p>
+<hr />
+<h2 id="failure-paths-build-these-before-the-happy-path"><span class="htext">Failure paths — build these before the happy path</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Failure</th><th style="text-align:left">Defined, visible behaviour</th></tr></thead><tbody><tr><td style="text-align:left">Rotation timer fires mid-turn</td><td style="text-align:left"><code>rotatePending</code>; rotate on the next <code>idle</code>. Never mid-utterance</td></tr><tr><td style="text-align:left">Turn would start with &lt; 30 s of socket life</td><td style="text-align:left"><code>ensureFresh()</code> rotates first, then the turn starts. Invisible to the user</td></tr><tr><td style="text-align:left">Socket dies anyway (preemption, real drop)</td><td style="text-align:left">Connection state → <code>reconnecting</code>, backoff, auto-resume. If a turn was in flight: mark it interrupted and say <strong>&quot;connection dropped — say that again.&quot;</strong> Never a hang</td></tr><tr><td style="text-align:left">Server has no record of the session (restart, TTL, redeploy)</td><td style="text-align:left"><code>ready{resumed:false}</code> with a <strong>new</strong> id. UI states plainly that a new session started. Never pretend continuity we don't have</td></tr><tr><td style="text-align:left">A superseded (zombie) connection's <code>finally</code> runs late</td><td style="text-align:left">No-op via the generation counter. Never tears down the live connection</td></tr><tr><td style="text-align:left">Two tabs, same session id</td><td style="text-align:left">Second <code>hello</code> supersedes the first; the first gets <code>closing{reason:&quot;superseded&quot;}</code>. Defined, not a race</td></tr><tr><td style="text-align:left">Protocol version mismatch (stale bundle after a redeploy)</td><td style="text-align:left"><code>error{protocol_version}</code> → <code>closing{reconnect:false}</code> → <strong>&quot;A new version is available — reload.&quot;</strong></td></tr><tr><td style="text-align:left">Malformed JSON / unknown <code>t</code> / extra field</td><td style="text-align:left"><code>error{bad_message, recoverable:true}</code>, <strong>socket stays open</strong></td></tr><tr><td style="text-align:left">Binary frame arrives</td><td style="text-align:left"><code>error{unsupported}</code>. Audio is Block 2</td></tr><tr><td style="text-align:left">First message is not a valid <code>hello</code></td><td style="text-align:left">Close. The handshake is the one place a bad message is fatal</td></tr><tr><td style="text-align:left"><code>frontend/dist</code> missing at startup</td><td style="text-align:left">App still boots; <code>/health</code> and <code>/ws</code> work; <code>/</code> explains the frontend is not built</td></tr><tr><td style="text-align:left">Unhandled exception in the handler</td><td style="text-align:left">Caught, <code>error{internal}</code> with <strong>no traceback to the client</strong>, logged server-side, socket closed cleanly</td></tr><tr><td style="text-align:left">Tab backgrounded past the rotation window</td><td style="text-align:left">On <code>visibilitychange</code>, rotate immediately or ping-verify before trusting the socket</td></tr><tr><td style="text-align:left">Browser offline / network down</td><td style="text-align:left"><code>offline</code> state, retry loop with jitter, manual <strong>Retry</strong> after 5 failures. No infinite spinner</td></tr><tr><td style="text-align:left"><strong>Mic permission</strong></td><td style="text-align:left"><strong>Not requested in Block 1.</strong> The mic affordance renders visibly disabled with &quot;voice arrives next&quot; — a deliberate placeholder, not a dead control, and not a <code>getUserMedia</code> call</td></tr></tbody></table></div>
+<hr />
+<h2 id="tests-make-test"><span class="htext">Tests (<code>make test</code>)</span></h2>
+<p>Unit, fast, no network. They are not the gate — the gate is observational — but they are what stops Block 2 from breaking this silently.</p>
+<p><strong><code>backend/tests/test_protocol.py</code></strong></p>
+<ul>
+<li>every Block 1 client message parses; field values survive the round trip</li>
+<li>unknown <code>t</code> → rejected; an extra field → rejected (<code>extra=&quot;forbid&quot;</code> is doing work)</li>
+<li><code>hello</code> with <code>v != PROTOCOL_VERSION</code> → rejected</li>
+<li>every server message serialises with exactly the documented keys</li>
+</ul>
+<p><strong><code>backend/tests/test_session.py</code></strong></p>
+<ul>
+<li>cold <code>hello</code> mints an id; <code>resumed=False</code>; <code>connection_n == 1</code></li>
+<li><code>hello</code> with a known id → same record, <code>resumed=True</code>, <code>connection_n</code> and <code>seq</code> <strong>continue</strong></li>
+<li><code>hello</code> with an unknown id → new session, <code>resumed=False</code> (never trust a client-supplied id)</li>
+<li>generation increments per connection; <strong>a stale-generation disconnect does not clear <code>live</code></strong> —</li>
+<p>the late-<code>finally</code> case, asserted directly</p>
+<li>TTL sweep drops a record past <code>SESSION_TTL</code> and keeps a fresh one</li>
+</ul>
+<p><strong><code>backend/tests/test_ws.py</code></strong> — <code>fastapi.testclient.TestClient.websocket_connect</code></p>
+<ul>
+<li>hello → ready; ping → pong; malformed text → <code>error</code> <strong>and the socket is still usable</strong></li>
+<li>binary frame → <code>error{unsupported}</code></li>
+<li>reconnect with the returned id → <code>ready{resumed:true}</code> — the whole block's thesis, in a test</li>
+</ul>
+<hr />
+<h2 id="the-gate-observational-walked-in-order"><span class="htext">The gate — observational, walked in order</span></h2>
+<p>Against the <strong>public Modal URL</strong>, not localhost. Record the result in the PR doc.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Do</th><th style="text-align:left">Pass</th></tr></thead><tbody><tr><td style="text-align:left">1</td><td style="text-align:left"><code>curl https://…/health</code></td><td style="text-align:left"><code>{&quot;status&quot;:&quot;ok&quot;, …}</code></td></tr><tr><td style="text-align:left">2</td><td style="text-align:left">Open the URL in Chrome</td><td style="text-align:left">Page renders, <strong>zero console errors</strong>, connection state reaches <code>ready</code></td></tr><tr><td style="text-align:left">3</td><td style="text-align:left">Click <strong>Ping</strong></td><td style="text-align:left">Round-trip ms displayed. <strong>This is the master plan's &quot;a message round-trips.&quot;</strong></td></tr><tr><td style="text-align:left">4</td><td style="text-align:left">Wait past one rotation, touching nothing</td><td style="text-align:left"><code>connection #2</code>, <strong>same session id</strong>, <code>resumed: true</code>, no error state shown</td></tr><tr><td style="text-align:left">5</td><td style="text-align:left">Leave the tab open <strong>6 minutes</strong></td><td style="text-align:left">Still connected, session unchanged. This is the S1 finding being beaten</td></tr><tr><td style="text-align:left">6</td><td style="text-align:left">Switch tabs for 2 minutes, come back</td><td style="text-align:left">Recovers within a second; no stale socket</td></tr><tr><td style="text-align:left">7</td><td style="text-align:left">Redeploy while the tab is open</td><td style="text-align:left"><code>reconnecting</code> → recovers; new session <strong>announced</strong>, not hidden</td></tr><tr><td style="text-align:left">8</td><td style="text-align:left">DevTools → Network → Offline, then back</td><td style="text-align:left"><code>offline</code> state, then automatic recovery</td></tr><tr><td style="text-align:left">9</td><td style="text-align:left">DevTools console: <code>ws.send(&quot;{&quot;)</code> on the live socket</td><td style="text-align:left"><code>error</code> received, <strong>socket still open</strong></td></tr><tr><td style="text-align:left">10</td><td style="text-align:left">Open the URL in a second browser</td><td style="text-align:left">Both work. Same container, independent sessions</td></tr><tr><td style="text-align:left">11</td><td style="text-align:left">Open in Safari</td><td style="text-align:left">Works, or the failure is written down (<code>browser-audio.md</code> — Safari breaks voice apps specifically, and finding out now is free)</td></tr></tbody></table></div>
+<p><strong>Block 1 is done when 1–10 pass and the deployed URL is one Omar would send to a stranger.</strong></p>
+<hr />
+<h2 id="out-of-scope-say-no-to-all-of-these"><span class="htext">Out of scope — say no to all of these</span></h2>
+<p>Audio capture · audio playback · AudioWorklet · VAD · <strong>any</strong> <code>getUserMedia</code> call · STT · LLM · TTS · Deepgram (no key exists) · the opener · the grounding gate · tools · the vendor client · memory · <code>modal.Dict</code> · identity / name / PIN · per-stage instrumentation (a <code>ts_ms</code> on each message is the entire allowance) · UI polish beyond visible state · authentication · Arabic.</p>
+<p><strong>Block 1 proves the pipe, not what flows through it.</strong> If a step starts to need one of these, that is the signal to stop and re-plan, not to press on.</p>
+<hr />
+<h2 id="spike-files-keep-until-block-2"><span class="htext">Spike files — keep until Block 2</span></h2>
+<p><code>frontend/spike.html</code>, <code>frontend/src/spike/main.ts</code>, <code>frontend/src/spike/worklet.js</code> <strong>stay.</strong></p>
+<ol>
+<li><strong>S5 has not been run by a human.</strong> C1–C5 are still owed (<code>day1-spikes.md</code> §S5). Deleting the</li>
+<p>page destroys the only artifact that can answer them.</p>
+<li><strong>They do not ship.</strong> Verified by running the build: <code>vite build</code> takes only <code>index.html</code> as an</li>
+<p>entry, and <code>dist/</code> contains <code>index.html</code> plus one hashed chunk. The spike costs the deployed bundle nothing.</p>
+<li><strong>Block 2 lifts code from them</strong> — the 20 ms / 320-sample framing and float32→int16 conversion</li>
+<p>in <code>worklet.js</code>, per Block 0's carry-forward.</p>
+</ol>
+<p><strong>Condition:</strong> add <code>src/spike/**</code> to the new eslint <code>ignores</code> (throwaway code should not gate the lint that guards shipping code). <strong>Delete both in Block 2, in the same commit that lands the real capture path</strong> — not later, or they become permanent.</p>
+<hr />
+<h2 id="what-omar-must-do-himself"><span class="htext">What Omar must do himself</span></h2>
+<ol>
+<li><strong>P1.1–P1.3</strong> above, before step 5.</li>
+<li><strong>Decide the region is final</strong> — after deploy #1 the URL is real; sharing it freezes <code>us-east</code>.</li>
+<p>§S2's honest caveat still stands: eu-west was 2× faster on the leg a human feels and lost only on a small n=5 sample. This is the last cheap moment to override.</p>
+<li><strong>Run S5's C1–C5</strong> in Chrome and Safari — still outstanding from Block 0, and Block 2 is</li>
+<p>planned on its answers.</p>
+<li><strong>Get a Deepgram key</strong> before Block 2 (P1.4).</li>
+<li><strong>Every commit.</strong> Agents draft, Omar commits.</li>
+</ol>
+<hr />
+<h2 id="draft-commits"><span class="htext">Draft commits</span></h2>
+<p>Small and coherent, so the history reads like a build rather than a dump.</p>
+<div class="codewrap"><pre><code>chore(frontend): add ESLint 9 flat config
+
+npm run lint has never run — no config existed, so the Stop hook's lint
+step was passing on nothing. Ignores dist/ and the Block 0 spike tree.
+
+feat(protocol): typed WebSocket message union, validated at the boundary
+
+Closed discriminated union on &quot;t&quot;, extra=&quot;forbid&quot;, one TypeAdapter as the
+only entry point for client input. Reserves transcript/segments/timings/
+quota without building them. Mirrored by hand in TypeScript — no zod, so
+the parse path stays readable.
+
+feat(session): server-minted sessions that outlive their connection
+
+A connection is not a session. Sessions are minted server-side (uuid4,
+never client-proposed), resumed by id on reconnect, and expired by a TTL
+sweep rather than by the socket closing — Block 0 measured the server
+learning about a disconnect ~120s after the client did. A generation
+counter makes a superseded connection's late teardown a no-op.
+
+feat(ws): async conversation handler, health, and same-origin static UI
+
+Handler is async: with input concurrency a sync function dies entirely
+when one input is cancelled, and a closed tab is a cancellation. The
+frontend is served by this same ASGI app, which removes CORS from the
+project. Failure paths first: bad message, binary, missing dist, version
+mismatch.
+
+feat(client): reconnect-and-resume with proactive rotation
+
+Modal kills a WebSocket inside the first 160s (measured, Block 0 S1). The
+client rotates the socket between turns on a timer well under that, and
+refuses to start a turn that could not finish before the next rotation —
+so a turn never spans a connection and resume carries identity only.
+
+chore(deploy): pin us-east, one container, build the UI before deploying
+
+routing_region is fixed per Function once deployed. max_containers drops
+to 1 while the session registry is in-process. make deploy now depends on
+the frontend build, because add_local_dir reads the local tree.
+
+docs(measure): exact WebSocket death time, n=2, against the deployment</code></pre></div>
+<p>Attribution line per the repo's convention, on each.</p>
+<hr />
+<h2 id="carried-into-block-2"><span class="htext">Carried into Block 2</span></h2>
+<ul>
+<li><code>rotate_after_ms</code>, and the measured <strong>D</strong> it came from.</li>
+<li><code>ensureFresh()</code> — await it before sending <code>start</code>. This is the contract that keeps a turn inside</li>
+<p>one connection.</p>
+<li>The conversation state machine exists and is wired; Block 2 fills in</li>
+<p><code>listening/thinking/speaking</code>, and <strong>state changes are sent before the work that follows them.</strong></p>
+<li><code>start</code>/<code>end</code>/<code>barge</code> and binary audio are named in the protocol table; add the models and the</li>
+<p>dispatcher branches — no envelope change.</p>
+<li>Delete <code>spike.html</code> and <code>src/spike/</code> in the commit that lands real capture.</li>
+<li>The mic affordance is a deliberate disabled placeholder. Block 2 replaces it with a permission</li>
+<p>request <strong>that has a reason attached</strong> (<code>browser-audio.md</code>).</p>
+</ul>
+<hr />
+<h2 id="open-assumed-stated-rather-than-buried"><span class="htext">Open / assumed, stated rather than buried</span></h2>
+<ul>
+<li><strong>Assumed:</strong> <code>StaticFiles</code> mounted last is reached after <code>/health</code> and <code>/ws</code> because Starlette</li>
+<p>matches routes in registration order. Confident, unverified by running — it will be obvious at step 5 if wrong, and the fix is line order.</p>
+<li><strong>Assumed:</strong> a server-side <code>ws.close()</code> releases the Modal input immediately. Consistent with</li>
+<p>&quot;one WebSocket is one input&quot;, <strong>not directly measured</strong>. If container input slots still fill up, that assumption is where to look.</p>
+<li><strong>Unknown until step 6:</strong> the exact death time D. Everything about the rotation interval is</li>
+<p>provisional until then, and the §Rotation table is the instruction, not the number.</p>
+<li><strong>Deliberately deferred:</strong> the session registry is in-process, so <code>max_containers=1</code>. If Block 7</li>
+<p>does not move it to <code>modal.Dict</code>, this app cannot scale past one container — which is fine for a demo and must be said out loud rather than discovered.</p>
+</ul>
+  </main>
+</div>

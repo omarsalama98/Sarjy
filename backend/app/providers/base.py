@@ -8,7 +8,8 @@ A provider SDK, model id, or provider-shaped payload outside its adapter is a
 blocking review issue (.claude/rules/voice/pipeline.md).
 """
 
-from typing import Any, AsyncIterator, Protocol
+from collections.abc import AsyncIterator
+from typing import Any, Protocol
 
 
 class STT(Protocol):

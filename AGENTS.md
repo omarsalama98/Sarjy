@@ -36,7 +36,9 @@ The brief says they see 5–10 voice take-homes a week. It names the bar explici
 
 ## Status
 
-**Planning complete. Scaffolded and committed. Implementation starts Saturday 2026-09-19.**
+**Blocks 0 and 1 done. Deployed and live: `https://vitas7777v--sarjy-fastapi-app.us-east.modal.run` — requirement #4 is landed.**
+
+Block plans live in `docs/plans/blocks/`; `docs/plans/MASTER-PLAN.md` holds the block list, gates and dependency chain. **Block 2 (the voice loop) is next and is blocked on a Deepgram key and the S5 browser spike.**
 
 `docs/plans/PRD.md` (what/why) and `docs/plans/TDD.md` (how) are the plan of record — read both before any implementation.
 `docs/decisions/deep-dive-track.md` (gitignored) carries the reasoning and the discarded options.
@@ -57,11 +59,14 @@ Full reasoning and evidence: `docs/plans/tdd-review.md`. Provider facts verified
 | Frontend | TypeScript · React, served by the same ASGI app (no CORS) |
 | STT | Groq `whisper-large-v3-turbo` (**batch** — client-side VAD endpoints the turn) |
 | LLM | Gemini `gemini-3.5-flash-lite`, `thinking_level: "minimal"`, `store=False` |
-| TTS | Gemini `gemini-3.1-flash-tts-preview`, voice **Sulafat**. **Two requests per turn**, not per segment |
+| TTS (English) | **Deepgram `aura-2`** — WebSocket streaming, raw PCM s16le @ 24 kHz. Gemini TTS was dropped: measured **10 requests/day** free-tier cap and 1.1–1.4 s TTFB |
+| TTS (Arabic, P2) | **Groq `canopylabs/orpheus-arabic-saudi`** — ⚠️ 200-char cap per request |
+| TTS shape | **Two requests per turn**, not per segment — opener, then the whole gated answer |
 | Structured output | **NDJSON** (`text/plain` + Pydantic per line) — `response_format` cannot stream discrete objects |
 | Gate | Value-level substitution + **digit rule** + **placeholder rule**. Opener gated separately |
 | Memory | **`modal.Dict`**; two tiers (anonymous session-only / signed-in persisted); voice-first identity |
-| Deploy | Modal, `@modal.concurrent(max_inputs=8)` — **one WebSocket is one input** |
+| Deploy | Modal, `us-east`, `@modal.concurrent(max_inputs=16)` — **one WebSocket is one input**, and the server does not notice a dead one for ~120 s, so each client holds ~2 slots |
+| WebSocket lifetime | Modal kills it well under a conversation's length. **Transparent reconnect between turns**, never mid-turn — shipped in Block 1 |
 | External API | Travel Buddy visa requirements (**120 requests total** — quota-aware client) |
 | Fallback data | passport-index maintained fork (`visualpharm/visa-free-dataset`), vendored |
 | Eval | 3 layers: gate · assertion tests · offline LLM judge. 12 hand-labelled cases, judge agreement reported |
@@ -72,12 +77,12 @@ Full reasoning and evidence: `docs/plans/tdd-review.md`. Provider facts verified
 
 | Decision | Blocks |
 |---|---|
-| Does the 150 s HTTP timeout survive a WebSocket upgrade? | Architecture — day-1 spike |
-| TTS time-to-first-byte — no published figure anywhere | The latency budget — day-1 spike |
-| Parallel function calling on `gemini-3.5-flash-lite` **specifically** | The opener design — measure before committing |
-| `routing_region` — **irreversible after first deploy**, no Middle East region | Day-1 A/B |
-| Colour legend (~6 requests) | Any answer that depends on it |
-| Reviewer's GitHub username; API keys from Sarj | Submission (asked 2026-09-18, **email still unsent**) |
+| Colour legend (~6 requests) | Any answer that depends on it — Block 5 |
+| Deepgram account + key | **Block 2 cannot start without it** |
+| S5 browser-audio spike (C1–C5) — needs a human at a browser | Block 2's capture path is planned on it |
+| Reviewer's GitHub username | Submission — email sent 2026-09-18, awaiting reply |
+
+**Closed by Block 0** (`docs/measurements/day1-spikes.md`): the 150 s WebSocket question · TTS time-to-first-byte · parallel function calling on flash-lite (3/3, so the opener stands) · `routing_region` (us-east).
 
 Do not silently resolve one — record it in `docs/decisions/` and flag the assumption in your summary.
 

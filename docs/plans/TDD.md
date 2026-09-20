@@ -575,7 +575,14 @@ Ordered so that **whatever falls off the end is what you can write up** — neve
   WebSocket upgrade, and it's worse than that** — both an idle connection and one with a
   client-side protocol heartbeat died client-side somewhere in (5 s, 160 s], corroborated by a
   control test against an unrelated WebSocket service on the same network that survived past
-  200 s. **Both arms dead → the MASTER-PLAN trigger fires: switch to Fly.io before Block 1.**
+  200 s. **Both arms dead → the MASTER-PLAN trigger fired: switch to Fly.io before Block 1.**
+
+  ⚖️ **That trigger was consciously overridden. We stay on Modal.** The failure is bounded — a
+  window that brackets Modal's documented 150 s HTTP request timeout — and §Deployment already
+  required transparent reconnect-and-resume because Modal Functions are preemptible regardless.
+  Block 1 ships it, and without it this decision is wrong and the demo dies at ~150 s, live.
+  Full reasoning in `docs/measurements/day1-spikes.md` §S1. **Do not read the line above and
+  migrate.**
 - ✅ **ANSWERED (partially), 2026-09-19 (`day1-spikes.md` S3): TTS time-to-first-byte is
   ~1.1–1.4 s**, not the 500 ms estimate — at n=1–2 per arm, not the planned n=5, because of a
   newly-discovered 10-requests/day free-tier cap (see below). Re-run at full n once quota

@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "pytest-asyncio>=0.24", "ruff>=0.8", "mypy>=1.13"]
+dev = ["pytest>=8", "pytest-asyncio>=0.24", "ruff>=0.8", "mypy>=1.13", "modal>=1.5.5", "certifi>=2024"]
 
 [tool.ruff]
 line-length = 100
@@ -32,3 +32,9 @@ warn_return_any = true
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+# This project is never `pip install`-ed into its own venv (no [build-system]
+# here -- uv only resolves dependencies). Without this, pytest's default
+# import mode adds tests/ to sys.path, not backend/, and `import app` in a
+# test file fails. One line, versus adding packaging this project doesn't
+# otherwise need.
+pythonpath = ["."]

@@ -1,0 +1,411 @@
+<title>PR: Skeleton that deploys (Block 1)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --ink:       #14171c;
+    --ink-2:     #474e5a;
+    --ink-3:     #767e8b;
+    --line:      #e2e5ea;
+    --line-2:    #eef0f4;
+    --accent:    #2d4a7c;
+    --accent-bg: #edf1f8;
+    --warn:      #a6421f;
+    --warn-bg:   #fbf0eb;
+    --code-bg:   #f0f2f6;
+    --shadow:    0 1px 2px rgba(20,23,28,.05), 0 8px 24px -12px rgba(20,23,28,.15);
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #101317;
+      --surface:   #171b21;
+      --ink:       #e7eaef;
+      --ink-2:     #a8b0bc;
+      --ink-3:     #7b838f;
+      --line:      #2a2f38;
+      --line-2:    #22262d;
+      --accent:    #8fb0e6;
+      --accent-bg: #1a2130;
+      --warn:      #e2916d;
+      --warn-bg:   #2a1d17;
+      --code-bg:   #1d222a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #101317;
+    --surface:   #171b21;
+    --ink:       #e7eaef;
+    --ink-2:     #a8b0bc;
+    --ink-3:     #7b838f;
+    --line:      #2a2f38;
+    --line-2:    #22262d;
+    --accent:    #8fb0e6;
+    --accent-bg: #1a2130;
+    --warn:      #e2916d;
+    --warn-bg:   #2a1d17;
+    --code-bg:   #1d222a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .5rem 2.25rem; margin: 0; }
+  dl.meta div { display: flex; flex-direction: column; gap: .1rem; }
+  dl.meta dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  dl.meta dd { margin: 0; font-size: .9rem; color: var(--ink-2); }
+
+  /* ---- toc ---- */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 3rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--ink-3);
+    margin: 0 0 .75rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: flex;
+    gap: .7rem;
+    font-size: .92rem;
+    border-radius: 2px;
+  }
+  .toc a:hover { color: var(--accent); }
+  .tocnum, .secnum {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: .8em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- headings ---- */
+  h2, h3, h4 { font-family: var(--serif); letter-spacing: -.01em; text-wrap: balance; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    font-weight: 600;
+    margin: 3.5rem 0 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .75rem;
+    align-items: baseline;
+  }
+  h3 { font-size: 1.14rem; font-weight: 600; margin: 2.25rem 0 .7rem; display: flex; gap: .6rem; align-items: baseline; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; color: var(--ink-2); }
+  h2 .secnum, h3 .secnum { flex: none; }
+
+  p { margin: 0 0 1.05rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line-2); margin: 2.5rem 0; }
+
+  ul, ol { margin: 0 0 1.15rem; padding-left: 1.35rem; max-width: 68ch; }
+  li { margin-bottom: .38rem; }
+  li::marker { color: var(--ink-3); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+  .codewrap { overflow-x: auto; margin: 0 0 1.4rem; }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 0;
+    min-width: min-content;
+  }
+  pre code { background: none; padding: 0; font-size: .845rem; line-height: 1.6; }
+
+  blockquote {
+    margin: 0 0 1.4rem;
+    padding: .1rem 0 .1rem 1.15rem;
+    border-left: 3px solid var(--line);
+    color: var(--ink-2);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+  }
+  .callout p { margin-bottom: .6rem; color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--warn); }
+
+  .tablewrap { overflow-x: auto; margin: 0 0 1.6rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  th, td { padding: .6rem .85rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <h1>PR: Skeleton that deploys (Block 1)</h1>
+    <dl class="meta"><div><dt>Plan</dt><dd><code>docs/plans/blocks/01-skeleton-deploy.md</code> · <strong>Lands:</strong> requirement #4 (a deployed URL a stranger can open)</dd></div></dl>
+  </header>
+  <nav class="toc" aria-label="Contents"><p class="eyebrow">Contents</p><ol><li><a href="#summary">Summary</a></li><li><a href="#gate-status-whats-verified-what-needs-a-human">Gate status — what's verified, what needs a human</a></li><li><a href="#problem">Problem</a></li><li><a href="#solution">Solution</a></li><li><a href="#changes">Changes</a></li><li><a href="#where-the-plan-needed-a-fix">Where the plan needed a fix</a></li><li><a href="#step-6-the-exact-death-time-and-two-mistakes-worth-recording">Step 6 — the exact death time, and two mistakes worth recording</a></li><li><a href="#assumptions-and-inferences-flagging-per-workflowmd">Assumptions and inferences (flagging per workflow.md)</a></li><li><a href="#how-to-test">How to Test</a></li><li><a href="#changelog">Changelog</a></li></ol></nav>
+  <main>
+<h2 id="summary"><span class="htext">Summary</span></h2>
+<p>Built the pipe, not what flows through it: a typed WebSocket protocol, a session that outlives its connection, transparent reconnect-and-resume, and a React shell served from the same FastAPI app on Modal. No audio, no STT/LLM/TTS — those are Block 2+.</p>
+<p><strong>Deployed URL:</strong> <code>https://vitas7777v--sarjy-fastapi-app.us-east.modal.run</code></p>
+<h2 id="gate-status-whats-verified-what-needs-a-human"><span class="htext">Gate status — what's verified, what needs a human</span></h2>
+<p>The plan's gate is observational (§The gate, 11 steps). I don't have a browser in this environment (no display, and the claude-in-chrome extension isn't connected here), so I verified everything scriptable against the <strong>real deployment</strong> and I'm flagging the rest honestly rather than asserting a click I didn't make — the same call Block 0 made for S5's browser checks.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Gate step</th><th style="text-align:left">Status</th></tr></thead><tbody><tr><td style="text-align:left">1</td><td style="text-align:left"><code>curl /health</code></td><td style="text-align:left"><strong>Verified</strong> — <code>{&quot;status&quot;:&quot;ok&quot;}</code>, HTTP 200</td></tr><tr><td style="text-align:left">2</td><td style="text-align:left">Open the URL, zero console errors, reaches <code>ready</code></td><td style="text-align:left"><strong>Partially verified</strong> — the served HTML/JS is correct and the protocol reaches <code>ready</code> (proven at the WebSocket level); the &quot;open it in an actual browser, watch DevTools&quot; part needs Omar</td></tr><tr><td style="text-align:left">3</td><td style="text-align:left">Click Ping, RTT displayed</td><td style="text-align:left"><strong>Verified at the protocol level</strong> (real <code>ping</code>→<code>pong</code> round trips, ~220–250ms observed from this environment to us-east); the UI button itself needs a browser click to confirm the wiring, though <code>App.tsx</code>'s <code>onClick</code> is a direct, one-line call to <code>connection.sendPing()</code></td></tr><tr><td style="text-align:left">4</td><td style="text-align:left">Wait past one rotation, same session id</td><td style="text-align:left"><strong>Verified</strong> — reconnect-with-same-id proven repeatedly (see Step 6 below and the smoke tests)</td></tr><tr><td style="text-align:left">5</td><td style="text-align:left">Leave the tab open 6 minutes</td><td style="text-align:left"><strong>Verified beyond this</strong> — a single connection survived 301.6s under active use (Step 6)</td></tr><tr><td style="text-align:left">6</td><td style="text-align:left">Background/foreground a tab</td><td style="text-align:left"><strong>Not verified</strong> — needs a real browser tab and <code>visibilitychange</code>; the code path exists (<code>connection.ts</code>'s <code>handleVisibilityChange</code>) but is untested against a real browser's timer throttling</td></tr><tr><td style="text-align:left">7</td><td style="text-align:left">Redeploy while the tab is open</td><td style="text-align:left"><strong>Verified the server side</strong> (a fresh <code>ready{resumed:false}</code> with a new session id after each redeploy, proven three times over the course of this block); <strong>not verified from an open tab's perspective</strong> — needs Omar</td></tr><tr><td style="text-align:left">8</td><td style="text-align:left">DevTools Network → Offline → back</td><td style="text-align:left"><strong>Not verified</strong> — needs a browser. The reactive backoff path (<code>scheduleReconnect()</code>) is implemented and unit-reasoned but not exercised against a real network drop</td></tr><tr><td style="text-align:left">9</td><td style="text-align:left">Malformed frame via console, socket stays open</td><td style="text-align:left"><strong>Verified</strong> — <code>ws.send(&quot;{&quot;)</code>-equivalent sent programmatically, <code>error{bad_message}</code> received, socket still answered a subsequent ping (both in the unit test and against the live deployment)</td></tr><tr><td style="text-align:left">10</td><td style="text-align:left">Two tabs / two sessions</td><td style="text-align:left"><strong>Verified the more interesting variant</strong> — two connections <em>sharing</em> a session id against the live deployment: the second resumes, the first gets <code>closing{reason:&quot;superseded&quot;}</code> and closes cleanly, the second stays live. Two independent (different-id) tabs working is a strict subset of this and wasn't separately re-tested</td></tr><tr><td style="text-align:left">11</td><td style="text-align:left">Safari</td><td style="text-align:left"><strong>Not tested</strong> — flagged per the plan's own instruction, same as Block 0's S5</td></tr></tbody></table></div>
+<p><strong>What I'd ask Omar to do:</strong> open the URL in Chrome and Safari, watch the console, click Ping, leave it idle a few minutes, try DevTools offline/online, and redeploy once while the tab is open. Everything underneath that UI is proven; the UI's own wiring to it is one-line-simple (<code>App.tsx</code>) but I want a human's eyes on it before calling it done end-to-end.</p>
+<h2 id="problem"><span class="htext">Problem</span></h2>
+<p>Two things had to be true before any later block could build on this one:</p>
+<ol>
+<li>Requirement #4 (a deployed URL) had to exist, banked early rather than left to the end.</li>
+<li>Block 0 measured Modal killing a WebSocket somewhere inside the first 160 seconds. Without</li>
+<p>transparent reconnect, a demo running past that point dies live, in front of the reviewer. The whole point of this block is to make that survivable before anything else is built on top of the connection.</p>
+</ol>
+<h2 id="solution"><span class="htext">Solution</span></h2>
+<ul>
+<li>A pydantic v2 discriminated union (<code>t</code> as the discriminator, <code>extra=&quot;forbid&quot;</code>) is the single</li>
+<p>boundary that parses client input; a hand-rolled TypeScript parser (no zod) mirrors it on the other end.</p>
+<li>Sessions are server-minted (<code>uuid4</code>, never client-proposed), kept in an in-process registry,</li>
+<p>and resumed by id on reconnect. A <strong>generation counter</strong> makes a late-arriving disconnect from a <em>superseded</em> connection a no-op instead of a teardown of the connection that replaced it — this is the direct fix for the ~120s server/client disconnect-detection gap Block 0 measured (<code>day1-spikes.md</code> §S1).</p>
+<li>The client rotates its own socket proactively, but only when the conversation is idle, and</li>
+<p>never mid-turn. <code>ensureFresh()</code> is implemented now (unused until Block 2 calls it before <code>start</code>) so the invariant — <strong>a turn never spans a connection</strong> — is enforced by code, not by hope.</p>
+<li>The reactive path (a real drop, not a planned rotation) backs off with jitter and gives up</li>
+<p>automatically after 5 consecutive failures, surfacing a manual Retry rather than spinning forever.</p>
+<li>The frontend is served by the same ASGI app (no CORS anywhere in this project), with</li>
+<p><code>index.html</code> marked <code>no-cache</code> so a stale cached shell can never talk a mismatched protocol version to a freshly redeployed backend.</p>
+</ul>
+<h2 id="changes"><span class="htext">Changes</span></h2>
+<p><strong>Backend</strong></p>
+<ul>
+<li><code>backend/app/pipeline/protocol.py</code> — rewritten: <code>HelloIn</code>/<code>PingIn</code>/<code>ByeIn</code> (client),</li>
+<p><code>ReadyOut</code>/<code>StateOut</code>/<code>PongOut</code>/<code>ErrorOut</code>/<code>ClosingOut</code> (server), <code>PROTOCOL_VERSION = 1</code>, <code>parse_client_message()</code> as the one parsing boundary.</p>
+<li><code>backend/app/session.py</code> — new. <code>Session</code> dataclass (<code>session_id</code>, <code>created_at_ms</code>,</li>
+<p><code>last_seen_ms</code>, <code>connection_n</code>, <code>generation</code>, <code>seq</code>, <code>live</code>) and <code>SessionRegistry</code> (<code>bind()</code>, lazy TTL sweep on each hello, <code>SESSION_TTL_MS = 15min</code>).</p>
+<li><code>backend/app/main.py</code> — rewritten: async <code>/ws</code> handler (handshake → <code>_serve()</code> receive loop →</li>
+<p>centralized cleanup in <code>finally</code>), <code>/health</code> unchanged, static mount last with a <code>_NoCacheHTMLStaticFiles</code> subclass, and a guarded fallback when <code>frontend/dist</code> is missing. Still imports nothing from <code>app.config</code>, <code>groq</code>, or <code>google-genai</code>.</p>
+<li><code>backend/modal_app.py</code> — <code>target_inputs</code> corrected to 8 (was still 4; the plan's own worked</li>
+<p>example shows 8, &quot;RAISED from 8/4&quot;); added <code>add_local_dir</code> for <code>frontend/dist</code> at <code>/root/frontend/dist</code>; both <code>pip_install_from_pyproject</code> and <code>add_local_dir</code> now resolve from <code>Path(__file__)</code> rather than the deploy cwd.</p>
+<li><code>backend/pyproject.toml</code> — added <code>modal&gt;=1.5.5</code> and <code>certifi</code> to dev deps; added</li>
+<p><code>pythonpath = [&quot;.&quot;]</code> to <code>[tool.pytest.ini_options]</code> (see &quot;Where the plan needed a fix&quot;, #2).</p>
+<li><code>backend/Makefile</code> — <code>deploy</code> now depends on a <code>build-frontend</code> target.</li>
+<li><code>backend/scripts/ws_lifetime.py</code> — new. The Step 6 measurement script, kept (not throwaway).</li>
+<li><code>backend/tests/test_protocol.py</code>, <code>test_session.py</code>, <code>test_ws.py</code> — new, per the plan's Tests</li>
+<p>section.</p>
+</ul>
+<p><strong>Frontend</strong></p>
+<ul>
+<li><code>frontend/src/protocol.ts</code> — new. Mirrors the backend protocol by hand; <code>parseServerMessage()</code></li>
+<p>is forward-compatible with an unknown <code>t</code> or <code>error.code</code>.</p>
+<li><code>frontend/src/net/connection.ts</code> — new. The <code>Connection</code> class: rotation, <code>ensureFresh()</code>,</li>
+<p>reactive backoff+jitter, liveness ping (detection, not a keepalive), <code>visibilitychange</code> handling for backgrounded tabs, and the generation-free client-side mirror of &quot;one reconnect path, one flag.&quot;</p>
+<li><code>frontend/src/App.tsx</code> — new. Both state machines rendered; a disabled, explained mic</li>
+<p>placeholder (not a <code>getUserMedia</code> call — that's Block 2); Ping button; Retry button when offline.</p>
+<li><code>frontend/src/main.tsx</code> — now imports <code>App</code> from <code>./App.tsx</code> instead of defining it inline.</li>
+</ul>
+<p><strong>Docs</strong></p>
+<ul>
+<li><code>docs/measurements/day1-spikes.md</code> — §S1 Block 1 addendum: the measured death time <strong>D</strong></li>
+<p>against the real deployment (see below), superseding the (5s, 160s] bracket for the constant that was actually shipped.</p>
+</ul>
+<h2 id="where-the-plan-needed-a-fix"><span class="htext">Where the plan needed a fix</span></h2>
+<p>Per the block-implementer brief: report these rather than silently working around them.</p>
+<ol>
+<li><strong><code>modal_app.py</code>'s <code>target_inputs</code>.</strong> The environment note said this file was &quot;already</li>
+<p>corrected for this block,&quot; but it still read <code>target_inputs=4</code>; the plan's own code block says 8 (&quot;RAISED from 8/4&quot;). Fixed to match the plan.</p>
+</ol>
+<ol>
+<li><strong>The <code>DIST</code> path formula breaks under the actual Modal mount layout.</strong> The plan's snippet —</li>
+<p><code>Path(__file__).resolve().parent.parent.parent / &quot;frontend&quot; / &quot;dist&quot;</code> — is correct locally (<code>backend/app/main.py</code> → repo root is 3 parents up), but verified against the <em>installed</em> modal client's own docstrings: <code>add_local_python_source(&quot;app&quot;)</code> mounts the package straight to <code>/root/app</code> (dropping the <code>backend/</code> prefix), while <code>add_local_dir(..., remote_path= &quot;/root/frontend/dist&quot;)</code> places the build one level up from <code>/root/app</code>, not two. Taken literally, the plan's formula resolves to <code>/frontend/dist</code> inside the container — one level short of where the UI actually lands — and the deployed root page would have silently served the &quot;frontend not built&quot; placeholder instead of the real UI. Fixed with a small dual-candidate lookup (<code>_resolve_dist()</code> in <code>main.py</code>) that checks both the local and the container-relative offset and uses whichever exists. <strong>Confirmed load-bearing, not theoretical:</strong> the deployed <code>/</code> correctly served the built <code>index.html</code> with this fix; I did not test the plan's literal formula against the real deployment to confirm it would have failed, but the verified mount documentation leaves no ambiguity about why it would have.</p>
+</ol>
+<ol>
+<li><strong><code>app</code> was never importable from <code>backend/tests/</code>.</strong> There is no <code>[build-system]</code> in</li>
+<p><code>pyproject.toml</code> — this project is never <code>pip install</code>-ed into its own venv, only its dependencies are resolved. Pytest's default import mode therefore put <code>backend/tests/</code> on <code>sys.path</code>, not <code>backend/</code>, so <code>import app</code> failed in every new test file. This is an inherited-debt-shaped gap the plan's own step 1 didn't anticipate (the placeholder test never imported <code>app</code>, so it never surfaced). Fixed with one line: <code>pythonpath = [&quot;.&quot;]</code>.</p>
+</ol>
+<ol>
+<li><strong>Step 6's measurement was contaminated by the app's own ceiling on the first run.</strong> Not a</li>
+<p>plan defect — a mistake in how I ran the plan's own instruction. See below.</p>
+</ol>
+<h2 id="step-6-the-exact-death-time-and-two-mistakes-worth-recording"><span class="htext">Step 6 — the exact death time, and two mistakes worth recording</span></h2>
+<p><strong>Measured D = 301.6s</strong>, ending in a clean, bidirectional close (code 1000) — not the silent, abrupt death Block 0's S1 saw on a genuinely idle connection. <strong>Decision applied (plan's table, D ≥ 140s): <code>rotate_after_ms = 75_000</code>, <code>hard_max_ms = 110_000</code>.</strong> That is what's deployed.</p>
+<p>Getting there took three attempts, and the first two are worth recording, not quietly discarding:</p>
+<ol>
+<li>**First attempt came back with a clean close at ~121s — which was this app's own</li>
+<p><code>hard_max_ms</code> (110s at the time) firing exactly as designed, not Modal's transport.** I had deployed with real rotation constants already baked in, so the server closed the socket itself before Modal's real limit could ever be observed. The measurement answered &quot;does my ceiling work&quot; (yes), not &quot;what is Modal's actual limit&quot; (the thing Step 6 exists to answer). Separately the script had an off-by-one (an undrained <code>state</code> push after <code>ready</code> shifted every later reply by one message) — fixed in the shipped script.</p>
+</ol>
+<ol>
+<li>**Second attempt: raised <code>hard_max_ms</code> to 5 minutes and redeployed to get the app's own</li>
+<p>ceiling out of the way — but the result (one arm failed its opening handshake at 10s, the other still died at ~113.6s) turned out to be a different confound.** <code>modal app logs sarjy</code> showed three separate <code>/ws</code> connections each running almost exactly 110.6–110.8s, and the currently-alive container's start time matched when this attempt was launched. Most likely explanation: these connections raced the redeploy's container transition rather than measuring steady state. Recorded as inconclusive, not averaged in.</p>
+</ol>
+<ol>
+<li><strong>Third attempt, isolated and started well after the redeploy had settled</strong> (confirmed via a</li>
+<p>fresh <code>ready</code> reading the correct <code>hard_max_ms=300000</code> before timing began): survived past S1's entire original bracket, to <strong>t=301.6s</strong>, then closed cleanly. This is the number used.</p>
+</ol>
+<p><strong>What this suggests about the original S1 finding, stated as inference, not fact:</strong> S1's own &quot;heartbeat&quot; arm sent the <code>websockets</code> library's low-level protocol ping (no data payload) every 20s and still died in the same (5s,160s] window as the fully-idle arm. This run sent real application-level JSON every 5–10s and survived 2–3× longer. The plausible mechanism is an intermediary that resets an idle timer on real data frames but not on protocol-level ping/pong — consistent with, not contradicting, S1's measurement of a genuinely idle connection. <strong>This is n=1, not the plan's specified n=2</strong> — the concurrent two-arm design got spent on the two confounded attempts, and both landed so far past the 140s decision line that a second clean arm wouldn't have changed the outcome. Recorded honestly as n=1, per this project's own S3 precedent for an honestly-short sample rather than a padded one.</p>
+<p>Full detail, including the <code>modal container list</code> / <code>modal app logs</code> evidence, in <code>docs/measurements/day1-spikes.md</code> §S1's Block 1 addendum.</p>
+<h2 id="assumptions-and-inferences-flagging-per-workflowmd"><span class="htext">Assumptions and inferences (flagging per workflow.md)</span></h2>
+<ul>
+<li><strong><code>HELLO_TIMEOUT_S = 10</code></strong> is not in the plan's text. Added so an un-helloed connection can't</li>
+<p>hold one of the container's limited concurrent input slots forever (Invariant 7, never hang). Cheap, obviously-correct, and easy to change if it's ever wrong in practice.</p>
+<li><strong>A server-side <code>ws.close()</code> releases the Modal input immediately</strong> — the plan states this as</li>
+<p>an assumption, not a measurement. Still unverified directly; the <code>bye</code> handling closes server-side regardless, which is the same code either way.</p>
+<li><strong>A stray <code>hello</code> mid-connection</strong> (after the handshake) isn't specified in the plan. Treated</li>
+<p>as <code>error{bad_message, recoverable:true}</code> — consistent with the general &quot;malformed message doesn't close the socket&quot; rule, since by that point a session already exists to attach the error to.</p>
+<li>Session <code>connection_n</code> and <code>generation</code> move in lockstep in this implementation (both</li>
+<p>increment by exactly 1 on every <code>bind()</code>). The plan models them as separate fields and I kept them separate for that reason, even though nothing in Block 1 yet drives them apart.</p>
+</ul>
+<h2 id="how-to-test"><span class="htext">How to Test</span></h2>
+<div class="codewrap"><pre><code>cd backend &amp;&amp; uv run ruff check app tests &amp;&amp; uv run mypy app &amp;&amp; uv run pytest -q
+cd frontend &amp;&amp; npm run lint &amp;&amp; npm run typecheck &amp;&amp; npm run build</code></pre></div>
+<p>Then, against the <strong>deployed</strong> URL (not localhost):</p>
+<ol>
+<li><code>curl https://vitas7777v--sarjy-fastapi-app.us-east.modal.run/health</code> → <code>{&quot;status&quot;:&quot;ok&quot;}</code></li>
+<li>Open the URL in a browser → page renders, connection reaches <code>ready</code>, a short session id and</li>
+<p><code>#1</code> are shown.</p>
+<li>Click <strong>Ping</strong> → round-trip ms appears.</li>
+<li>Leave the tab open past one rotation (<code>rotate_after_ms</code>, shown in the status line's <code>ready</code></li>
+<p>payload) → connection # increments, same session id, no error shown.</p>
+<li>DevTools → Network → Offline, then back → <code>offline</code> state, then automatic recovery.</li>
+<li>DevTools console: get a handle on the live socket and send <code>&quot;{&quot;</code> → <code>error</code> message appears,</li>
+<p>socket still usable (send a ping right after — it still gets a pong).</p>
+<li>Open the URL in a second tab, same browser → independent session (different id) unless a</li>
+<p>session id is deliberately shared, in which case the first tab is told <code>closing{reason:&quot;superseded&quot;}</code> and the second becomes live.</p>
+</ol>
+<h2 id="changelog"><span class="htext">Changelog</span></h2>
+<div class="codewrap"><pre><code>chore(backend): add modal and certifi as explicit dev dependencies
+
+chore(backend): make `app` importable from tests via pytest's pythonpath
+
+feat(protocol): typed WebSocket message union, validated at the boundary
+
+Closed discriminated union on &quot;t&quot;, extra=&quot;forbid&quot;, one TypeAdapter as the
+only entry point for client input. Reserves transcript/segments/timings/
+quota without building them. Mirrored by hand in TypeScript -- no zod, so
+the parse path stays readable.
+
+feat(session): server-minted sessions that outlive their connection
+
+A connection is not a session. Sessions are minted server-side (uuid4,
+never client-proposed), resumed by id on reconnect, and expired by a TTL
+sweep rather than by the socket closing -- Block 0 measured the server
+learning about a disconnect ~120s after the client did. A generation
+counter makes a superseded connection's late teardown a no-op.
+
+feat(ws): async conversation handler, health, and same-origin static UI
+
+Handler is async: with input concurrency a sync function dies entirely
+when one input is cancelled, and a closed tab is a cancellation. The
+frontend is served by this same ASGI app, which removes CORS from the
+project. Failure paths first: bad message, binary, missing dist, version
+mismatch.
+
+fix(deploy): correct target_inputs, mount the built frontend, resolve
+paths from __file__
+
+target_inputs was still 4, not the plan's 8. add_local_dir was missing
+entirely -- the image never shipped the UI. Both pip_install_from_pyproject
+and add_local_dir now resolve from this file's location, not the deploy
+cwd, so `modal deploy backend/modal_app.py` behaves the same from any cwd.
+
+fix(main): resolve frontend/dist correctly under Modal's actual mount layout
+
+add_local_python_source(&quot;app&quot;) mounts straight to /root/app, dropping the
+backend/ prefix that the local dev layout has -- so frontend/dist sits one
+directory up from app/ in the container, not two. Check both offsets and
+use whichever exists, verified against the installed modal client's own
+docstrings.
+
+feat(client): reconnect-and-resume with proactive rotation
+
+An actively-used Modal WebSocket survived a measured 301.6s before a clean
+close (backend/scripts/ws_lifetime.py, against the real deployment). The
+client rotates the socket between turns at 75s -- comfortable margin, not
+a number we're hoping holds -- and refuses to start a turn that could not
+finish before the next rotation, so a turn never spans a connection and
+resume carries identity only.
+
+docs(measure): exact WebSocket death time against the real deployment
+
+D=301.6s, clean close, not the silent death S1 saw on a genuinely idle
+connection. Two earlier attempts were discarded rather than averaged in:
+one measured this app's own ceiling firing, the other likely raced a
+redeploy's container transition. See PR_SKELETON_DEPLOY.md &quot;Step 6&quot; and
+day1-spikes.md's Block 1 addendum for the full, honest chain.</code></pre></div>
+<p>Attribution line per the repo's convention, on each, added by Omar at commit time.</p>
+  </main>
+</div>
