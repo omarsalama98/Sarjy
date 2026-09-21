@@ -335,6 +335,30 @@ export interface MemoryMessage {
   ts_ms: number;
 }
 
+export type PlaceReason = "not_found" | "disambiguation" | "no_image" | "timeout" | "http_error";
+
+/** One Wikimedia lookup. `ok: false` is still sent -- never a silent drop,
+ * never a broken image. Her *choice* of place is judgement; the photo and
+ * words are sourced. */
+export interface PlaceCard {
+  name: string;
+  title: string | null;
+  description: string | null;
+  image_url: string | null;
+  page_url: string | null;
+  revision_date: string | null;
+  ok: boolean;
+  reason: PlaceReason | null;
+}
+
+export interface PlacesMessage {
+  t: "places";
+  turn_id: string;
+  places: PlaceCard[];
+  seq: number;
+  ts_ms: number;
+}
+
 export type ServerMessage =
   | ReadyMessage
   | StateMessage
@@ -349,7 +373,8 @@ export type ServerMessage =
   | SegmentsMessage
   | QuotaMessage
   | FactCardMessage
-  | MemoryMessage;
+  | MemoryMessage
+  | PlacesMessage;
 
 function isConversationState(v: unknown): v is ConversationState {
   return v === "idle" || v === "listening" || v === "thinking" || v === "speaking";
@@ -619,6 +644,23 @@ export function parseServerMessage(raw: string): ServerMessage | null {
           persisted: m.persisted,
           degraded: m.degraded,
           message: (m.message ?? null) as string | null,
+          seq: m.seq,
+          ts_ms: m.ts_ms,
+        };
+      }
+      return null;
+
+    case "places":
+      if (
+        typeof m.turn_id === "string" &&
+        Array.isArray(m.places) &&
+        typeof m.seq === "number" &&
+        typeof m.ts_ms === "number"
+      ) {
+        return {
+          t: "places",
+          turn_id: m.turn_id,
+          places: m.places as PlaceCard[],
           seq: m.seq,
           ts_ms: m.ts_ms,
         };

@@ -505,6 +505,11 @@ async def _process_turn(
     memory_block = build_memory_block(context_facts)
     timings.memory_facts = len(context_facts)
 
+    def _get_places() -> object:
+        from app.tools.places import get_place_lookup
+
+        return get_place_lookup()
+
     try:
         async for item in run_turn(
             turn_id=turn_id,
@@ -521,6 +526,7 @@ async def _process_turn(
             memory_block=memory_block,
             awaiting_pin=was_awaiting_pin,
             on_sign_in=on_sign_in,
+            get_places=_get_places,
         ):
             if session.generation != my_generation:
                 return  # superseded mid-turn -- nothing left to write to

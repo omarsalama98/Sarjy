@@ -23,6 +23,8 @@ from app.pipeline.protocol import (
     HelloIn,
     MemoryOut,
     PingIn,
+    PlaceCardOut,
+    PlacesOut,
     PongOut,
     QuotaOut,
     ReadyOut,
@@ -430,3 +432,27 @@ def test_memory_serialises_with_documented_keys() -> None:
     assert dumped["tier"] == "signed_in"
     assert dumped["facts"][0]["quote"] == "my favourite colour is green"
     assert dumped["used"] == 1
+
+
+def test_places_serialises_with_documented_keys() -> None:
+    msg = PlacesOut(
+        turn_id="t-1",
+        places=[
+            PlaceCardOut(
+                name="Kyoto",
+                title="Kyoto",
+                description="A city in Kansai.",
+                image_url="https://upload.wikimedia.org/wikipedia/commons/k.jpg",
+                page_url="https://en.wikipedia.org/wiki/Kyoto",
+                revision_date="2026-09-14T15:53:35Z",
+                ok=True,
+                reason=None,
+            )
+        ],
+        seq=12,
+        ts_ms=0,
+    )
+    dumped = msg.model_dump()
+    assert dumped["t"] == "places"
+    assert dumped["places"][0]["ok"] is True
+    assert dumped["places"][0]["name"] == "Kyoto"

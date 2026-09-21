@@ -2,9 +2,9 @@
 
 **A voice travel assistant that never states a travel fact it cannot source.**
 
-Ask it about travelling somewhere and it tells you what you need — visa type, how long you can stay, whether your passport has to be valid on arrival, what else you have to file on entry. Every answer carries the source it came from and the date that source was generated. When a question falls outside what its sources actually cover, it says so and points you at the embassy rather than guessing.
+You speak. She speaks back. The screen is a trip dossier that grows: sourced visa documents on ivory paper, her recommendations as Wikipedia-attributed photo picks, and a running audit of every sentence she was allowed to say. When she does not have a source, she says so and points at the embassy rather than guessing.
 
-🔗 **Live:** _TBD_
+🔗 **Live:** https://vitas7777v--sarjy-fastapi-app.us-east.modal.run
 
 ---
 
@@ -12,39 +12,50 @@ Ask it about travelling somewhere and it tells you what you need — visa type, 
 
 General assistants confidently invent visa requirements. The answer depends on a passport-and-destination pair that changes without notice, it is not the kind of thing a model can hold reliably, and people miss flights because of it.
 
-So the interesting problem here isn't "can a voice assistant answer travel questions" — it's **can it be trusted about facts it got from a tool.** That's the deep dive.
+So the interesting problem here isn't "can a voice assistant answer travel questions" — it's **can it be trusted about facts it got from a tool**, and can a reviewer *see* that trust without reading a log. That's two deep dives, argued as one system:
+
+- **Guardrails and reliability** — cite-or-refuse. The model proposes; deterministic code disposes. A rejected clause is still sent and shown struck through.
+- **UI/UX and multimodal** — the dossier, an audio-reactive orb driven by the real mic and TTS graphs, and sourced place photos. The second exists to make the first legible.
 
 The bar is *grounded **and still useful***. An assistant that hedges everything has failed this, not passed it.
 
 ## What it does
 
 - **Answers from a dated, citable source.** Every factual claim maps to a tool result held in that turn. Claims that don't map don't get spoken.
-- **Falls back visibly.** When the live source is unavailable, it answers from a vendored dataset and says which source answered and how old it is.
+- **Shows the evidence while she talks.** The fact card paints before the gated answer; place photos arrive after TTS has started, never on the first-audio path.
+- **Falls back visibly.** When the live visa source is unavailable, it answers from a vendored dataset and says which source answered and how old it is.
 - **Refuses with a route.** Outside coverage, it names the gap and gives you the embassy link rather than improvising.
-- **Remembers you across sessions.** Your passport, home city, where you've asked about before — so "do I need a visa for Thailand?" doesn't start with "which passport?"
-- **Speaks English and Arabic**, including the code-switching real Gulf travellers use. _(Planned — see Status.)_
+- **Remembers you across sessions.** Name + 4-digit PIN. Persisted facts are structured, attributable, and viewable in the rail — "what's my favourite colour?" works because a fact was stored.
 
-## The external API, and why this one
+## The external APIs, and why these
 
 **[Travel Buddy Visa Requirements](https://rapidapi.com/TravelBuddyAI/api/visa-requirement)** — 200 passports × 211 destinations, updated daily.
 
 > Visa requirements are the highest-stakes factual question in travel: wrong information means being denied boarding. They're also exactly what general-purpose assistants hallucinate, because the answer depends on a passport/destination pair that changes without notice. This API returns a dated, per-nationality answer with an embassy link, which lets every claim Sarjy makes carry its own provenance instead of resting on model memory.
 
-Supporting sources: [passport-index](https://github.com/ilyankou/passport-index-dataset) (MIT) as an offline fallback · [GOV.UK Content API](https://www.gov.uk/api/content) for destination safety and local-law guidance · [Aladhan](https://aladhan.com/prayer-times-api) for prayer times at destination.
+**[Wikimedia / Wikipedia](https://www.mediawiki.org/wiki/API:Main_page)** — no key, no quota. Entity lookup (`pageimages|extracts|info`), not image search.
+
+> A travel agent who only recites visa rules is a lookup, not an agent. When Sarjy recommends a place, her *choice* is judgement (ungated, labelled as her view). The *photo and words* are sourced: Wikipedia's lead image, a one-line extract, a canonical URL, and the article's revision date. That is the same provenance contract as the visa card, applied to imagery. Disambiguation pages, missing articles, missing images, and timeouts are rejected and shown as "couldn't source a photo" — never a broken image, never a silent drop.
 
 **Deliberately excluded: flights.** Every free flight API is decommissioned, sandboxed with fictional data, or stale. Showing invented fares in a project about not hallucinating would undermine the whole thing.
 
 ## How it works
 
 ```
-mic → VAD/endpoint → STT → [text checkpoint] → LLM + tools → [grounding gate] → TTS → speaker
+mic → client VAD → Groq Whisper
+  → Gemini decide()  ± Travel Buddy lookup
+  → fact card (before the gated answer)
+  → Gemini NDJSON segments → gate.py
+  → Deepgram Aura-2 (one TTS request of the kept answer)
+  → Wikimedia lookups in parallel, after TTS has started
+  → memory extract in the background
 ```
 
-**Cascaded, not speech-to-speech — and that follows from the deep dive rather than from convenience.** A cascaded pipeline gives two points where text can be inspected and gated mid-turn. An end-to-end speech-to-speech model gives neither: you cannot validate a citation that never exists as text.
+**Cascaded, not speech-to-speech — and that follows from the deep dive rather than from convenience.** A cascaded pipeline gives two points where text can be inspected and gated mid-turn. An end-to-end speech-to-speech model gives neither.
 
-**The grounding gate** is the core. Every factual claim in a response must map to a tool result from that turn. The model proposes; deterministic code disposes.
+**The grounding gate** is the core. `sourced` segments contain `{field.path}` placeholders; deterministic code substitutes the value. A bare digit in a sourced segment is rejected. `quoted` copies the vendor's own words. `judgement` is her view, passed through, and is the only register that may carry a `place` title.
 
-**Quota-aware vendor client.** The upstream free tier is 120 requests *total*, so resolution runs cached map → warm cache → vendored dataset → live call, and only spends a live request on a miss with budget remaining. Remaining quota is visible in the UI.
+**Quota-aware vendor client.** The upstream visa free tier is 120 requests *total*, so resolution runs warm cache → live (only above a reserve) → cached map → vendored CSV. Remaining quota is visible in the header chip.
 
 ## Stack
 
@@ -52,13 +63,17 @@ mic → VAD/endpoint → STT → [text checkpoint] → LLM + tools → [groundin
 |---|---|
 | Backend | Python · FastAPI · WebSocket |
 | Frontend | TypeScript · React |
-| STT | Groq `whisper-large-v3-turbo` |
-| LLM | Gemini `gemini-3.5-flash-lite` |
-| TTS | Gemini `gemini-3.1-flash-tts-preview` |
+| STT | Groq `whisper-large-v3-turbo` (batch; client-side VAD endpoints the turn) |
+| LLM | Gemini `gemini-3.5-flash-lite`, `thinking_level: "minimal"` |
+| TTS | Deepgram `aura-2` (WebSocket streaming, PCM s16le @ 24 kHz) |
 | VAD | `@ricky0123/vad-web`, in-browser |
-| Deploy | Modal |
+| Deploy | Modal, `us-east` |
 
-Every provider sits behind an interface we own — provider choice is configuration, not code.
+Every provider sits behind an interface we own — provider choice is configuration, not code. No provider API key ever reaches the browser.
+
+## The eval
+
+8 hand-labelled adversarial cases, labels written before the run. **7/8 pass.** `injection-2` (a paraphrased injection) was labelled *DESIGNED TO FAIL* before the run and failed exactly as predicted — the gate catches the vendor's own injection-shaped payload, not a paraphrase of it. Full table: [`eval/results/2026-09-20-gate-eval.md`](eval/results/2026-09-20-gate-eval.md). Live demo of a rejection: open with `?gate_demo=1`.
 
 ## Running locally
 
@@ -69,23 +84,30 @@ cd backend && make install && make dev     # FastAPI on :8000
 cd frontend && npm install && npm run dev  # Vite on :5173, proxies /ws to the backend
 ```
 
-Checks: `make typecheck && make lint && make test` in `backend`, `npm run typecheck` in `frontend`.
+Checks: `make typecheck && make lint && make test` in `backend`, `npm run typecheck && npm run lint && npm run build` in `frontend`.
 
-No provider key ever reaches the browser. The client talks only to this backend.
+## Limits (honest)
 
-## Status
+| Limit | What that means |
+|---|---|
+| Arabic is not shipped | Promised, then cut so the dossier / orb / sourced photos could land. STT and TTS interfaces already carry a `language` parameter; nothing implements it. |
+| Wikimedia is entity lookup, not a sanitised image API | The photo is the Wikipedia article's lead image. Disambiguation / 404 / no-image / timeout are rejected. It is not claimed as content-moderated beyond that. |
+| Eval is 8 hand-scored cases, no LLM judge | Methodology over denominator. `injection-2` is a named, predicted miss. |
+| Fallback layer has no live "pretend vendor down" toggle | Proven by `tests/test_vendor.py`, the eval's `vendor-failure-1`, and the card's `fallback source` badge when map/CSV served. |
+| Quota ledger may read 0 remaining | A test once wrote `spent=120` into the live `modal.Dict`. True committed spend is 3 (`data/README.md`). Unlock is operator-only. |
+| Cross-session memory needs `SARJY_MEMORY_SALT` set on Modal before the first real sign-in | Unset, it uses a dev default. Changing it later makes every PIN hash miss. |
+| Measured latency, not a latency deep dive | Median TTS TTFB **566 ms**, LLM TTFT **890 ms** (instrument was corrected — earlier 85 ms / 30 ms figures were measuring the wrong clock). See `docs/measurements/2026-09-20-two-corrected-numbers.md`. |
 
-- [ ] Voice in / voice out
-- [ ] Cross-session memory
-- [ ] Grounded visa lookup with citation
-- [ ] Fallback + refusal behaviour
-- [ ] Adversarial eval
-- [ ] Deployed
-- [ ] Arabic
+## What I'd do with another week
+
+- Spoken Arabic (Groq Orpheus), with the 200-character cap chunked in the adapter.
+- A dedicated suggestions call for structured place picks (name, one-line reason, stay length) instead of parsing `place` off a judgement line.
+- A one-click "pretend the vendor is down" toggle so the fallback layer is demoable live.
+- Widen the injection screen to paraphrases (`injection-2`).
 
 ## Docs
 
-`docs/plans/PRD.md` — what and why · `docs/plans/TDD.md` — how · `docs/research_docs/` — the research behind the stack choices, including what could not be verified.
+[`docs/DEMO-SCRIPT.md`](docs/DEMO-SCRIPT.md) — ordered utterances · [`docs/LOOM-OUTLINE.md`](docs/LOOM-OUTLINE.md) — 5-minute shot list · [`docs/plans/PRD.md`](docs/plans/PRD.md) — what and why · [`docs/plans/TDD.md`](docs/plans/TDD.md) — how.
 
 ---
 

@@ -19,6 +19,7 @@ from app.pipeline.protocol import (
     AudioEndOut,
     AudioStartOut,
     FactCardOut,
+    PlacesOut,
     ReplyOut,
     SegmentsOut,
     TranscriptOut,
@@ -166,6 +167,7 @@ async def _run(
     memory_block: str = "",
     awaiting_pin: bool = False,
     on_sign_in: Callable[[str, str], None] = lambda name, pin: None,
+    get_places: Callable[[], object] | None = None,
 ) -> tuple[list[object], TurnTimings]:
     timings = _empty_timings()
     items: list[object] = []
@@ -184,6 +186,7 @@ async def _run(
         memory_block=memory_block,
         awaiting_pin=awaiting_pin,
         on_sign_in=on_sign_in,
+        get_places=get_places,
     ):
         items.append(item)
     return items, timings
@@ -782,3 +785,62 @@ async def test_m11_awaiting_pin_with_no_pin_heard_speaks_retry_and_skips_on_sign
     assert seen == []  # on_sign_in never fired -- main.py clears awaiting_pin on this
     reply = next(i for i in items if isinstance(i, ReplyOut))
     assert "didn't catch" in reply.text
+
+
+class FakePlaces:
+    def __init__(self) -> None:
+        self.calls: list[list[str]] = []
+
+    async def lookup_many(self, names: list[str]) -> list[object]:
+        self.calls.append(names)
+        from app.tools.places import PlaceCard
+
+        return [
+            PlaceCard(
+                name=n,
+                title=n,
+                description=f"{n} is a place.",
+                image_url=f"https://upload.wikimedia.org/wikipedia/commons/{n}.jpg",
+                page_url=f"https://en.wikipedia.org/wiki/{n}",
+                revision_date="2026-09-14T15:53:35Z",
+                ok=True,
+                reason=None,
+            )
+            for n in names
+        ]
+
+
+@pytest.mark.asyncio
+async def test_places_yielded_after_audio_start_never_before() -> None:
+    """Judgement `place` keys become a PlacesOut AFTER AudioStartOut --
+    Wikimedia must not sit on the first-audio path."""
+    llm = FakeLLM(
+        segment_batches=[[
+            '{"kind":"judgement","text":"Walk Gion at dusk.","place":"Kyoto"}'
+        ]]
+    )
+    fake = FakePlaces()
+    items, _timings = await _run(
+        get_stt=FakeSTT,
+        get_llm=lambda: llm,
+        get_tts=FakeTTS,
+        get_places=lambda: fake,
+    )
+    kinds = _kinds(items)
+    assert "PlacesOut" in kinds
+    assert kinds.index("AudioStartOut") < kinds.index("PlacesOut")
+    places = next(i for i in items if isinstance(i, PlacesOut))
+    assert places.places[0].name == "Kyoto"
+    assert places.places[0].ok is True
+    assert fake.calls == [["Kyoto"]]
+
+
+@pytest.mark.asyncio
+async def test_places_skipped_when_get_places_is_none() -> None:
+    llm = FakeLLM(
+        segment_batches=[[
+            '{"kind":"judgement","text":"Walk Gion at dusk.","place":"Kyoto"}'
+        ]]
+    )
+    items, _timings = await _run(get_stt=FakeSTT, get_llm=lambda: llm, get_tts=FakeTTS)
+    assert "PlacesOut" not in _kinds(items)

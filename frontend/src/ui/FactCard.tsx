@@ -1,31 +1,24 @@
 /**
- * The fact card -- the deep dive's only visible output (D15 in
- * docs/plans/blocks/A-grounded-answers.md; painted here per Block C).
+ * The fact card -- the deep dive's document. Every value is the SAME string
+ * the gate would substitute into a spoken segment (app.tools.card renders
+ * both from one function). This component only arranges what's already true.
  *
- * Renders exactly three shapes (Contract 2, docs/plans/blocks/C-demoable.md):
- * a refusal card (no source covers this pair), an empty-but-covered card
- * (the layer resolved, but nothing on it maps to a known field), and the
- * populated card. Every value on this card is the SAME string the gate
- * would substitute into a spoken segment -- app.tools.card renders both
- * from one function, so the card and the answer cannot contradict each
- * other by construction. This component only arranges what's already true.
+ * Three shapes: refusal (no source covers this pair), empty-but-covered,
+ * and populated. `quoted` rows get a pill; `sourced` rows do not -- the
+ * card's provenance footer already names the source for the whole card.
  */
 
 import type { FactCardMessage } from "../protocol";
 
 export function FactCard({ card }: { card: FactCardMessage }): JSX.Element {
   const header = (
-    <h3>
+    <h3 className="fact-card-pair">
       {card.passport_name} → {card.destination_name}
     </h3>
   );
 
-  // F-FC2: a degraded answer must never look identical to a live one --
-  // this badge is the visible half of that invariant.
   const degradedBadge = card.degraded && <span className="card-degraded">fallback source</span>;
 
-  // Provenance footer, in this exact order, omitting any null field
-  // (Contract 2). `source_url` wraps `source_name` when both are present.
   const provenance: JSX.Element[] = [];
   if (card.source_name) {
     provenance.push(
@@ -49,53 +42,54 @@ export function FactCard({ card }: { card: FactCardMessage }): JSX.Element {
       {degradedBadge}
       {provenance.map((el, i) => (
         <span key={i}>
-          {i > 0 && " · "}
+          {(i > 0 || degradedBadge) && " · "}
           {el}
         </span>
       ))}
     </p>
   );
 
-  // F-FC1: covered=false is the refusal card -- never an empty box.
   if (!card.covered) {
     return (
-      <div className="fact-card fact-card-refusal">
+      <article className="fact-card fact-card-refusal">
         {header}
-        <p>No source covers this pair.</p>
+        <p className="fact-refusal-line">No source covers this pair.</p>
         {card.embassy_url && (
           <p>
-            <a href={card.embassy_url} target="_blank" rel="noreferrer">
+            <a className="embassy-link" href={card.embassy_url} target="_blank" rel="noreferrer">
               Embassy page
             </a>
           </p>
         )}
-      </div>
+      </article>
     );
   }
 
-  // F-FC3: covered but no facts resolved on this layer -- header and
-  // footer still render; no empty <ul>.
   if (card.facts.length === 0) {
     return (
-      <div className="fact-card">
+      <article className={`fact-card${card.degraded ? " fact-card-degraded" : ""}`}>
         {header}
         <p>Nothing to show for this pair.</p>
         {footer}
-      </div>
+      </article>
     );
   }
 
   return (
-    <div className="fact-card">
+    <article className={`fact-card${card.degraded ? " fact-card-degraded" : ""}`}>
       {header}
-      <ul className="fact-card-facts">
+      <dl className="fact-rows">
         {card.facts.map((f) => (
-          <li key={f.path}>
-            <span className={`segment-kind fact-kind-${f.kind}`}>[{f.kind}]</span> {f.label} — {f.value}
-          </li>
+          <div key={f.path} className="fact-row">
+            <dt className="fact-label">{f.label}</dt>
+            <dd className="fact-value">
+              {f.value}
+              {f.kind === "quoted" && <span className="pill-quoted">quoted</span>}
+            </dd>
+          </div>
         ))}
-      </ul>
+      </dl>
       {footer}
-    </div>
+    </article>
   );
 }

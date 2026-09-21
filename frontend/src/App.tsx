@@ -1,5 +1,5 @@
 /**
- * Sarjy. One screen.
+ * Sarjy. One screen -- a trip dossier that grows.
  *
  * Two state machines, deliberately separate (docs/plans/blocks/01-skeleton-deploy.md):
  * connection state (client-owned: connecting/ready/rotating/reconnecting/
@@ -16,36 +16,43 @@
  * because the two sides never claim the same value at the same phase of a
  * turn.
  *
- * A third, separate concept -- `voiceIssue` -- covers everything that
- * isn't a normal conversation state at all: the VAD's assets failed to
- * load, the microphone was denied, or none exists. These get their own
- * named UI instead of being squeezed into `idle`, because "idle" and
- * "broken" need to look different on screen (Invariant 7: degrade
- * visibly, never hang).
+ * Display state (transcript, reply, segments, fact card, places) lives in
+ * a growing `turns` array. Everything on a useRef stays on a useRef --
+ * currentTurnIdRef, turnTimingRef, turnInFlightRef, playbackQueueRef,
+ * detectorRef and the barge window are untouched. Timing legs and barge
+ * are the two things a state refactor would silently break, and pytest
+ * cannot catch either.
  */
 
 import type { FormEvent } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { clearSharedMicStream, getSharedMicStream, TARGET_SAMPLE_RATE } from "./audio/capture";
+import { MicAnalyser, pcm16Rms } from "./audio/level";
 import { PlaybackQueue } from "./audio/playback";
 import { createTurnDetector, type EndpointTiming, type TurnDetector } from "./audio/turn";
 import type { ConnectionCallbacks, ConnectionState } from "./net/connection";
 import { Connection } from "./net/connection";
-import type { ConversationState, FactCardMessage, MemoryMessage, SegmentWire } from "./protocol";
+import type {
+  ConversationState,
+  FactCardMessage,
+  MemoryMessage,
+  PlaceCard,
+  SegmentWire,
+} from "./protocol";
 import { FactCard } from "./ui/FactCard";
+import { Orb, type OrbRing } from "./ui/Orb";
+import { PlaceStrip } from "./ui/PlaceStrip";
 
-const WS_URL = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws`;
+const WS_URL = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws${window.location.search}`;
 
 const PLAYBACK_SAMPLE_RATE = 24_000; // Deepgram's native output rate -- no resampling on this hot path.
 
-// The protocol comment's own limit ("≤32 KiB each") -- an arbitrary but
-// generous frame size; the whole point is many small sends, not one giant one.
 const MAX_BINARY_CHUNK_BYTES = 32 * 1024;
 
-// Barge-in guard #2 (the block plan's "Barge-in" section): echo cancellation
-// is unproven until a human runs task 10/13 on real speakers, so the first
-// moment of Sarjy's own audio is never treated as the user interrupting.
 const BARGE_IGNORE_WINDOW_MS = 300;
+
+const REDUCED_MOTION =
+  typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 type VoiceIssueKind = "unavailable" | "mic-blocked" | "mic-missing";
 
@@ -54,9 +61,28 @@ interface VoiceIssue {
   message: string;
 }
 
-/** F6: if the browser won't honour a 16 kHz AudioContext, fall back to the
- * device's own rate -- vad-web's resampler handles anything >= 16 kHz; it
- * only errors below that. */
+interface Turn {
+  id: string;
+  at: number;
+  transcript: string | null;
+  reply: string | null;
+  segments: SegmentWire[];
+  factCard: FactCardMessage | null;
+  places: PlaceCard[] | null;
+  hedged: boolean;
+  failed: { stage: string; message: string } | null;
+  timings: { firstAudioMs: number | null; endpointMs: number; redemptionMs: number } | null;
+}
+
+const CONNECTION_LABEL: Record<ConnectionState, string> = {
+  connecting: "CONNECTING",
+  ready: "CONNECTED",
+  rotating: "REFRESHING",
+  reconnecting: "RECONNECTING",
+  offline: "OFFLINE",
+  stale: "STALE",
+};
+
 function createCaptureContext(): AudioContext {
   try {
     const ctx = new AudioContext({ sampleRate: TARGET_SAMPLE_RATE });
@@ -82,29 +108,63 @@ function classifyVoiceError(err: unknown): VoiceIssue {
   if (err instanceof Error && err.name === "NotFoundError") {
     return { kind: "mic-missing", message: "No microphone was found on this device." };
   }
-  // Covers F1/F2: assertVadAssets() and MicVAD.new() both throw plain
-  // Errors with an already-legible message naming the exact URL/status.
   return { kind: "unavailable", message: err instanceof Error ? err.message : String(err) };
 }
 
-/** 🪤 lib.dom.d.ts types AudioContext.outputLatency as a plain `number`,
- * but Safari doesn't implement the property and returns `undefined` at
- * runtime -- the guard below looks redundant to the type checker (it
- * thinks outputLatency is always a number) but is load-bearing at runtime.
- * Number.isFinite() rejects undefined and NaN alike, so both a
- * non-implementing browser and a not-yet-ready context resolve to null
- * rather than a bogus timestamp. */
 function getOutputLatencyMs(ctx: AudioContext | null): number | null {
   if (!ctx || !Number.isFinite(ctx.outputLatency)) return null;
   return Math.round(ctx.outputLatency * 1000);
 }
 
-/** Two decimals in seconds ("1.83 s"), or an em dash when the leg never
- * completed (a turn that failed before audio, or a client that never
- * reported). Diagnostic text, not conversational -- see the rendered
- * line's aria-live="off" below. */
 function fmt(ms: number | null): string {
   return ms === null ? "—" : `${(ms / 1000).toFixed(2)} s`;
+}
+
+function registerLabel(kind: SegmentWire["kind"]): string {
+  return kind === "judgement" ? "view" : kind;
+}
+
+function stateCopy(
+  started: boolean,
+  assetsReady: boolean,
+  voiceIssue: VoiceIssue | null,
+  conversationState: ConversationState,
+  interrupted: boolean,
+): { ring: OrbRing; headline: string; sub: string } {
+  if (voiceIssue?.kind === "mic-blocked") {
+    return { ring: "ring-error", headline: "MICROPHONE BLOCKED", sub: voiceIssue.message };
+  }
+  if (voiceIssue?.kind === "mic-missing") {
+    return { ring: "ring-error", headline: "NO MICROPHONE", sub: voiceIssue.message };
+  }
+  if (voiceIssue?.kind === "unavailable") {
+    return { ring: "ring-error", headline: "VOICE UNAVAILABLE", sub: voiceIssue.message };
+  }
+  if (!started && !assetsReady) {
+    return { ring: "ring-loading", headline: "WARMING UP", sub: "Loading voice detection…" };
+  }
+  if (!started) {
+    return { ring: "ring-idle", headline: "READY WHEN YOU ARE", sub: "Press start, then just talk." };
+  }
+  const table: Record<ConversationState, { ring: OrbRing; headline: string; sub: string }> = {
+    idle: { ring: "ring-idle", headline: "READY", sub: "Speak whenever you like." },
+    listening: {
+      ring: "ring-listening",
+      headline: "HEARING YOU",
+      sub: "Keep going — I'll answer when you stop.",
+    },
+    thinking: {
+      ring: "ring-thinking",
+      headline: "CHECKING SOURCES",
+      sub: "Looking for a source for this.",
+    },
+    speaking: { ring: "ring-speaking", headline: "SPEAKING", sub: "Interrupt any time." },
+  };
+  const row = table[conversationState];
+  if (interrupted) {
+    return { ...row, sub: `${row.sub} · you interrupted` };
+  }
+  return row;
 }
 
 export function App() {
@@ -117,47 +177,19 @@ export function App() {
 
   const [started, setStarted] = useState(false);
   const [starting, setStarting] = useState(false);
-  // W4: the VAD (and its ~16MB of ONNX + WASM) is built at page load, not
-  // on the Start click -- this flips once that finishes (success OR
-  // failure; failure shows through voiceIssue instead). Gates the Start
-  // button so a click during the download can't race a detector that
-  // doesn't exist yet.
   const [assetsReady, setAssetsReady] = useState(false);
   const [voiceIssue, setVoiceIssue] = useState<VoiceIssue | null>(null);
-  const [transcript, setTranscript] = useState<string | null>(null);
-  const [reply, setReply] = useState<string | null>(null);
-  const [turnFailedMessage, setTurnFailedMessage] = useState<string | null>(null);
   const [interrupted, setInterrupted] = useState(false);
-  // Block A -- the gate, on screen. `segments` carries BOTH kept and
-  // rejected entries; a rejected one renders struck through with its
-  // reason -- that visibility is the whole demo (F3 in the block plan).
-  const [segments, setSegments] = useState<SegmentWire[]>([]);
-  const [hedged, setHedged] = useState(false);
   const [quota, setQuota] = useState<{
     total: number;
     spent: number;
     reserve: number;
     remaining: number;
   } | null>(null);
-  // Block C -- the deep dive's only visible output. Cleared on every new
-  // turn (F-FC4, below) so a card describing one destination can never sit
-  // under an answer about another.
-  const [factCard, setFactCard] = useState<FactCardMessage | null>(null);
-  // Block B -- the WHOLE "what Sarjy remembers" panel is driven by the last
-  // `memory` message (D5): there is no separate client-side memory state to
-  // drift, since sign-in/sign-out/forget/extraction all re-send the full
-  // record rather than a diff.
   const [memory, setMemory] = useState<MemoryMessage | null>(null);
   const [signInName, setSignInName] = useState("");
   const [signInPin, setSignInPin] = useState("");
-  // The one line of UI Block 3 adds -- last turn's voice-to-voice number,
-  // its endpoint delay, and the redemption setting that produced it. null
-  // until the first turn completes or fails.
-  const [lastTurn, setLastTurn] = useState<{
-    firstAudioMs: number | null;
-    endpointMs: number;
-    redemptionMs: number;
-  } | null>(null);
+  const [turns, setTurns] = useState<Turn[]>([]);
 
   const connectionRef = useRef<Connection | null>(null);
   const captureCtxRef = useRef<AudioContext | null>(null);
@@ -168,14 +200,7 @@ export function App() {
   const currentSampleRateRef = useRef(PLAYBACK_SAMPLE_RATE);
   const speakingStartedAtRef = useRef(0);
   const turnCounterRef = useRef(0);
-  // True from the moment `start` is sent until audio_end/turn_failed/barge
-  // closes the turn out -- the window in which a connection drop must be
-  // treated as F13 ("Connection dropped mid-answer"), not a normal idle
-  // reconnect that the UI has nothing to say about.
   const turnInFlightRef = useRef(false);
-  // The client's half of the current turn's timing record. Set in
-  // handleUtterance once the turn id is minted; read back in
-  // reportTurnTiming, which enforces exactly one send per turn via `sent`.
   const turnTimingRef = useRef<{
     turnId: string;
     acousticEndAtMs: number;
@@ -183,12 +208,14 @@ export function App() {
     redemptionMs: number;
     sent: boolean;
   } | null>(null);
+  const micAnalyserRef = useRef<MicAnalyser | null>(null);
+  const speakLevelRef = useRef(0);
+  const dossierEndRef = useRef<HTMLDivElement | null>(null);
 
-  /** Sends this turn's client_timing exactly once -- a second call for the
-   * same turn (e.g. onAudioStart firing, then a later turn_failed racing
-   * in) is a no-op because `sent` is already true. Called with
-   * firstAudioMs=null from onTurnFailed, where the headline leg never
-   * completed. */
+  const patchTurn = useCallback((turnId: string, patch: Partial<Turn>): void => {
+    setTurns((ts) => ts.map((t) => (t.id === turnId ? { ...t, ...patch } : t)));
+  }, []);
+
   const reportTurnTiming = useCallback((turnId: string, firstAudioMs: number | null): void => {
     const ref = turnTimingRef.current;
     if (!ref || ref.turnId !== turnId || ref.sent) return;
@@ -201,45 +228,49 @@ export function App() {
       redemption_ms: ref.redemptionMs,
       output_latency_ms: getOutputLatencyMs(playbackCtxRef.current),
     });
-    setLastTurn({ firstAudioMs, endpointMs: ref.endpointMs, redemptionMs: ref.redemptionMs });
+    setTurns((ts) =>
+      ts.map((t) =>
+        t.id === turnId
+          ? {
+              ...t,
+              timings: { firstAudioMs, endpointMs: ref.endpointMs, redemptionMs: ref.redemptionMs },
+            }
+          : t,
+      ),
+    );
   }, []);
 
   const handleUtterance = useCallback(async (pcm: ArrayBuffer, endpoint: EndpointTiming): Promise<void> => {
     const connection = connectionRef.current;
     if (!connection) return;
 
-    // "A turn never spans a connection" (Block 1) -- this is the one call
-    // that makes it true by construction: a rotation can only happen while
-    // idle or while the user is speaking, never between `start` and `end`.
     await connection.ensureFresh();
 
     if (!connection.isReady()) {
-      // The socket is down and there was nothing for ensureFresh() to wait
-      // on. Without this check, startTurn()/sendBinary()/endTurn() below
-      // would all silently no-op (Connection.send on a non-OPEN socket) and
-      // the utterance would vanish with nothing on screen -- exactly the
-      // "speaking while the socket is down loses the turn silently" gap
-      // Invariant 7 forbids.
       setConversationState("idle");
-      setTurnFailedMessage("Connection is down — wait for it to reconnect, then try again.");
+      setNotice("Connection is down — wait for it to reconnect, then try again.");
       return;
     }
 
     turnCounterRef.current += 1;
     const turnId = `t-${turnCounterRef.current}`;
-    setTranscript(null);
-    setReply(null);
-    setTurnFailedMessage(null);
     setInterrupted(false);
-    setSegments([]);
-    setHedged(false);
-    setFactCard(null);
+    setTurns((ts) => [
+      ...ts,
+      {
+        id: turnId,
+        at: Date.now(),
+        transcript: null,
+        reply: null,
+        segments: [],
+        factCard: null,
+        places: null,
+        hedged: false,
+        failed: null,
+        timings: null,
+      },
+    ]);
 
-    // Set after the turn id is minted, not before ensureFresh() -- but
-    // endpoint.acousticEndAtMs is a performance.now() reading turn.ts
-    // captured synchronously back in onSpeechEnd, BEFORE this async
-    // function was even called, so awaiting ensureFresh() above cannot
-    // have corrupted it.
     turnTimingRef.current = {
       turnId,
       acousticEndAtMs: endpoint.acousticEndAtMs,
@@ -267,21 +298,12 @@ export function App() {
     playbackQueueRef.current?.stop();
     detectorRef.current?.setSpeaking(false);
     currentTurnIdRef.current = null;
+    speakLevelRef.current = 0;
     setInterrupted(true);
-    // Belt-and-braces: onSpeechStart already set this the moment speech
-    // began (onSpeechRealStart, which triggers a barge, fires strictly
-    // after it) -- but the turn must never be left LOOKING like it's still
-    // "speaking" if something raced.
     setConversationState("listening");
     connectionRef.current?.bargeTurn(turnId);
   }, []);
 
-  /** F13: the socket dropping while a turn is in flight is not an ordinary
-   * reconnect the UI can stay quiet about -- the turn it was carrying is
-   * gone and cannot be resumed (Block 1's invariant: a turn never spans a
-   * connection). "rotating" is excluded on purpose: that only ever happens
-   * while idle (Connection defers a scheduled rotation until the
-   * conversation state goes idle), so it never carries a live turn. */
   const handleConnectionState = useCallback((state: ConnectionState): void => {
     setConnectionState(state);
     const dropped = state === "reconnecting" || state === "offline" || state === "stale";
@@ -291,14 +313,11 @@ export function App() {
     currentTurnIdRef.current = null;
     playbackQueueRef.current?.stop();
     detectorRef.current?.setSpeaking(false);
+    speakLevelRef.current = 0;
     setConversationState("idle");
     setNotice("Connection dropped mid-answer — ask again.");
   }, []);
 
-  /** The typed sign-in form -- D3's reliable path. The PIN field is cleared
-   * immediately after sending, win or lose: it is never held in state any
-   * longer than it takes to put it on the wire once (never logged, never
-   * re-rendered back into the input). */
   const handleSignIn = useCallback(
     (e: FormEvent): void => {
       e.preventDefault();
@@ -316,7 +335,13 @@ export function App() {
     connectionRef.current?.forget(null);
   }, []);
 
+  const detachMicAnalyser = useCallback((): void => {
+    micAnalyserRef.current?.disconnect();
+    micAnalyserRef.current = null;
+  }, []);
+
   const handleMicRevoked = useCallback((): void => {
+    detachMicAnalyser();
     void detectorRef.current?.destroy();
     detectorRef.current = null;
     clearSharedMicStream();
@@ -325,12 +350,8 @@ export function App() {
       kind: "mic-blocked",
       message: "Sarjy needs the microphone to hear you. Allow it in the address bar, then press Retry.",
     });
-  }, []);
+  }, [detachMicAnalyser]);
 
-  /** F5: permission revoked mid-session. Two independent signals, because
-   * neither is reliable alone -- Safari has no "microphone" permission
-   * descriptor for `permissions.query`, so the track's own "ended" event is
-   * what catches it there. */
   const watchForMicRevocation = useCallback((): void => {
     void getSharedMicStream().then((stream) => {
       stream.getAudioTracks()[0]?.addEventListener("ended", handleMicRevoked, { once: true });
@@ -349,10 +370,6 @@ export function App() {
     }
   }, [handleMicRevoked]);
 
-  /** Constructs a VAD instance -- downloads its assets, touches no
-   * microphone (turn.ts's createTurnDetector doc comment). Called at page
-   * load (the mount effect below) and again from handleStart only in F5's
-   * Retry path, where handleMicRevoked already destroyed the previous one. */
   const buildDetector = useCallback(async (): Promise<TurnDetector> => {
     const capture = captureCtxRef.current;
     if (!capture) throw new Error("Voice detection has nothing to attach to yet.");
@@ -374,30 +391,24 @@ export function App() {
     setStarting(true);
     setVoiceIssue(null);
     try {
-      // Web Audio requires resuming inside a user gesture -- this click
-      // handler IS that gesture (task 10's trap: both contexts are
-      // constructed suspended, at page load, and resumed only here).
       await capture.resume();
       await playback.resume();
 
-      // The normal path already has a detector, built at page load (W4).
-      // F5's Retry path is the exception: handleMicRevoked() destroyed it,
-      // so it's rebuilt here -- the browser has the assets cached, so this
-      // resolves fast rather than re-downloading 16MB on every retry.
       if (!detectorRef.current) {
         detectorRef.current = await buildDetector();
       }
-      // The ONE getUserMedia call in this click -- NotAllowedError (F3) and
-      // NotFoundError (F4) surface here, inside the user gesture.
       await detectorRef.current.start();
       watchForMicRevocation();
+      detachMicAnalyser();
+      const stream = await getSharedMicStream();
+      micAnalyserRef.current = new MicAnalyser(capture, stream);
       setStarted(true);
     } catch (err) {
       setVoiceIssue(classifyVoiceError(err));
     } finally {
       setStarting(false);
     }
-  }, [starting, buildDetector, watchForMicRevocation]);
+  }, [starting, buildDetector, watchForMicRevocation, detachMicAnalyser]);
 
   useEffect(() => {
     const capture = createCaptureContext();
@@ -406,10 +417,6 @@ export function App() {
     playbackCtxRef.current = playback;
     playbackQueueRef.current = new PlaybackQueue(playback);
 
-    // W4: build the VAD now, while the reviewer is still reading the
-    // screen, instead of behind a "Starting…" spinner after the click.
-    // buildDetector() never calls getUserMedia (turn.ts's createTurnDetector
-    // doc comment) -- only detector.start(), called from handleStart, does.
     let cancelled = false;
     buildDetector()
       .then((detector) => {
@@ -434,20 +441,17 @@ export function App() {
       },
       onPong: setLastRttMs,
       onNotice: setNotice,
-      onTranscript: (_turnId, text) => setTranscript(text),
-      onReply: (_turnId, text) => setReply(text),
-      onSegments: (_turnId, segs, _spoken, isHedged) => {
-        setSegments(segs);
-        setHedged(isHedged);
+      onTranscript: (turnId, text) => patchTurn(turnId, { transcript: text }),
+      onReply: (turnId, text) => patchTurn(turnId, { reply: text }),
+      onSegments: (turnId, segs, _spoken, isHedged) => {
+        patchTurn(turnId, { segments: segs, hedged: isHedged });
       },
       onQuota: (q) => setQuota(q),
       onMemory: (m) => setMemory(m),
       onFactCard: (card) => {
-        setFactCard(card);
-        // Verification turn 8: the browser console is where this is
-        // checked -- Block C renders it, nothing paints it yet.
-        console.log("sarjy: fact_card", card);
+        patchTurn(card.turn_id, { factCard: card });
       },
+      onPlaces: (turnId, places) => patchTurn(turnId, { places }),
       onAudioStart: (turnId, sampleRate) => {
         currentTurnIdRef.current = turnId;
         currentSampleRateRef.current = sampleRate;
@@ -455,16 +459,14 @@ export function App() {
           speakingStartedAtRef.current = performance.now();
           detectorRef.current?.setSpeaking(true);
           setConversationState("speaking");
-          // The headline leg closes HERE, not at audio_start -- this is the
-          // first buffer actually scheduled, the moment PlaybackQueue's own
-          // doc comment calls "when the UI flips to speaking."
           const ref = turnTimingRef.current;
           const firstAudioMs = ref ? Math.round(performance.now() - ref.acousticEndAtMs) : null;
           reportTurnTiming(turnId, firstAudioMs);
         });
       },
       onAudioChunk: (turnId, chunk) => {
-        if (turnId !== currentTurnIdRef.current) return; // a barge raced ahead of in-flight frames
+        if (turnId !== currentTurnIdRef.current) return;
+        speakLevelRef.current = pcm16Rms(chunk);
         playbackQueueRef.current?.enqueue(chunk, currentSampleRateRef.current);
       },
       onAudioEnd: (turnId) => {
@@ -472,6 +474,7 @@ export function App() {
         turnInFlightRef.current = false;
         currentTurnIdRef.current = null;
         detectorRef.current?.setSpeaking(false);
+        speakLevelRef.current = 0;
       },
       onTurnFailed: (turnId, stage, message) => {
         turnInFlightRef.current = false;
@@ -479,9 +482,8 @@ export function App() {
           currentTurnIdRef.current = null;
           detectorRef.current?.setSpeaking(false);
         }
-        setTurnFailedMessage(`(${stage}) ${message}`);
-        // The headline leg never completed -- reported as null, not
-        // skipped, so this turn still produces a record (I2).
+        speakLevelRef.current = 0;
+        patchTurn(turnId, { failed: { stage, message } });
         reportTurnTiming(turnId, null);
       },
     };
@@ -492,128 +494,112 @@ export function App() {
     return () => {
       cancelled = true;
       conn.dispose();
+      detachMicAnalyser();
       void detectorRef.current?.destroy();
       void capture.close();
       void playback.close();
     };
-  }, [buildDetector, handleConnectionState, reportTurnTiming]);
+  }, [buildDetector, handleConnectionState, reportTurnTiming, patchTurn, detachMicAnalyser]);
+
+  const lastTurn = turns[turns.length - 1];
+  useEffect(() => {
+    dossierEndRef.current?.scrollIntoView({
+      behavior: REDUCED_MOTION ? "auto" : "smooth",
+      block: "nearest",
+    });
+  }, [turns.length, lastTurn?.factCard, lastTurn?.places, lastTurn?.reply, lastTurn?.segments.length]);
 
   const canStart = assetsReady && !started && !voiceIssue;
   const showRetry = voiceIssue?.kind === "mic-blocked" || voiceIssue?.kind === "mic-missing";
+  const copy = stateCopy(started, assetsReady, voiceIssue, conversationState, interrupted);
 
   return (
-    <main>
-      <h1>Sarjy</h1>
+    <div className="app">
+      <header className="app-header">
+        <div className="brand">
+          <h1 className="wordmark">Sarjy</h1>
+          <p className="purpose">A voice for the document · live voice</p>
+        </div>
+        <div className="header-chips">
+          <span className={`chip chip-connection conn-${connectionState}`}>
+            {CONNECTION_LABEL[connectionState]}
+          </span>
+          {quota && (
+            <span
+              className={`chip chip-quota${quota.remaining === 0 ? " warn" : ""}`}
+              title={`spent ${quota.spent} of ${quota.total}; ${quota.reserve} held back as reserve`}
+            >
+              {quota.remaining === 0
+                ? "visa quota · reserve only"
+                : `visa quota · ${quota.remaining} left`}
+            </span>
+          )}
+        </div>
+      </header>
 
-      <p className={`conversation-state state-${voiceIssue ? voiceIssue.kind : conversationState}`} aria-live="polite">
-        {voiceIssue ? voiceIssue.kind : conversationState}
-        {interrupted && " (interrupted)"}
-      </p>
-
-      {voiceIssue && <p className="notice voice-issue">{voiceIssue.message}</p>}
-
-      {!assetsReady && !voiceIssue && <button disabled>Loading voice detection…</button>}
-      {canStart && (
-        <button onClick={() => void handleStart()} disabled={starting}>
-          {starting ? "Starting…" : "Start talking"}
-        </button>
-      )}
-      {showRetry && <button onClick={() => void handleStart()}>Retry</button>}
-      {voiceIssue?.kind === "unavailable" && (
-        <button disabled title={voiceIssue.message}>
-          Start talking
-        </button>
-      )}
-
-      {started && !voiceIssue && (
-        <p className="hint" aria-live="polite">
-          {conversationState === "idle" && "Listening for you…"}
-          {conversationState === "listening" && "Hearing you…"}
-          {conversationState === "thinking" && "Thinking…"}
-          {conversationState === "speaking" && "Speaking…"}
-        </p>
-      )}
-
-      {transcript && (
-        <p className="transcript">
-          <strong>You:</strong> {transcript}
-        </p>
-      )}
-      {reply && (
-        <p className="reply">
-          <strong>Sarjy:</strong> {reply}
-        </p>
-      )}
-      {turnFailedMessage && <p className="notice turn-failed">{turnFailedMessage}</p>}
-
-      {/* The card is the evidence; the segments below are the audit trail
-          of the sentence built from it -- card first (task 7, block plan). */}
-      {factCard && <FactCard card={factCard} />}
-
-      {segments.length > 0 && (
-        // F3 (block plan): a rejected segment is still SENT and shown
-        // struck through with its reason -- that visibility is the demo,
-        // not a debug affordance. A <ul> with a badge is the whole
-        // allowance here (Block C owns real styling).
-        <ul className="segments" aria-live="off">
-          {segments.map((s, i) => (
-            <li key={i} className={`segment segment-${s.kind}${s.ok ? "" : " segment-rejected"}`}>
-              <span className="segment-kind">[{s.kind}]</span>{" "}
-              <span style={s.ok ? undefined : { textDecoration: "line-through" }}>
-                {s.kind === "quoted" && s.ok && s.attribution ? `${s.attribution} "${s.text}"` : s.text}
-              </span>
-              {!s.ok && s.reason && <span className="segment-reason"> — rejected: {s.reason}</span>}
-              {s.ok && s.citation && (
-                <span className="segment-provenance">
-                  {" "}
-                  ({s.citation}
-                  {s.layer ? `, ${s.layer}` : ""}
-                  {s.source_date ? `, ${s.source_date}` : ""})
-                </span>
+      <div className="app-main">
+        <div className="stage">
+          <Orb
+            ring={copy.ring}
+            reducedMotion={REDUCED_MOTION}
+            micAnalyserRef={micAnalyserRef}
+            speakLevelRef={speakLevelRef}
+          />
+          <div className="state-copy">
+            <p className="state-headline" aria-live="polite">
+              {copy.headline}
+            </p>
+            <p className="state-sub">{copy.sub}</p>
+            <div className="cta">
+              {!assetsReady && !voiceIssue && <button disabled>Loading voice detection…</button>}
+              {canStart && (
+                <button onClick={() => void handleStart()} disabled={starting}>
+                  {starting ? "Starting…" : "Start talking"}
+                </button>
               )}
-            </li>
+              {showRetry && (
+                <button onClick={() => void handleStart()}>Retry</button>
+              )}
+              {voiceIssue?.kind === "unavailable" && (
+                <button disabled title={voiceIssue.message}>
+                  Start talking
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {notice && <p className="notice">{notice}</p>}
+
+        <div className="dossier">
+          {turns.map((turn) => (
+            <TurnBlock key={turn.id} turn={turn} />
           ))}
-        </ul>
-      )}
-      {hedged && (
-        <p className="notice">
-          A tool result came back but nothing was sourced or quoted from it — flagged for review.
-        </p>
-      )}
+          <div ref={dossierEndRef} />
+        </div>
 
-      {lastTurn && (
-        // aria-live="off" is deliberate: a screen reader announcing a
-        // latency figure after every turn is noise -- this is diagnostic,
-        // not conversational (Invariant 2 wants it visible, not narrated).
-        <p className="metrics" aria-live="off">
-          last turn {fmt(lastTurn.firstAudioMs)} voice-to-voice · endpoint {fmt(lastTurn.endpointMs)}
-          {" · redemption "}
-          {lastTurn.redemptionMs} ms
-        </p>
-      )}
-
-      <div className="status-line" aria-live="polite">
-        <span>connection: {connectionState}</span>
-        {sessionId && <span> · session {sessionId.slice(0, 8)}</span>}
-        {connectionN > 0 && <span> · #{connectionN}</span>}
-        {lastRttMs !== null && <span> · {lastRttMs}ms</span>}
-        {quota && (
-          <span> · visa quota: {quota.remaining} left above reserve (spent {quota.spent}/{quota.total})</span>
-        )}
+        <div className="diagnostics" aria-live="off">
+          {lastTurn?.timings && (
+            <span>
+              last turn {fmt(lastTurn.timings.firstAudioMs)} voice-to-voice · endpoint{" "}
+              {fmt(lastTurn.timings.endpointMs)} · redemption {lastTurn.timings.redemptionMs} ms
+            </span>
+          )}
+          {sessionId && <span>session {sessionId.slice(0, 8)}</span>}
+          {connectionN > 0 && <span>#{connectionN}</span>}
+          {lastRttMs !== null && <span>{lastRttMs}ms</span>}
+          <button className="secondary" type="button" onClick={() => connectionRef.current?.sendPing()}>
+            Ping
+          </button>
+          {connectionState === "offline" && (
+            <button type="button" onClick={() => connectionRef.current?.retry()}>
+              Retry connection
+            </button>
+          )}
+        </div>
       </div>
 
-      {notice && <p className="notice">{notice}</p>}
-
-      <button onClick={() => connectionRef.current?.sendPing()}>Ping</button>
-      {connectionState === "offline" && (
-        <button onClick={() => connectionRef.current?.retry()}>Retry connection</button>
-      )}
-
-      {/* Block B -- D5: the whole panel is driven by ONE `memory` message,
-          re-sent in full after every sign-in/sign-out/forget/extraction.
-          No per-fact delete here (D9's cut ladder item 3) -- Forget
-          everything is the correction path. */}
-      <aside className="memory-panel" aria-live="polite">
+      <aside className="rail memory-panel" aria-live="polite">
         <h2>What Sarjy remembers</h2>
         {memory && (
           <>
@@ -677,6 +663,80 @@ export function App() {
           </>
         )}
       </aside>
-    </main>
+    </div>
+  );
+}
+
+function TurnBlock({ turn }: { turn: Turn }): JSX.Element {
+  const kept = turn.segments.filter((s) => s.ok).length;
+  const rejected = turn.segments.length - kept;
+
+  return (
+    <article className="turn">
+      {turn.transcript && (
+        <p className="transcript">
+          <span className="who">You</span>
+          {turn.transcript}
+        </p>
+      )}
+      {turn.factCard && <FactCard card={turn.factCard} />}
+      {turn.places && turn.places.length > 0 && <PlaceStrip places={turn.places} />}
+      {turn.reply && (
+        <p className="reply">
+          <span className="who">Sarjy</span>
+          {turn.reply}
+        </p>
+      )}
+      {turn.failed && (
+        <p className="notice turn-failed">
+          ({turn.failed.stage}) {turn.failed.message}
+        </p>
+      )}
+      {turn.segments.length > 0 && (
+        <section className="audit">
+          <h2>What she was allowed to say</h2>
+          <p className="audit-count">
+            {kept} spoken · {rejected} refused
+          </p>
+          <ul className="segments" aria-live="off">
+            {turn.segments.map((s, i) => (
+              <li
+                key={i}
+                className={`segment segment-${registerLabel(s.kind)}${s.ok ? "" : " segment-rejected"}`}
+              >
+                <span className="segment-kind">{registerLabel(s.kind)}</span>{" "}
+                <span className="segment-text">
+                  {s.kind === "quoted" && s.ok && s.attribution ? `${s.attribution} "${s.text}"` : s.text}
+                </span>
+                {!s.ok && s.reason && <span className="segment-reason"> — rejected: {s.reason}</span>}
+                {s.ok && s.citation && (
+                  <span className="segment-provenance">
+                    {" "}
+                    ({s.citation}
+                    {s.layer ? `, ${s.layer}` : ""}
+                    {s.source_date ? `, ${s.source_date}` : ""})
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+          {rejected > 0 && (
+            <p className="audit-note">
+              The model wrote the struck-through line. Deterministic code refused to speak it.
+            </p>
+          )}
+        </section>
+      )}
+      {turn.hedged && (
+        <p className="notice hedge-notice">
+          A tool result came back but nothing was sourced or quoted from it — flagged for review.
+        </p>
+      )}
+      {turn.timings && (
+        <p className="turn-metrics" aria-live="off">
+          {fmt(turn.timings.firstAudioMs)} voice-to-voice
+        </p>
+      )}
+    </article>
   );
 }

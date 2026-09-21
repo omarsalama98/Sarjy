@@ -485,6 +485,35 @@ class FactCardOut(BaseModel):
     ts_ms: int
 
 
+PlaceReasonOut = Literal["not_found", "disambiguation", "no_image", "timeout", "http_error"]
+
+
+class PlaceCardOut(BaseModel):
+    """One Wikimedia lookup. `ok=False` is still sent -- never a silent drop,
+    never a broken image. Additive: old clients ignore an unknown `t`."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: str
+    title: str | None
+    description: str | None
+    image_url: str | None
+    page_url: str | None
+    revision_date: str | None
+    ok: bool
+    reason: PlaceReasonOut | None
+
+
+class PlacesOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    t: Literal["places"] = "places"
+    turn_id: str
+    places: list[PlaceCardOut]
+    seq: int
+    ts_ms: int
+
+
 class FactOut(BaseModel):
     """One stored fact, on the wire -- the panel's whole reason to exist
     (D1). `quote` is the attribution: the verbatim sentence that taught it,
@@ -540,5 +569,6 @@ ServerMessage = (
     | SegmentsOut
     | QuotaOut
     | FactCardOut
+    | PlacesOut
     | MemoryOut
 )

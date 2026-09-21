@@ -25,10 +25,11 @@ no second TTS request) -- opener_ready_ms/tts1_ttfb_ms/answer_gap_ms stay
 null; that's Block C.
 """
 
+import asyncio
 import logging
 import time
 from collections.abc import AsyncIterator, Callable
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, ValidationError
 
@@ -45,6 +46,8 @@ from app.pipeline.protocol import (
     AudioStartOut,
     FactCardOut,
     FactRowOut,
+    PlaceCardOut,
+    PlacesOut,
     QuotaOut,
     ReplyOut,
     SegmentOut,
@@ -72,6 +75,7 @@ TurnItem = (
     AudioEndOut
     | AudioStartOut
     | FactCardOut
+    | PlacesOut
     | QuotaOut
     | ReplyOut
     | SegmentsOut
@@ -98,14 +102,16 @@ class _SegmentLine(BaseModel):
     tool_call_id: str | None = None
     fields: list[str] = []
     field: str | None = None
+    place: str | None = None  # judgement only -- Wikipedia article title; ignored otherwise
 
 
-def _parse_segment_line(line: str) -> Segment:
+def _parse_segment_line(line: str) -> tuple[Segment, str | None]:
     """Raises pydantic.ValidationError for anything that isn't a valid
     JSON object matching the shape above -- including JSON that doesn't
     parse at all (pydantic-core reports that as a ValidationError too, the
     same one-except-clause pattern protocol.py's parse_client_message()
-    uses)."""
+    uses). The optional place title is returned alongside, collected only
+    from judgement lines -- the gate never sees it."""
     parsed = _SegmentLine.model_validate_json(line)
     return Segment(
         kind=parsed.kind,
@@ -113,7 +119,7 @@ def _parse_segment_line(line: str) -> Segment:
         tool_call_id=parsed.tool_call_id,
         fields=tuple(parsed.fields),
         field=parsed.field,
-    )
+    ), (parsed.place.strip() if parsed.kind == "judgement" and parsed.place else None)
 
 
 def _segment_to_wire(r: RenderedSegment) -> SegmentOut:
@@ -171,6 +177,7 @@ async def run_turn(
     memory_block: str = "",
     awaiting_pin: bool = False,
     on_sign_in: Callable[[str, str], None] | None = None,
+    get_places: Callable[[], Any] | None = None,
 ) -> AsyncIterator[TurnItem]:
     """One full turn. `pcm16` is the whole utterance, already endpointed by
     the client's VAD. Providers are resolved lazily via the `get_*`
@@ -375,7 +382,7 @@ async def run_turn(
 
     t0 = time.monotonic()
     try:
-        raw_segments, lines_malformed = await _drain_segments(llm, user_block)
+        raw_segments, lines_malformed, place_names = await _drain_segments(llm, user_block)
         if not raw_segments:
             # D11 -- the repair retry fires ONLY when the whole of call 2
             # produced zero valid segments, not per malformed line.
@@ -387,7 +394,7 @@ async def run_turn(
             # it counts malformed lines from a completion whose valid lines
             # were never counted anywhere, inflating measure.py's rate
             # (whose denominator is drawn from this same surviving attempt).
-            raw_segments, lines_malformed = await _drain_segments(llm, user_block)
+            raw_segments, lines_malformed, place_names = await _drain_segments(llm, user_block)
     except Exception:
         logger.exception("llm segments() failed turn=%s", turn_id)
         yield failed("gate", "I couldn't put that answer together — ask me again?")
@@ -451,22 +458,99 @@ async def run_turn(
     # Sent before any TTS is attempted -- F11's whole point.
     yield ReplyOut(turn_id=turn_id, text=spoken, seq=next_seq(), ts_ms=now_ms())
 
+    places_task: asyncio.Task[list[Any]] | None = None
+    if place_names and get_places is not None:
+        # Starts NOW, concurrent with TTS -- must not be awaited before
+        # first audio. PlacesOut is yielded after AudioStartOut, never before.
+        places_task = asyncio.create_task(_lookup_places(get_places, place_names))
+
+    emitted_places = False
+    audio_started = False
     async for item in _speak(spoken, turn_id, get_tts, failed, next_seq, now_ms, timings):
         yield item
+        if isinstance(item, AudioStartOut):
+            audio_started = True
+        if (
+            places_task is not None
+            and not emitted_places
+            and audio_started
+            and places_task.done()
+        ):
+            emitted_places = True
+            yield _places_to_wire(places_task.result(), turn_id, next_seq(), now_ms())
+
+    if places_task is not None and not emitted_places:
+        yield _places_to_wire(await places_task, turn_id, next_seq(), now_ms())
 
 
-async def _drain_segments(llm: LLM, user_block: str) -> tuple[list[Segment], int]:
+async def _lookup_places(get_places: Callable[[], Any], names: list[str]) -> list[Any]:
+    """Never raises -- a Wikimedia failure becomes failed PlaceCards so the
+    strip can still render a visible 'couldn't source a photo' (I6/I7)."""
+    try:
+        cards: list[Any] = list(await get_places().lookup_many(names))
+        return cards
+    except Exception:
+        logger.exception("places lookup failed")
+        from app.tools.places import PlaceCard as PlaceCardModel
+
+        return [
+            PlaceCardModel(
+                name=n,
+                title=None,
+                description=None,
+                image_url=None,
+                page_url=None,
+                revision_date=None,
+                ok=False,
+                reason="http_error",
+            )
+            for n in names
+        ]
+
+
+def _places_to_wire(cards: list[Any], turn_id: str, seq: int, ts_ms: int) -> PlacesOut:
+    return PlacesOut(
+        turn_id=turn_id,
+        places=[
+            PlaceCardOut(
+                name=c.name,
+                title=c.title,
+                description=c.description,
+                image_url=c.image_url,
+                page_url=c.page_url,
+                revision_date=c.revision_date,
+                ok=c.ok,
+                reason=c.reason,
+            )
+            for c in cards
+        ],
+        seq=seq,
+        ts_ms=ts_ms,
+    )
+
+
+async def _drain_segments(llm: LLM, user_block: str) -> tuple[list[Segment], int, list[str]]:
     """One full call-2 attempt: every valid line becomes a Segment; every
     line that fails validation is dropped and counted (G8) -- one bad line
-    never loses the rest of a genuinely good answer."""
+    never loses the rest of a genuinely good answer. Place titles from
+    judgement lines are collected here so the gate never has to know."""
     segments: list[Segment] = []
+    places: list[str] = []
+    seen: set[str] = set()
     malformed = 0
     async for line in llm.segments(system=SYSTEM_SEGMENTS, user_block=user_block):
         try:
-            segments.append(_parse_segment_line(line))
+            segment, place = _parse_segment_line(line)
         except ValidationError:
             malformed += 1
-    return segments, malformed
+            continue
+        segments.append(segment)
+        if place:
+            key = place.lower()
+            if key not in seen and len(places) < 3:
+                seen.add(key)
+                places.append(place)
+    return segments, malformed, places
 
 
 async def _handle_sign_in_turn(

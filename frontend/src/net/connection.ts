@@ -33,6 +33,7 @@ import {
   type ErrorMessage,
   type FactCardMessage,
   type MemoryMessage,
+  type PlaceCard,
   type QuotaMessage,
   type SegmentWire,
   type TurnFailedStage,
@@ -70,6 +71,9 @@ export interface ConnectionCallbacks {
   onQuota(quota: Omit<QuotaMessage, "t" | "seq" | "ts_ms">): void;
   /** D15 -- received and held; Block C renders it, nothing paints it yet. */
   onFactCard(card: FactCardMessage): void;
+  /** Wikimedia place cards -- arrive after TTS has started, never on the
+   * first-audio path. Failed lookups are included (ok: false). */
+  onPlaces(turnId: string, places: PlaceCard[]): void;
   /** Block B -- drives the WHOLE "what Sarjy remembers" panel. Sent after
    * `ready`, and again after sign-in, sign-out, forget, or an extraction
    * that changed something -- there is no client-side memory state to
@@ -356,6 +360,9 @@ export class Connection {
         break;
       case "fact_card":
         this.callbacks.onFactCard(msg);
+        break;
+      case "places":
+        this.callbacks.onPlaces(msg.turn_id, msg.places);
         break;
       case "memory":
         this.callbacks.onMemory(msg);

@@ -54,10 +54,11 @@ Plan: `docs/plans/blocks/C-demoable.md` (authoritative for remaining work).
 |---|---|---|
 | 0 | Preflight: live voice turn, `SARJY_MEMORY_SALT` on Modal, quota unlock | **Omar.** Not done from this environment |
 | 1 | Fact card renders (refusal / empty / populated + degraded badge); clear card on new turn | **Yes** — `frontend/src/ui/FactCard.tsx`, `App.tsx` |
-| 2 | `frontend/src/index.css` (~120 lines) + import in `main.tsx` | **Yes** |
-| 3 | Rewrite `README.md` · write `docs/DEMO-SCRIPT.md` · `docs/LOOM-OUTLINE.md` | **No.** README is still wrong (see plan §What I found upstream). **Never cut.** |
-| 4 | Arabic. Rung 1: understand Arabic, answer English. Rung 2: Groq Orpheus speak Arabic (timeboxed, cut at 13:00) | **Partial.** `StartIn.lang` and `TurnTimings.lang` exist. `run_turn` still passes `language=None`. Client `startTurn()` does not send `lang`. No toggle, no `GroqOrpheusTTS`, no `RoutedTTS` |
-| 5 | Amend the three docs to match what actually shipped | Not started |
+| 2 | `frontend/src/index.css` (~120 lines) + import in `main.tsx` | **Yes** — being rewritten by C2 |
+| 2b | **Travel-agent UI** — plan: `docs/plans/blocks/C2-ui-pass.md` | **In progress.** Five phases: dossier · shell · orb · Wikimedia places · documents. Phase 5 is never cut |
+| 3 | Rewrite `README.md` · write `docs/DEMO-SCRIPT.md` · `docs/LOOM-OUTLINE.md` | **C2 Phase 5. Never cut.** README is still wrong |
+| 4 | Arabic | **Cut.** Both rungs. Named as a limit in the README. `StartIn.lang` stays on the wire unused |
+| 5 | Amend the three docs to match what actually shipped | C2 Phase 5 |
 | 6 | `/demo-check`, Block A/B human tables, `make measure`, `submission-reviewer`, Loom, Ashby | Not started |
 
 Canned opener clip: **cut** (plan D8). Do not build it.
@@ -74,10 +75,10 @@ Open the **Read** column in order. Stop when you can do the task. Do not open th
 
 | Slice | Read | Then edit | Avoid |
 |---|---|---|---|
-| **Docs (Group 3) — start here if the clock is tight** | This file · `C-demoable.md` §D4, §Group 3, demo-script table · `docs/PRs/PR_GROUNDED_ANSWERS.md` §Gate status · `docs/PRs/PR_MEMORY.md` §Not run here · `docs/measurements/2026-09-20-two-corrected-numbers.md` · current `README.md` (so you know what to delete) | `README.md` · **new** `docs/DEMO-SCRIPT.md` · **new** `docs/LOOM-OUTLINE.md` | `backend/` · `eval/` · research `*.md` at repo root |
-| **Arabic rung 1** | `C-demoable.md` §D5–D7, Contracts 3–5, F-AR4–F-AR7, tasks 16–18 | `protocol.py` (already has `lang`) · `turn.py` · `main.py` · `timings.py` (field exists) · `prompts.py` · `protocol.ts` · `connection.ts` · `App.tsx` · fakes in `test_turn.py` / `test_ws.py` | `groq_tts.py` · factory arity changes · bumping `PROTOCOL_VERSION` |
-| **Arabic rung 2** | `C-demoable.md` §D5–D6, Contract 6–7, F-AR1–F-AR3, tasks 15 then 19–23. **AR-0 probe first** | **new** `backend/app/providers/groq_tts.py` · `factory.py` (`RoutedTTS`, `get_tts()` stays zero-arg) · `config.py` · **new** `tests/test_groq_tts.py` | Changing `get_tts(lang)` · widening the gate for Arabic (`NUMBER_WORDS` stays English — named limit) |
-| **Fact card / CSS (already built)** | `C-demoable.md` Contracts 1–2, F-FC1–F-FC5 | `frontend/src/ui/FactCard.tsx` · `App.tsx` · `index.css` | Re-deriving `degraded` on the client (server sends it) |
+| **Docs (C2 Phase 5) — start here if the clock is tight** | This file · `C2-ui-pass.md` §Phase 5 · `C-demoable.md` demo-script table · `docs/PRs/PR_GROUNDED_ANSWERS.md` §Gate status · `docs/PRs/PR_MEMORY.md` §Not run here · current `README.md` (so you know what to delete) | `README.md` · **new** `docs/DEMO-SCRIPT.md` · **new** `docs/LOOM-OUTLINE.md` | `eval/` · research `*.md` at repo root |
+| **Arabic** | — | **Cut.** Do not build. Name it in the README limits table | `groq_tts.py` · `RoutedTTS` · bumping `PROTOCOL_VERSION` |
+| **Fact card / CSS (already built, being restyled)** | `C-demoable.md` Contracts 1–2, F-FC1–F-FC5 | `frontend/src/ui/FactCard.tsx` · `App.tsx` · `index.css` | Re-deriving `degraded` on the client (server sends it) |
+| **Travel-agent UI (C2)** | `docs/plans/blocks/C2-ui-pass.md` — D0's ref-safety rule, Contracts 1–8 · `docs/DESIGN-BRIEF.md` for intent | `App.tsx` · `index.css` · `ui/FactCard.tsx` · **new** `ui/Orb.tsx` · **new** `audio/level.ts` · **new** `ui/PlaceStrip.tsx` · `index.html` · `public/fonts/` · `tools/places.py` · `protocol.py` · `protocol.ts` · `connection.ts` · `turn.py` · `prompts.py` · `main.py` | Rewriting any `useRef` · changing the VAD, PCM path, or `reportTurnTiming` · bumping `PROTOCOL_VERSION` · changing the gate |
 | **PR writeup** | Plan §Group 5 · this file’s landmines | **new** `docs/PRs/PR_DEMOABLE.md` | |
 | **Human gates / submission** | `.claude/skills/demo-check/SKILL.md` · plan §Group 6 / §Gate · `.claude/agents/submission-reviewer.md` | README limits table only, unless a finding is **blocking** | Re-running `eval/` · spending RapidAPI |
 
@@ -125,7 +126,10 @@ Open the **Read** column in order. Stop when you can do the task. Do not open th
 9. **Deepgram Aura-2 has no Arabic voice.** That is why a second TTS exists, not the 200-char cap. Cap still matters for Orpheus (chunk in the adapter; do not shrink the gate’s 400-char `quoted` allowance).
 10. **`?gate_demo=1`** injects a fabricated sourced segment so the reviewer *sees* a rejection. There is **no** live “pretend vendor down” toggle (plan D9) — do not add `?force_layer=`.
 11. **TTFT** is first `text` delta, not first SSE event (a `thought` always arrives first).
-12. **Do not bump scope:** no second API, no opener clip, no UI past `index.css`, no Arabic code-switching / RTL chrome beyond `dir="rtl"` on transcript lines.
+12. **Ref-safety (C2).** Everything on a `useRef` stays on a `useRef`. `currentTurnIdRef`, `turnTimingRef`, `turnInFlightRef`, `playbackQueueRef`, `detectorRef` and the barge window are untouched. Only what *renders* moves into the turns array. Timing legs and barge are the two things a state refactor would silently break, and pytest cannot catch either.
+13. **Arabic is cut.** Both rungs. Do not thread `StartIn.lang`. Do not add `GroqOrpheusTTS`.
+14. **Places fetch is post-TTS.** Wikimedia lookups run after the answer is handed to TTS. They must not appear in the first-audio path. `place` only ever appears on a `judgement` line; the gate is not changed.
+15. **Do not bump `PROTOCOL_VERSION`** for additive messages (`places` is additive, default-absent). A bump hard-closes old clients.
 
 ---
 
@@ -205,7 +209,7 @@ data/reference/            committed visa fixtures (do not re-fetch)
 backend/app/
   main.py                  WS, session, sign-in, extract task, static mount
   pipeline/{protocol,turn,timings,audio}.py
-  tools/{gate,vendor,quota,normalise,card,fake}.py
+  tools/{gate,vendor,quota,normalise,card,fake,places}.py
   memory/{store,identity,extract}.py
   providers/{base,factory,groq_stt,gemini_llm,deepgram_tts}.py
   prompts.py
@@ -214,7 +218,8 @@ backend/modal_app.py
 frontend/src/
   App.tsx  main.tsx  index.css  protocol.ts
   net/connection.ts  audio/{capture,playback,turn}.ts
-  ui/FactCard.tsx
+  ui/FactCard.tsx  ui/Orb.tsx  ui/PlaceStrip.tsx
+  audio/{capture,playback,turn,level}.ts
 .claude/skills/            implement · measure · demo-check · code-review · update-sarj
 .claude/agents/            block-* · guardrails-engineer · submission-reviewer · …
 .claude/rules/             workflow.md (always) · tools/ · voice/
@@ -235,4 +240,4 @@ From `C-demoable.md` task 31, use only the ones that match what you actually shi
 
 ## If you only have 20 minutes
 
-Do **Group 3**: honest README + demo script + Loom outline against **what is true right now** (including “not run” rows). That *is* requirement #6. Arabic is rung-cuttable; those three documents are not.
+Do **C2 Phase 5**: honest README + demo script + Loom outline against **what is true right now** (including “not run” rows). That *is* requirement #6. The orb and the places strip are cuttable; those three documents are not.
