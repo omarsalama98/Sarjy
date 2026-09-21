@@ -202,3 +202,5 @@ npm run build                      # clean (pre-existing chunk-size warning only
 
 - `feat(memory): durable per-user memory with typed sign-in, extraction, and the "what Sarjy
   remembers" panel (Block B, requirement #2)`
+- `fix(memory): extract a first-person statement even when the turn is a question; still skip
+  pure recall questions so they cannot overwrite learned_at`

@@ -378,6 +378,23 @@ def test_looks_self_referential_matches_the_documented_markers() -> None:
     assert looks_self_referential("what's the capital of japan") is False
 
 
+def test_looks_self_referential_skips_recall_questions() -> None:
+    # The landmine: these match "my " / "favourite" but must not extract.
+    assert looks_self_referential("what's my favourite colour?") is False
+    assert looks_self_referential("any dietary requirements I mentioned?") is False
+
+
+def test_looks_self_referential_extracts_a_statement_inside_a_question() -> None:
+    assert (
+        looks_self_referential(
+            "Okay, if I want to go to Madrid and I'm a vegetarian, "
+            "what do you suggest I eat or where to go?"
+        )
+        is True
+    )
+    assert looks_self_referential("I'm on a Saudi passport, do I need a visa for Japan?") is True
+
+
 def test_build_extract_block_lists_already_known_keys() -> None:
     block = build_extract_block(user_text="I live in Riyadh", known_keys=["passport", "home_city"])
     assert "<user_turn>\nI live in Riyadh\n</user_turn>" in block
