@@ -8,12 +8,14 @@ Requirement #4 (a working deployed URL) stays banked even with a broken key.
 """
 
 import functools
+import os
 from collections.abc import AsyncIterator
 
 from app.config import load_settings
 from app.providers.base import LLM, STT, TTS, ProviderUnavailable, VisaTool
 from app.providers.deepgram_tts import DeepgramTTS
 from app.providers.gemini_llm import GeminiLLM
+from app.providers.groq_llm import GroqLLM
 from app.providers.groq_stt import GroqSTT
 from app.tools.fake import FakeVisaTool
 from app.tools.quota import QuotaLedger
@@ -54,11 +56,16 @@ def get_stt() -> STT:
 
 @functools.lru_cache(maxsize=1)
 def get_llm() -> LLM:
+    """Default Groq: Gemini Interactions from Modal us-east was timing out
+    (~25 s TTFT / call-2 hang, 2026-09-21). Set SARJY_LLM=gemini to roll back."""
     try:
         settings = load_settings()
     except RuntimeError as e:
         raise ProviderUnavailable(str(e)) from e
-    return GeminiLLM(api_key=settings.gemini_api_key)
+    provider = os.environ.get("SARJY_LLM", "groq").strip().lower()
+    if provider == "gemini":
+        return GeminiLLM(api_key=settings.gemini_api_key)
+    return GroqLLM(api_key=settings.groq_api_key)
 
 
 @functools.lru_cache(maxsize=1)

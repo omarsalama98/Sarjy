@@ -48,9 +48,13 @@ HISTORY_TURNS = 6
 
 # See the original note on LLM_TIMEOUT_S (Block 2): HttpOptions.timeout
 # defaults to None, so nothing upstream of asyncio.timeout() bounds either
-# call's total duration. 10s leaves room for a real multi-sentence call-2
-# answer while still failing well inside main.py's HARD_MAX_MS.
-LLM_TIMEOUT_S = 10.0
+# call's total duration. Measured 2026-09-21 from Modal us-east: bare
+# `interactions.create` alone can take ~20s before the first SSE event
+# (local laptop: ~1.5–2s). 10s therefore kills every live decide() with
+# TimeoutError and the user-facing "(llm) I couldn't come up with an
+# answer". 45s covers a slow create + a real multi-sentence call-2 stream
+# while still failing inside main.py's HARD_MAX_MS (~190s).
+LLM_TIMEOUT_S = 45.0
 
 # Deltas this adapter ignores for BOTH calls -- thinking overhead that
 # always arrives first, even at thinking_level="minimal" (verified live,

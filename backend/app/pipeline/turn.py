@@ -293,6 +293,8 @@ async def run_turn(
         return
     timings.llm_ms = elapsed_ms(t0)
     timings.llm_ttft_ms = decision.first_delta_ms
+    # Groq may have rotated models mid-call on a 429 -- record what actually served.
+    timings.llm_model = llm.model
 
     # -- tool (if call 1 asked for it) ---------------------------------------
     tool_result: ToolResult | None = None
@@ -412,6 +414,7 @@ async def run_turn(
         yield failed("gate", "I couldn't put that answer together — ask me again?")
         return
     timings.llm2_ms = elapsed_ms(t0)
+    timings.llm_model = llm.model
 
     if gate_demo and tool_call_id is not None:
         # D12 -- one fabricated segment, appended to a REAL turn's output,
