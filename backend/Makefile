@@ -17,8 +17,10 @@ test:
 	uv run pytest -q
 
 # Latency measurement run -> docs/measurements/
+# Usage: modal app logs sarjy --since 30m --tail 2000 | make measure ARGS="--label deployed-baseline"
+#    or: make measure ARGS="--label local /tmp/sarjy.log"
 measure:
-	uv run python -m app.measure
+	uv run python -m app.measure $(ARGS)
 
 dev:
 	uv run uvicorn app.main:app --reload --port 8000

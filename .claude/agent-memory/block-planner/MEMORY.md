@@ -1,0 +1,5 @@
+- [Cascaded architecture is closed](project_cascaded-is-closed.md) — speech-to-speech reconsidered and rejected 2026-09-20; the gate needs a text checkpoint
+- [Block A design choices](project_block-a-design-choices.md) — deviations from the TDD/rules made in the deep dive's plan, and two gate holes found
+- [Block C design choices](project_block-c-design-choices.md) — the submission block's ranking, its pre-committed cut ladder, and four upstream problems
+- [Travel Buddy visa API](reference_travel-buddy-api.md) — verified endpoint shapes, the CSV fallback, and the colour legend that contradicts the TDD
+- [Arabic TTS](reference_arabic-tts.md) — Deepgram has no Arabic voice at all; Groq Orpheus's real caps, verified 2026-09-21

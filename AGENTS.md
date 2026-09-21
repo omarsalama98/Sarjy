@@ -77,12 +77,13 @@ Full reasoning and evidence: `docs/plans/tdd-review.md`. Provider facts verified
 
 | Decision | Blocks |
 |---|---|
-| Colour legend (~6 requests) | Any answer that depends on it — Block 5 |
-| Deepgram account + key | **Block 2 cannot start without it** |
-| S5 browser-audio spike (C1–C5) — needs a human at a browser | Block 2's capture path is planned on it |
+| RapidAPI dashboard's real spent-count, and confirming `RAPIDAPI_KEY` is configured | **Block A's own live-spend tasks (12/16/19)** — the implementer could not verify either without dashboard access, so 0 of the 9 budgeted requests beyond the 2 already-committed bodies were spent. `scripts/fetch_reference.py` is built and ready; `QUOTA_SPENT_SEED` needs Omar's real number before it runs |
+| Deployed live-voice-turn walkthrough (verification table in `docs/plans/blocks/A-grounded-answers.md`) | Needs a human at a microphone and a browser against the deployed URL — the gate's own human checkpoint |
 | Reviewer's GitHub username | Submission — email sent 2026-09-18, awaiting reply |
 
 **Closed by Block 0** (`docs/measurements/day1-spikes.md`): the 150 s WebSocket question · TTS time-to-first-byte · parallel function calling on flash-lite (3/3, so the opener stands) · `routing_region` (us-east).
+
+**Closed by Block A:** the colour legend (D8 — the vendor's own published legend is a citable statement, 0 additional requests needed) · Deepgram account/key · the S5 browser-audio spike.
 
 Do not silently resolve one — record it in `docs/decisions/` and flag the assumption in your summary.
 

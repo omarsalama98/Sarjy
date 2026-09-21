@@ -1,0 +1,2 @@
+- [Verifying the voice gate without a browser](reference_voice_gate_verification.md) — scripted WebSocket turn, Modal log timings, and what still needs a human
+- [Proving a run can't touch a live dict or spend quota](reference_side_effect_audit.md) — the tripwire plugin, and the construction sites nothing guards
