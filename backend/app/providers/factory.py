@@ -56,16 +56,17 @@ def get_stt() -> STT:
 
 @functools.lru_cache(maxsize=1)
 def get_llm() -> LLM:
-    """Default Groq: Gemini Interactions from Modal us-east was timing out
-    (~25 s TTFT / call-2 hang, 2026-09-21). Set SARJY_LLM=gemini to roll back."""
+    """Default Gemini (eval + gate tests were scored against it). Set
+    SARJY_LLM=groq to use Groq's sticky model chain instead -- kept for when
+    Gemini Interactions from Modal is too slow again (2026-09-21)."""
     try:
         settings = load_settings()
     except RuntimeError as e:
         raise ProviderUnavailable(str(e)) from e
-    provider = os.environ.get("SARJY_LLM", "groq").strip().lower()
-    if provider == "gemini":
-        return GeminiLLM(api_key=settings.gemini_api_key)
-    return GroqLLM(api_key=settings.groq_api_key)
+    provider = os.environ.get("SARJY_LLM", "gemini").strip().lower()
+    if provider == "groq":
+        return GroqLLM(api_key=settings.groq_api_key)
+    return GeminiLLM(api_key=settings.gemini_api_key)
 
 
 @functools.lru_cache(maxsize=1)

@@ -49,8 +49,6 @@ Measured from Modal us-east (same region as the deploy):
 
 ## Changelog
 
-- Primary LLM: Groq `openai/gpt-oss-20b` (was Gemini `gemini-3.5-flash-lite`)
-- Sticky model rotation on 429 across
-  `openai/gpt-oss-20b` → `openai/gpt-oss-120b` → `qwen/qwen3.8-27b`
-  (override with `GROQ_LLM_MODELS`)
-- Rollback: `SARJY_LLM=gemini` on Modal secret / env
+- Primary LLM: Gemini `gemini-3.5-flash-lite` (default again — eval/gate scored here)
+- Groq `openai/gpt-oss-20b` (+ sticky 429 rotation) kept behind `SARJY_LLM=groq`
+- Override Groq chain with `GROQ_LLM_MODELS`
