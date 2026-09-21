@@ -48,8 +48,8 @@ Substring markers catch the real payload (`injection-1`). A paraphrase of “ign
 **Quota chip says reserve only / every answer looks like CSV.**
 A test wrote `spent=120` into the live `modal.Dict`. True committed spend is 3. Unlock is `docs/outbound/2026-09-21-quota-unlock.md`. If you did not unlock before the meeting, say so and point at the fallback badge + eval `vendor-failure-1`. Do not pretend it is live Travel Buddy.
 
-**Favourite colour after reload.**
-Works because extract stored a `Fact`, not because chat history fit in context. Hard reload, sign in, ask. Panel must show the **original** `learned_at`. If it forgot: salt changed on Modal (one-way door).
+**Diet after reload (requirement #2).**
+The demo teaches *"I'm vegetarian"*, not a favourite colour — a travel agent using that is in-character; the brief's colour sentence is the same `Fact` record if they ask it. Works because extract stored a structured fact, not because chat history fit in context. Hard reload, sign in, ask. Panel must show the **original** `learned_at`. If it forgot: salt changed on Modal (one-way door). Do not riff on the vendor map's red/green/blue buckets as "the visa is blue" — that mapping is lossy and the client refuses to treat a colour as a visa type.
 
 **Why Travel Buddy, not weather?**
 Visa answers are high-stakes and exactly what general models invent. Dated per-nationality body + embassy link lets every spoken claim carry provenance. README has the 2–3 sentences. Wikimedia is the same contract on photos, not a second deep dive.
