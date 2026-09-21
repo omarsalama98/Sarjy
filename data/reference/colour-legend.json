@@ -1,0 +1,21 @@
+{
+  "_source": "https://travel-buddy.ai/api/ -- the vendor's own published legend, quoted verbatim",
+  "_note": "D8 (docs/plans/blocks/A-grounded-answers.md): the vendor publishes this legend directly, so it is a citable vendor statement, not our inference. Blue is genuinely ambiguous -- the vendor's own words say 'visa on arrival OR eVisa' -- so the map layer (normalise.normalise_map) emits `visa.category` with this exact wording and never claims a specific visa type from a colour alone.",
+  "legend": {
+    "red": "visa required",
+    "green": "visa not required",
+    "blue": "visa on arrival or eVisa",
+    "yellow": "eTA / visa waiver registration"
+  },
+  "_verified_by_observation": [
+    {
+      "passport": "SA",
+      "destination": "JP",
+      "colour": "blue",
+      "observed": "visa_rules.primary_rule.name = \"eVisa\"",
+      "raw_body": "data/reference/visa_reqs_SA_JP.json",
+      "note": "Confirms blue CAN mean eVisa for this one pair. Does not generalise: the vendor's own legend still says blue means visa-on-arrival OR eVisa, so a map-layer answer for a DIFFERENT pair may only speak the ambiguous category, never assert 'eVisa' specifically -- treat this row as a cross-check that the map and live layers agree here, not as proof the map layer alone can resolve the ambiguity."
+    }
+  ],
+  "_not_yet_spot_checked": "The block plan's task 16 (6 live /v2/visa/check requests against demo + eval pairs) was designed to add more rows here, each filed beside the raw body that proves it. Those requests were NOT spent during Block A's implementation -- the implementer could not verify the RapidAPI dashboard's current spent count (Upstream correction #1) or confirm RAPIDAPI_KEY is configured, and spending irreplaceable quota (120 total, ever) on an unverified assumption was judged the wrong call. Spend them, and extend this list, before relying on the map layer for a pair other than SA->JP in a live demo."
+}

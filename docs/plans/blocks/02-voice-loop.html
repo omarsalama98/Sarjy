@@ -1,0 +1,525 @@
+<title>Block 2 — The voice loop</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --ink:       #14171c;
+    --ink-2:     #474e5a;
+    --ink-3:     #767e8b;
+    --line:      #e2e5ea;
+    --line-2:    #eef0f4;
+    --accent:    #2d4a7c;
+    --accent-bg: #edf1f8;
+    --warn:      #a6421f;
+    --warn-bg:   #fbf0eb;
+    --code-bg:   #f0f2f6;
+    --shadow:    0 1px 2px rgba(20,23,28,.05), 0 8px 24px -12px rgba(20,23,28,.15);
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #101317;
+      --surface:   #171b21;
+      --ink:       #e7eaef;
+      --ink-2:     #a8b0bc;
+      --ink-3:     #7b838f;
+      --line:      #2a2f38;
+      --line-2:    #22262d;
+      --accent:    #8fb0e6;
+      --accent-bg: #1a2130;
+      --warn:      #e2916d;
+      --warn-bg:   #2a1d17;
+      --code-bg:   #1d222a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #101317;
+    --surface:   #171b21;
+    --ink:       #e7eaef;
+    --ink-2:     #a8b0bc;
+    --ink-3:     #7b838f;
+    --line:      #2a2f38;
+    --line-2:    #22262d;
+    --accent:    #8fb0e6;
+    --accent-bg: #1a2130;
+    --warn:      #e2916d;
+    --warn-bg:   #2a1d17;
+    --code-bg:   #1d222a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .5rem 2.25rem; margin: 0; }
+  dl.meta div { display: flex; flex-direction: column; gap: .1rem; }
+  dl.meta dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  dl.meta dd { margin: 0; font-size: .9rem; color: var(--ink-2); }
+
+  /* ---- toc ---- */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 3rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--ink-3);
+    margin: 0 0 .75rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: flex;
+    gap: .7rem;
+    font-size: .92rem;
+    border-radius: 2px;
+  }
+  .toc a:hover { color: var(--accent); }
+  .tocnum, .secnum {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: .8em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- headings ---- */
+  h2, h3, h4 { font-family: var(--serif); letter-spacing: -.01em; text-wrap: balance; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    font-weight: 600;
+    margin: 3.5rem 0 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .75rem;
+    align-items: baseline;
+  }
+  h3 { font-size: 1.14rem; font-weight: 600; margin: 2.25rem 0 .7rem; display: flex; gap: .6rem; align-items: baseline; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; color: var(--ink-2); }
+  h2 .secnum, h3 .secnum { flex: none; }
+
+  p { margin: 0 0 1.05rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line-2); margin: 2.5rem 0; }
+
+  ul, ol { margin: 0 0 1.15rem; padding-left: 1.35rem; max-width: 68ch; }
+  li { margin-bottom: .38rem; }
+  li::marker { color: var(--ink-3); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+  .codewrap { overflow-x: auto; margin: 0 0 1.4rem; }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 0;
+    min-width: min-content;
+  }
+  pre code { background: none; padding: 0; font-size: .845rem; line-height: 1.6; }
+
+  blockquote {
+    margin: 0 0 1.4rem;
+    padding: .1rem 0 .1rem 1.15rem;
+    border-left: 3px solid var(--line);
+    color: var(--ink-2);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+  }
+  .callout p { margin-bottom: .6rem; color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--warn); }
+
+  .tablewrap { overflow-x: auto; margin: 0 0 1.6rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  th, td { padding: .6rem .85rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <h1>Block 2 — The voice loop</h1>
+    <dl class="meta"><div><dt>Date</dt><dd>2026-09-20 · <strong>Budget:</strong> ~6.5 h (the master plan says 3.5 h — see §The estimate changed)</dd></div><div><dt>Plan of record</dt><dd><code>docs/plans/MASTER-PLAN.md</code> §Block 2 · <strong>Design:</strong> <code>docs/plans/TDD.md</code> §Architecture, §Stack, §Provider traps, §Latency budget, §Failure modes, §Barge-in</dd></div><div><dt>Depends on</dt><dd>Block 1 (<code>docs/plans/blocks/01-skeleton-deploy.md</code>) and Block 0 §S5 <strong>including its Outcome section</strong></dd></div><div><dt>Lands</dt><dd>requirement <strong>#1 — the reviewer speaks, Sarjy speaks back.</strong></dd></div></dl>
+  </header>
+  <nav class="toc" aria-label="Contents"><p class="eyebrow">Contents</p><ol><li><a href="#summary-read-this-page">Summary — read this page</a></li><li><a href="#scope">Scope</a></li><li><a href="#what-block-0-s5-left-unresolved">What Block 0 §S5 left unresolved</a></li><li><a href="#the-estimate-changed">The estimate changed</a></li><li><a href="#prerequisites-omar-does-these-himself">Prerequisites — Omar does these himself</a></li><li><a href="#contracts">Contracts</a></li><li><a href="#barge-in-the-line-decided-here">Barge-in — the line, decided here</a></li><li><a href="#failure-paths-build-these-before-the-happy-path">Failure paths — build these before the happy path</a></li><li><a href="#files">Files</a></li><li><a href="#task-list">Task list</a></li><li><a href="#measuring-endpointing-task-14">Measuring endpointing (task 14)</a></li><li><a href="#two-deliberate-design-decisions-recorded-because-they-will-b">Two deliberate design decisions, recorded because they will be questioned</a></li><li><a href="#verification">Verification</a></li><li><a href="#the-gate-walked-in-order-against-the-deployed-url">The gate — walked in order, against the deployed URL</a></li><li><a href="#draft-commits">Draft commits</a></li><li><a href="#carried-into-block-3">Carried into Block 3</a></li><li><a href="#open-assumed-stated-rather-than-buried">Open / assumed, stated rather than buried</a></li></ol></nav>
+  <main>
+<h2 id="summary-read-this-page"><span class="htext">Summary — read this page</span></h2>
+<p><strong>Goal:</strong> speaking to the deployed URL produces a sensible spoken reply, and every way that can fail has a visible state instead of silence.</p>
+<p>This block is pure engineering. No model cleverness, no tools, no gate. <strong>The LLM call is deliberately trivial</strong> — one prompt, one text reply. If this block is interesting, it has gone wrong.</p>
+<p><strong>Four things decide whether it succeeds:</strong></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">The thing</th><th style="text-align:left">Why it decides the block</th></tr></thead><tbody><tr><td style="text-align:left">1</td><td style="text-align:left">🪤 <strong>The VAD's ONNX + WASM assets must be served from a path we control</strong></td><td style="text-align:left">Block 0 §S5 Section C produced no speech events and nothing on the page. <code>MicVAD.new()</code> defaults <code>baseAssetPath</code> and <code>onnxWASMBasePath</code> to <code>&quot;./&quot;</code>, which resolves against the <em>document</em> URL, not the module — so under Vite they 404. <strong>This is task 1, not a debugging step at hour three.</strong></td></tr><tr><td style="text-align:left">2</td><td style="text-align:left"><strong>The endpointing number is ours to choose and has never been measured</strong></td><td style="text-align:left"><code>@ricky0123/vad-web</code> defaults <code>redemptionMs: 1400</code>. The TDD's budget assumes ~600 ms. This is the single largest term in the whole latency chain and the only one no provider controls. Task 11 measures it.</td></tr><tr><td style="text-align:left">3</td><td style="text-align:left">🪤 <strong><code>container=none</code> on the Deepgram URL</strong></td><td style="text-align:left">It defaults to <code>wav</code> even for <code>linear16</code>, putting a RIFF header on <em>every</em> chunk. The adapter asserts the first chunk is not <code>RIFF</code> so this can never regress silently.</td></tr><tr><td style="text-align:left">4</td><td style="text-align:left"><strong>Failure paths ship before happy paths</strong></td><td style="text-align:left">Mic denied, mic revoked, VAD assets missing, empty transcript, STT down, TTS down, socket dropped mid-turn. A voice demo dies of silence, not of wrong answers.</td></tr></tbody></table></div>
+<p><strong>The gate is observational:</strong> open the public URL on a phone-free laptop, click <em>Start talking</em>, say <em>&quot;What's the capital of Japan?&quot;</em>, and hear Sarjy answer in under ~4 s, with the state indicator moving <code>idle → listening → thinking → speaking → idle</code> and the transcript and reply visible on screen.</p>
+<hr />
+<h2 id="scope"><span class="htext">Scope</span></h2>
+<h3 id="in"><span class="htext">In</span></h3>
+<ul>
+<li>Browser capture: one <code>getUserMedia</code> stream with <code>echoCancellation</code>, <code>noiseSuppression</code>, <code>autoGainControl</code>; float32 → PCM16 at 16 kHz.</li>
+<li>Client-side VAD and endpointing (<code>@ricky0123/vad-web</code>), with the asset problem solved and the end-of-speech delay <strong>measured</strong>.</li>
+<li>STT adapter: Groq <code>whisper-large-v3-turbo</code>, batch.</li>
+<li><strong>A plain LLM call.</strong> Gemini <code>gemini-3.5-flash-lite</code>, system prompt + short in-session history, one text reply. No tools.</li>
+<li>TTS adapter: Deepgram <code>aura-2-thalia-en</code> over WebSocket, raw PCM16 @ 24 kHz.</li>
+<li>Playback queue with explicit <code>AudioContext</code> scheduling, and <code>stop()</code> that drops scheduled buffers.</li>
+<li><strong>Barge-in, the cheap half</strong> — see §Barge-in below for exactly where the line is.</li>
+<li>The visible conversation state machine, end to end.</li>
+<li>Two <code>logger.info</code> timing lines (STT duration, TTS TTFB) — the minimum needed to satisfy &quot;measure Deepgram's TTFB in this block&quot;.</li>
+</ul>
+<h3 id="out-say-no-to-all-of-these"><span class="htext">Out — say no to all of these</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Out</th><th style="text-align:left">Owner</th></tr></thead><tbody><tr><td style="text-align:left">The <code>update()</code> opener, parallel function calling</td><td style="text-align:left">Block 4</td></tr><tr><td style="text-align:left">Any tool call, any <code>function_call</code> in the LLM request</td><td style="text-align:left">Block 4</td></tr><tr><td style="text-align:left">NDJSON segments, Pydantic-per-line validation</td><td style="text-align:left">Block 4</td></tr><tr><td style="text-align:left">The grounding gate, <code>sourced</code>/<code>judgement</code> registers, citations</td><td style="text-align:left">Block 6</td></tr><tr><td style="text-align:left">Memory, <code>modal.Dict</code>, identity, name + PIN</td><td style="text-align:left">Block 7</td></tr><tr><td style="text-align:left">The vendor client, quota ledger, CSV fallback</td><td style="text-align:left">Block 5</td></tr><tr><td style="text-align:left">Arabic (<code>language=ar</code>, Orpheus, RTL)</td><td style="text-align:left">Block 10</td></tr><tr><td style="text-align:left">The <code>timings</code> protocol message and per-stage monotonic instrumentation</td><td style="text-align:left">Block 3</td></tr><tr><td style="text-align:left">Truncating interrupted assistant turns in history; cancelling an in-flight tool call</td><td style="text-align:left">Block 4</td></tr><tr><td style="text-align:left">UI styling beyond &quot;every state is legible&quot;</td><td style="text-align:left">Block 8</td></tr></tbody></table></div>
+<p><strong>In-session conversation history is in scope and is not memory.</strong> Up to 6 turns of <code>(user, assistant)</code> text held on the <code>Session</code> object, dropped when the session expires. It exists so the second turn makes sense. Block 7 owns anything that survives a reload, and this list must not be allowed to grow into it.</p>
+<hr />
+<h2 id="what-block-0-s5-left-unresolved"><span class="htext">What Block 0 §S5 left unresolved</span></h2>
+<p>Section A <strong>passed</strong>: capture → 48→16 kHz → PCM16 → playback works in Chrome on this machine. That was the risk the spike existed for and it is retired. Sections B and C never ran.</p>
+<h3 id="1-the-vad-assets-the-single-most-important-trap-in-this-bloc"><span class="secnum">1</span><span class="htext">🪤 The VAD assets — the single most important trap in this block</span></h3>
+<p><strong>What was observed:</strong> start the VAD, speak, go quiet — no <code>onSpeechStart</code>, no <code>onSpeechEnd</code>, nothing on the page.</p>
+<p><strong>What the package source actually says</strong> (read at <code>frontend/node_modules/@ricky0123/vad-web/dist/</code>, version 0.0.31 — not recalled):</p>
+<ul>
+<li><code>getDefaultRealTimeVADOptions()</code> sets <code>baseAssetPath: &quot;./&quot;</code> and <code>onnxWASMBasePath: &quot;./&quot;</code>.</li>
+<li><code>MicVAD.new()</code> sets <code>ort.env.wasm.wasmPaths = onnxWASMBasePath</code>, then fetches <code>baseAssetPath + modelFiles[model]</code>.</li>
+<li><code>modelFiles</code> is <code>{legacy: &quot;silero_vad_legacy.onnx&quot;, v5: &quot;silero_vad_v5.onnx&quot;, v6: &quot;silero_vad_v6.onnx&quot;}</code> — <strong>there is no <code>silero_vad.onnx</code>.</strong> <code>DEFAULT_MODEL = &quot;legacy&quot;</code>.</li>
+<li><code>start()</code> loads the worklet from <code>baseAssetPath + &quot;vad.worklet.bundle.min.js&quot;</code>.</li>
+<li>A relative <code>&quot;./&quot;</code> inside an ES module resolves against the <strong>document</strong> URL, so on <code>/spike.html</code> it became <code>/silero_vad_legacy.onnx</code> → 404 under Vite.</li>
+</ul>
+<p>⚠️ <strong>The source does throw on model-load failure</strong> (<code>console.error(&quot;Encountered an error while loading model file …&quot;); throw e</code>). So &quot;completely silent&quot; is probably &quot;silent *on the page*&quot; — the spike page logged only to its own <code>&lt;pre&gt;</code>, and the failure path never wrote to it. <strong>Do not resolve this by argument.</strong> Task 1 makes the load state visible on screen and asserts the assets are reachable, so the question stops mattering.</p>
+<p><strong>The fix, and it has to work in three places:</strong></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Where</th><th style="text-align:left">Mechanism</th></tr></thead><tbody><tr><td style="text-align:left">Vite dev (<code>npm run dev</code>, port 5173)</td><td style="text-align:left">Vite serves <code>frontend/public/**</code> at <code>/</code></td></tr><tr><td style="text-align:left">Production bundle (<code>npm run build</code>)</td><td style="text-align:left">Vite copies <code>frontend/public/**</code> into <code>frontend/dist/**</code></td></tr><tr><td style="text-align:left">Modal (<code>StaticFiles</code> mount on <code>frontend/dist</code>)</td><td style="text-align:left"><code>modal_app.py</code>'s <code>add_local_dir(frontend/dist)</code> carries it; <code>make deploy</code> already runs <code>build-frontend</code> first</td></tr></tbody></table></div>
+<p>One directory, <code>frontend/public/vad/</code>, populated by a build-time copy script. <strong>No CDN</strong> — a third-party fetch at demo time is a demo that can fail on someone else's network.</p>
+<h3 id="2-section-b-was-a-playback-bug-not-an-echo-cancellation-find"><span class="secnum">2</span><span class="htext">Section B was a playback bug, not an echo-cancellation finding</span></h3>
+<p>Nothing was audible, including a locally generated 440 Hz tone, so it never tested anything. The likely cause is that it played through the <strong>capture</strong> <code>AudioContext</code> (constructed at 16 kHz) rather than a fresh one.</p>
+<p><strong>This block's answer: two <code>AudioContext</code>s, never one.</strong> <code>captureCtx</code> at 16 kHz for mic + VAD, <code>playbackCtx</code> at 24 kHz for Deepgram output. That is also the answer to &quot;audio arrives at 24 kHz but capture is 16 kHz&quot; — each context runs at its own source's native rate, so there is no resampling on either hot path.</p>
+<p><strong>Echo cancellation is proven the moment a real turn runs through laptop speakers</strong> (task 10, explicitly on speakers, not headphones). If Sarjy interrupts itself, the fix is in §Barge-in's guard, not an architecture change.</p>
+<h3 id="3-the-endpointing-number-is-still-unmeasured"><span class="secnum">3</span><span class="htext">The endpointing number is still unmeasured</span></h3>
+<p><code>redemptionMs</code> default is <strong>1400 ms</strong> (read from <code>defaultFrameProcessorOptions</code>, alongside <code>positiveSpeechThreshold: 0.3</code>, <code>negativeSpeechThreshold: 0.25</code>, <code>preSpeechPadMs: 800</code>, <code>minSpeechMs: 400</code>). The TDD budget assumes ~600 ms. Shipping the default would add ~800 ms of pure dead air to every single turn.</p>
+<p>Task 11 measures it properly and records the value <strong>and the reason</strong>, per <code>.claude/rules/voice/browser-audio.md</code>.</p>
+<hr />
+<h2 id="the-estimate-changed"><span class="htext">The estimate changed</span></h2>
+<p>The master plan's 3.5 h assumed S5 had de-risked capture, VAD and playback. Two of those three came back unresolved.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left"></th><th style="text-align:left">Hours</th></tr></thead><tbody><tr><td style="text-align:left">Master plan, Block 2</td><td style="text-align:left">3.5</td></tr><tr><td style="text-align:left">VAD assets + visible load state + serving in three environments</td><td style="text-align:left">+0.75</td></tr><tr><td style="text-align:left">Deepgram WebSocket TTS adapter (no prior art in this repo; the <code>container</code> trap; TTFB measurement)</td><td style="text-align:left">+0.5</td></tr><tr><td style="text-align:left">Endpointing measurement sweep, which S5 was supposed to deliver</td><td style="text-align:left">+0.5</td></tr><tr><td style="text-align:left">Playback queue + barge-in stop, which Section B never validated</td><td style="text-align:left">+0.5</td></tr><tr><td style="text-align:left">Failure paths as real tasks rather than a tidy-up</td><td style="text-align:left">+0.75</td></tr><tr><td style="text-align:left"><strong>Honest estimate</strong></td><td style="text-align:left"><strong>~6.5</strong></td></tr></tbody></table></div>
+<p>After Block 1's own overrun the master plan was ~4.5 h over ~21 h available. This puts it <strong>~7.5 h over</strong>.</p>
+<p><strong>Say this to Omar at the start of the block, not at the end.</strong> Overflow cuts #1–#4 (Wikipedia imagery, UI polish beyond functional, Arabic code-switching + RTL, Tier B golden tests — 3.65 h) should be treated as <strong>already taken</strong>. Block 10 (Arabic, 0.75 h) is now the next candidate and needs a decision Sunday, not Monday.</p>
+<h3 id="pre-committed-cuts-with-trigger-times"><span class="htext">Pre-committed cuts, with trigger times</span></h3>
+<p><code>T0</code> = the moment the block starts.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Trigger</th><th style="text-align:left">Cut</th><th style="text-align:left">Saves</th></tr></thead><tbody><tr><td style="text-align:left"><strong>T+2 h 30 m</strong> — the VAD is not firing in a real browser, or a recorded WAV has not produced a transcript</td><td style="text-align:left"><strong>Stop and escalate to Omar.</strong> Do not keep debugging quietly. This is the S5 debt and if it is alive at 2.5 h the block is in trouble</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><strong>T+4 h 30 m</strong> — no full local voice turn (speak → hear)</td><td style="text-align:left">Cut the <strong>server half of barge-in</strong> (client stops audio and starts a new turn; the old server turn runs to completion and its audio is discarded by turn id). Cut the endpointing sweep to 3 utterances at one value. Cut the Safari check and record it as untested</td><td style="text-align:left">~50 m</td></tr><tr><td style="text-align:left"><strong>T+6 h</strong></td><td style="text-align:left"><strong>Deploy whatever works and walk the gate.</strong> A partially working deployed turn beats a perfect local one — requirement #4 is already banked and must not be put at risk</td><td style="text-align:left">—</td></tr></tbody></table></div>
+<p><strong>Never cut:</strong> the failure paths, and the end-to-end turn <em>against the deployed URL</em>. Those two are the gate.</p>
+<hr />
+<h2 id="prerequisites-omar-does-these-himself"><span class="htext">Prerequisites — Omar does these himself</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Action</th><th style="text-align:left">Blocks</th><th style="text-align:left">Note</th></tr></thead><tbody><tr><td style="text-align:left">P2.1</td><td style="text-align:left">Confirm <code>DEEPGRAM_API_KEY</code> is in the <code>.env</code> the backend actually loads (see the trap below)</td><td style="text-align:left">tasks 6, 10</td><td style="text-align:left">Agents never read <code>.env</code>.</td></tr><tr><td style="text-align:left">P2.2</td><td style="text-align:left"><code>modal secret create sarjy-secrets --force</code> (or the console) so <code>DEEPGRAM_API_KEY</code>, <code>GROQ_API_KEY</code>, <code>GEMINI_API_KEY</code> are all in the deployed secret</td><td style="text-align:left">task 12</td><td style="text-align:left">A local <code>.env</code> is invisible to Modal. The deploy will succeed and the first turn will fail with a missing key if this is skipped.</td></tr><tr><td style="text-align:left">P2.3</td><td style="text-align:left">Listen to 3 Deepgram Aura-2 English voices and pick one</td><td style="text-align:left">task 12</td><td style="text-align:left"><code>aura-2-thalia-en</code> is the shipped default and a placeholder (<code>TDD.md</code> §Provider traps). The voice is a &quot;creative and personal to you&quot; rubric line, it is a config change, and it takes ten minutes. Record the choice and the reason in <code>docs/measurements/block2-voice-loop.md</code>.</td></tr><tr><td style="text-align:left">P2.4</td><td style="text-align:left">Run the end-to-end turn <strong>on laptop speakers, not headphones</strong></td><td style="text-align:left">task 10</td><td style="text-align:left">This is the echo-cancellation test Section B never ran.</td></tr><tr><td style="text-align:left">P2.5</td><td style="text-align:left">Every commit</td><td style="text-align:left">—</td><td style="text-align:left">Agents draft, Omar commits.</td></tr></tbody></table></div>
+<p>🪤 <strong>Two <code>.env</code> files now exist</strong> — <code>/.env</code> (repo root) and <code>/backend/.env</code>. <code>config.py</code> calls bare <code>load_dotenv()</code>, which searches upward from <code>backend/app/</code> and <strong>stops at the first hit</strong>, i.e. <code>backend/.env</code>. If the Groq and Gemini keys live only in the root file, <code>load_settings()</code> will raise on a key that is plainly sitting on disk. Task 4 makes both paths explicit; P2.1 confirms which file has what.</p>
+<hr />
+<h2 id="contracts"><span class="htext">Contracts</span></h2>
+<h3 id="protocol-v2"><span class="htext">Protocol v2</span></h3>
+<p><strong>Bump <code>PROTOCOL_VERSION</code> to <code>2</code></strong> in both <code>backend/app/pipeline/protocol.py</code> and <code>frontend/src/protocol.ts</code>. Block 1's handshake requires exact equality, so a stale tab left open over the weekend gets <em>&quot;A new version is available — reload.&quot;</em> instead of a baffling failure. That is the mechanism working.</p>
+<p>Everything Block 1 defined stays unchanged. These are added.</p>
+<h4 id="client-server"><span class="htext">Client → server</span></h4>
+<div class="codewrap"><pre><code class="lang-jsonc">{&quot;t&quot;:&quot;start&quot;,&quot;turn_id&quot;:&quot;t-1&quot;,&quot;client_ts_ms&quot;:1758300000000}
+// …then one or more BINARY frames: raw PCM16 LE, mono, 16 000 Hz, ≤32 KiB each…
+{&quot;t&quot;:&quot;end&quot;,&quot;turn_id&quot;:&quot;t-1&quot;,&quot;samples&quot;:48000,&quot;client_ts_ms&quot;:1758300003000}
+{&quot;t&quot;:&quot;barge&quot;,&quot;turn_id&quot;:&quot;t-1&quot;}</code></pre></div>
+<ul>
+<li><code>turn_id</code> is client-minted, <code>t-&lt;n&gt;</code>, monotonic within a session.</li>
+<li>A binary frame arriving with no open turn → <code>error{code:&quot;bad_message&quot;, recoverable:true}</code>, frame discarded.</li>
+<li>A <code>start</code> while a turn is already running is treated as an <strong>implicit barge</strong>: cancel the running turn, log it, begin the new one. One code path with <code>barge</code>.</li>
+</ul>
+<h4 id="server-client"><span class="htext">Server → client</span></h4>
+<div class="codewrap"><pre><code class="lang-jsonc">{&quot;t&quot;:&quot;transcript&quot;,&quot;turn_id&quot;:&quot;t-1&quot;,&quot;text&quot;:&quot;what's the capital of japan&quot;,&quot;seq&quot;:47,&quot;ts_ms&quot;:…}
+{&quot;t&quot;:&quot;reply&quot;,&quot;turn_id&quot;:&quot;t-1&quot;,&quot;text&quot;:&quot;Tokyo — and it's a great first stop.&quot;,&quot;seq&quot;:48,&quot;ts_ms&quot;:…}
+{&quot;t&quot;:&quot;audio_start&quot;,&quot;turn_id&quot;:&quot;t-1&quot;,&quot;sample_rate&quot;:24000,&quot;seq&quot;:49,&quot;ts_ms&quot;:…}
+// …then BINARY frames: raw PCM16 LE, mono, 24 000 Hz…
+{&quot;t&quot;:&quot;audio_end&quot;,&quot;turn_id&quot;:&quot;t-1&quot;,&quot;samples&quot;:72000,&quot;seq&quot;:50,&quot;ts_ms&quot;:…}
+{&quot;t&quot;:&quot;turn_failed&quot;,&quot;turn_id&quot;:&quot;t-1&quot;,&quot;stage&quot;:&quot;stt&quot;,&quot;message&quot;:&quot;I didn't catch that — say it again?&quot;,&quot;seq&quot;:51,&quot;ts_ms&quot;:…}</code></pre></div>
+<ul>
+<li><code>stage</code> is <code>&quot;audio&quot; | &quot;stt&quot; | &quot;llm&quot; | &quot;tts&quot;</code>.</li>
+<li><code>message</code> is <strong>user-facing prose</strong>, shown on screen verbatim. It is not spoken in Block 2 (that would need a TTS call inside the TTS failure path). Block 8 may add a pre-rendered clip.</li>
+<li><code>audio_start</code> / <code>audio_end</code> exist because binary frames carry no turn id. The client uses them to arm the playback queue and to know when a turn is over.</li>
+<li><code>state</code> values <code>listening</code>/<code>thinking</code>/<code>speaking</code> are already in the union from Block 1. No new model needed.</li>
+<li>Every server message keeps <code>seq</code> (monotonic <strong>per session</strong>) and <code>ts_ms</code> (wall clock, display only — Block 3's timing must not reuse it).</li>
+</ul>
+<p>Validation stays where Block 1 put it: one pydantic discriminated union behind <code>parse_client_message()</code> with <code>extra=&quot;forbid&quot;</code>, and one hand-rolled <code>switch</code> in <code>parseServerMessage()</code>. <strong>Add branches; do not add a schema library.</strong></p>
+<h3 id="who-owns-which-conversation-state"><span class="htext">Who owns which conversation state</span></h3>
+<p>State changes must render <strong>immediately</strong>, so the client renders locally-observable facts without waiting for a round trip. The server still pushes all four, so the protocol stays honest.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">State</th><th style="text-align:left">Rendered on</th><th style="text-align:left">Authoritative source</th></tr></thead><tbody><tr><td style="text-align:left"><code>listening</code></td><td style="text-align:left">VAD <code>onSpeechStart</code> (client, local)</td><td style="text-align:left">client</td></tr><tr><td style="text-align:left"><code>thinking</code></td><td style="text-align:left">server <code>state</code> after <code>end</code> is received</td><td style="text-align:left">server</td></tr><tr><td style="text-align:left"><code>speaking</code></td><td style="text-align:left">first audio buffer actually scheduled (client), armed by <code>audio_start</code></td><td style="text-align:left">client</td></tr><tr><td style="text-align:left"><code>idle</code></td><td style="text-align:left">server <code>state</code> after <code>audio_end</code>, and on any <code>turn_failed</code></td><td style="text-align:left">server</td></tr></tbody></table></div>
+<h3 id="provider-interfaces-backendappprovidersbasepy"><span class="htext">Provider interfaces (<code>backend/app/providers/base.py</code>)</span></h3>
+<div class="codewrap"><pre><code class="lang-python">class STT(Protocol):
+    async def transcribe(self, pcm16: bytes, *, language: str | None = None) -&gt; str: ...
+
+class LLM(Protocol):
+    async def reply(self, *, system: str, history: list[tuple[str, str]], user: str) -&gt; str: ...
+
+class TTS(Protocol):
+    def synthesize(self, text: str, *, language: str | None = None) -&gt; AsyncIterator[bytes]: ...</code></pre></div>
+<p><code>STT</code> and <code>TTS</code> are <strong>unchanged from Block 1</strong>. <code>LLM.complete(messages, tools) -&gt; dict</code> is <strong>replaced</strong> by <code>reply(...) -&gt; str</code> — the old signature cannot express &quot;give me a sentence&quot;, and Block 4 adds a separate streaming/tools method rather than overloading this one. That is the only change to this file.</p>
+<p><code>history</code> is <code>[(user_text, assistant_text), …]</code>, oldest first, capped at 6.</p>
+<p>⚠️ mypy note: an <code>async def synthesize(...) -&gt; AsyncIterator[bytes]</code> generator is structurally compatible with the <code>def … -&gt; AsyncIterator[bytes]</code> in the Protocol. If mypy disagrees, make it a plain <code>def</code> returning an inner async generator rather than changing the Protocol.</p>
+<h3 id="deepgram-tts-adapter"><span class="htext">Deepgram TTS adapter</span></h3>
+<div class="codewrap"><pre><code>wss://api.deepgram.com/v1/speak?model=aura-2-thalia-en&amp;encoding=linear16&amp;container=none&amp;sample_rate=24000</code></pre></div>
+<ul>
+<li>Header: <code>Authorization: Token &lt;DEEPGRAM_API_KEY&gt;</code>. (If that 401s, <code>Bearer</code> is the documented alternative — try it before assuming the key is wrong.)</li>
+<li>🪤 <strong><code>container=none</code> is mandatory.</strong> It defaults to <code>wav</code> even for <code>linear16</code>, which puts a RIFF header on <strong>every chunk</strong> of the stream and corrupts playback. The adapter asserts <code>first_chunk[:4] != b&quot;RIFF&quot;</code> and raises a legible error if it ever does — so this cannot come back silently after a URL edit.</li>
+<li>🪤 <code>websockets</code> 16.1.1 uses <strong><code>additional_headers=</code></strong>, not <code>extra_headers=</code> (verified against the installed signature). The old name is legacy-API-only and raises <code>TypeError</code>.</li>
+<li>Client → server: <code>{&quot;type&quot;:&quot;Speak&quot;,&quot;text&quot;:&quot;…&quot;}</code>, then <code>{&quot;type&quot;:&quot;Flush&quot;}</code>, then <code>{&quot;type&quot;:&quot;Close&quot;}</code>.</li>
+<li>Server → client: <strong>binary</strong> frames are audio. JSON frames are <code>{&quot;type&quot;:&quot;Metadata&quot;|&quot;Flushed&quot;|&quot;Cleared&quot;|&quot;Warning&quot;, …}</code>. Stop yielding when <code>Flushed</code> arrives; close the socket.</li>
+<li><strong>Published TTFB &lt;200 ms is a vendor claim we have not verified.</strong> Measure it: <code>t_flush_sent → first binary frame</code>, as <code>logger.info(&quot;tts_ttfb_ms=%d …&quot;)</code>, n≥5 from the deployment.</li>
+<li>Model id comes from config (<code>DEEPGRAM_TTS_MODEL</code>, default <code>aura-2-thalia-en</code>) — a voice swap is a config change, per Invariant 3.</li>
+<li><code>open_timeout=5</code>, and a hard cap on total synthesis time. <strong>Never</strong> leave a provider default retry/backoff in place (<code>TDD.md</code> §Provider traps).</li>
+</ul>
+<h3 id="groq-stt-adapter"><span class="htext">Groq STT adapter</span></h3>
+<ul>
+<li><code>AsyncGroq(api_key=…, max_retries=1, timeout=8.0)</code> — the SDK default retry count is overridden, per the same trap.</li>
+<li><code>client.audio.transcriptions.create(model=&quot;whisper-large-v3-turbo&quot;, file=(&quot;turn.wav&quot;, wav_bytes, &quot;audio/wav&quot;), response_format=&quot;json&quot;, temperature=0, language=…)</code>.</li>
+<li>The API needs a <strong>container</strong>, not raw PCM. <code>backend/app/pipeline/audio.py::pcm16_to_wav(pcm: bytes, sample_rate: int) -&gt; bytes</code> writes the 44-byte RIFF header server-side. This is ~15 lines, it is unit-tested, and it keeps the browser from having to know about WAV.</li>
+<li>Free tier 20 RPM / 2 000 RPD — not a constraint for this block.</li>
+</ul>
+<h3 id="gemini-llm-adapter"><span class="htext">Gemini LLM adapter</span></h3>
+<p>The exact call shape below is <strong>verified working</strong> (Block 0 §S4, <code>scratch/spikes/parallel_fc.py</code>), including the event field names. Do not re-derive it.</p>
+<div class="codewrap"><pre><code class="lang-python">client = genai.Client(
+    api_key=settings.gemini_api_key,
+    http_options=types.HttpOptions(retry_options=types.HttpRetryOptions(attempts=1)),
+)
+stream = await client.aio.interactions.create(
+    model=&quot;gemini-3.5-flash-lite&quot;,
+    input=user_text_with_history,
+    stream=True,
+    store=False,
+    system_instruction=SYSTEM_PROMPT,
+    generation_config={&quot;thinking_level&quot;: &quot;minimal&quot;},
+    extra_headers={&quot;Api-Revision&quot;: &quot;2026-05-20&quot;},
+)
+async for event in stream:
+    if event.event_type == &quot;step.delta&quot; and event.delta.type == &quot;text&quot;:
+        chunks.append(event.delta.text)</code></pre></div>
+<ul>
+<li><strong>Streaming, even though Block 2 only needs the final string.</strong> Two reasons: the non-streaming response shape is unverified, and the streaming <code>delta.type == &quot;text&quot;</code> shape <em>is</em> verified — and it gives Block 3 its TTFT probe for free.</li>
+<li>🪤 A <code>thought</code> step <strong>always arrives first</strong>, even at <code>thinking_level: &quot;minimal&quot;</code>. Ignore every step that is not a text delta. Log <code>llm_first_text_delta_ms</code> measured to the first <code>text</code> delta — never to the first SSE event, which records a fiction (<code>MASTER-PLAN.md</code> §Block 3).</li>
+<li>🪤 <code>thinking_level</code>, <code>system_instruction</code> and <code>tools</code> are <strong>interaction-scoped</strong> and must be pinned on every call.</li>
+<li><code>store=False</code> is mandatory (free-tier input otherwise trains Google).</li>
+<li>⚠️ Minor unknown: whether <code>client.aio.interactions.create(...)</code> must be awaited before <code>async for</code>, or is itself async-iterable. The type signature says it returns <code>AsyncStream[...]</code> from an async method, so <code>await</code> first. If that is wrong it is a 30-second discovery, not a design risk.</li>
+</ul>
+<p><strong>System prompt, Block 2 version</strong> — deliberately plain, and it gets replaced wholesale in Block 4:</p>
+<blockquote><p>You are Sarjy, a voice travel assistant. You are being spoken to out loud and your reply will be read aloud. Answer in one or two short sentences. No markdown, no lists, no emoji, no stage directions. If you don't know something, say so.</p></blockquote>
+<p>🔒 <strong>Invariant 5:</strong> the transcript is untrusted input. It goes into the request as a delimited user turn, never concatenated into <code>system_instruction</code>.</p>
+<hr />
+<h2 id="barge-in-the-line-decided-here"><span class="htext">Barge-in — the line, decided here</span></h2>
+<p><strong>Client half ships in Block 2. Server half ships in Block 2. History truncation and tool cancellation are Block 4's.</strong></p>
+<p>Why not defer it all: a playback queue that can stop <em>now</em> is a design property of the queue, not a feature bolted on later. Retrofitting it is the classic tarpit, and <code>.claude/rules/voice/pipeline.md</code> calls it non-optional.</p>
+<p>Why not do all of it: Block 4 introduces two TTS requests and an in-flight tool call per turn. Truncating an assistant turn to what was actually <em>heard</em> only becomes meaningful once there is grounding context and memory to protect. That belongs where it bites.</p>
+<p><strong>In Block 2:</strong></p>
+<ol>
+<li><code>onSpeechRealStart</code> (not <code>onSpeechStart</code>) while state is <code>speaking</code> → barge. <code>onSpeechRealStart</code> fires only after <code>minSpeechMs</code> of confirmed speech, which is exactly the anti-self-interrupt primitive.</li>
+<li>Playback <code>stop()</code>: call <code>.stop(0)</code> on every scheduled <code>AudioBufferSourceNode</code>, disconnect, clear the set, reset <code>nextStartTime</code>. <strong>Do not let the current chunk drain.</strong></li>
+<li>Send <code>{&quot;t&quot;:&quot;barge&quot;,&quot;turn_id&quot;:…}</code>. Server cancels the turn task, closes the Deepgram socket, stops forwarding frames.</li>
+<li>Client drops any binary frame whose turn is no longer current — the race is real, since frames can already be in flight.</li>
+<li>The turn is marked interrupted in the UI. Never shown as completed.</li>
+</ol>
+<p><strong>Two guards, because echo cancellation is unproven until task 10:</strong></p>
+<ul>
+<li>Ignore barge for the first <strong>300 ms</strong> of playback.</li>
+<li>A module constant <code>BARGE_IN_ENABLED = true</code>. If the demo shows Sarjy interrupting itself, this is a one-character fix under pressure. Its existence is a stated trade-off, not a hedge.</li>
+</ul>
+<hr />
+<h2 id="failure-paths-build-these-before-the-happy-path"><span class="htext">Failure paths — build these before the happy path</span></h2>
+<p>Each has a <strong>named visible behaviour</strong>. A spinner that outlives its operation is the worst state this UI can reach.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Failure</th><th style="text-align:left">Visible behaviour</th></tr></thead><tbody><tr><td style="text-align:left">F1</td><td style="text-align:left"><strong>VAD assets missing / 404 / wrong content type</strong></td><td style="text-align:left">Before <code>MicVAD.new()</code>, <code>HEAD</code> each asset URL. Non-200 or <code>text/html</code> → state <code>unavailable</code>, on-screen: <em>&quot;Voice detection failed to load (<code>/vad/silero_vad_v5.onnx</code> returned 404).&quot;</em> The Start button is disabled with that reason attached. <strong>Never a silent no-op.</strong></td></tr><tr><td style="text-align:left">F2</td><td style="text-align:left"><strong><code>MicVAD.new()</code> throws</strong></td><td style="text-align:left">Same <code>unavailable</code> state, message = the caught error. A <code>try/catch</code> around it, always.</td></tr><tr><td style="text-align:left">F3</td><td style="text-align:left"><strong>Mic permission denied</strong> (<code>NotAllowedError</code>)</td><td style="text-align:left">State <code>mic-blocked</code>: <em>&quot;Sarjy needs the microphone to hear you. Allow it in the address bar, then press Retry.&quot;</em> Plus a Retry button. Not a dead end.</td></tr><tr><td style="text-align:left">F4</td><td style="text-align:left"><strong>No microphone present</strong> (<code>NotFoundError</code>)</td><td style="text-align:left">State <code>mic-missing</code>, distinct message. Different cause, different fix.</td></tr><tr><td style="text-align:left">F5</td><td style="text-align:left"><strong>Permission revoked mid-session</strong></td><td style="text-align:left"><code>track.addEventListener(&quot;ended&quot;, …)</code> plus <code>navigator.permissions.query({name:&quot;microphone&quot;}).onchange</code> where available (wrap in <code>try/catch</code> — Safari lacks it). → <code>mic-blocked</code>, VAD torn down, Retry offered.</td></tr><tr><td style="text-align:left">F6</td><td style="text-align:left"><strong><code>AudioContext</code> refuses 16 kHz</strong></td><td style="text-align:left">Fall back to <code>new AudioContext()</code> at the device rate. vad-web's own resampler handles any rate ≥ 16 kHz; it only errors below. Log which path was taken.</td></tr><tr><td style="text-align:left">F7</td><td style="text-align:left"><strong>Utterance longer than 30 s</strong></td><td style="text-align:left">Client timer from <code>onSpeechStart</code>; at 30 s force-close the turn and send what it has. Server independently caps accumulated audio at <code>MAX_TURN_BYTES = 960_000</code> (30 s × 16 kHz × 2 B) → <code>turn_failed{stage:&quot;audio&quot;}</code>. Groq's Whisper window is 30 s; this is not a guess.</td></tr><tr><td style="text-align:left">F8</td><td style="text-align:left"><strong>Empty / whitespace-only transcript</strong></td><td style="text-align:left"><code>turn_failed{stage:&quot;stt&quot;, message:&quot;I didn't catch that — say it again?&quot;}</code>, state back to <code>idle</code>, no LLM call, no TTS call. Log the raw transcript — Whisper emits filler on near-silence and we want the pattern visible, not a hard-coded blocklist guessed at now.</td></tr><tr><td style="text-align:left">F9</td><td style="text-align:left"><strong>STT raises / times out</strong></td><td style="text-align:left"><code>turn_failed{stage:&quot;stt&quot;, message:&quot;I couldn't hear that clearly — my transcription service didn't answer.&quot;}</code>. One retry at most (SDK <code>max_retries=1</code>), never a 60 s backoff.</td></tr><tr><td style="text-align:left">F10</td><td style="text-align:left"><strong>LLM raises / times out / returns empty</strong></td><td style="text-align:left"><code>turn_failed{stage:&quot;llm&quot;}</code>, plain message. No improvised reply.</td></tr><tr><td style="text-align:left">F11</td><td style="text-align:left"><strong>TTS fails before the first chunk</strong></td><td style="text-align:left"><code>turn_failed{stage:&quot;tts&quot;, message:&quot;I have an answer but couldn't speak it.&quot;}</code> — <strong>and the <code>reply</code> text is already on screen</strong>, because <code>reply</code> is sent before <code>audio_start</code>. The reviewer still gets the answer. This ordering is the point.</td></tr><tr><td style="text-align:left">F12</td><td style="text-align:left"><strong>TTS fails mid-stream</strong></td><td style="text-align:left">Send <code>audio_end</code> with what was produced, then <code>turn_failed{stage:&quot;tts&quot;}</code>. Playback must never be left hanging waiting for an <code>audio_end</code> that never comes.</td></tr><tr><td style="text-align:left">F13</td><td style="text-align:left"><strong>Socket drops mid-turn</strong></td><td style="text-align:left">Block 1's reconnect handles the socket. The turn is abandoned: client clears playback, state → <code>idle</code>, notice <em>&quot;Connection dropped mid-answer — ask again.&quot;</em> Server's turn task is cancelled when the handler exits.</td></tr><tr><td style="text-align:left">F14</td><td style="text-align:left"><strong>Provider key missing at runtime</strong></td><td style="text-align:left">Providers are built <strong>lazily on first turn</strong>, not at import. A missing key gives <code>turn_failed{stage:…, message:&quot;…is not configured&quot;}</code> — it must never stop <code>/health</code> or the static mount from serving. <strong>Requirement #4 stays banked even with a broken key.</strong></td></tr><tr><td style="text-align:left">F15</td><td style="text-align:left"><strong>Binary frame with no open turn</strong></td><td style="text-align:left"><code>error{code:&quot;bad_message&quot;, recoverable:true}</code>, frame discarded, socket stays up.</td></tr></tbody></table></div>
+<hr />
+<h2 id="files"><span class="htext">Files</span></h2>
+<h3 id="created"><span class="htext">Created</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">File</th><th style="text-align:left">Purpose</th></tr></thead><tbody><tr><td style="text-align:left"><code>frontend/scripts/sync-vad-assets.mjs</code></td><td style="text-align:left">Copies the VAD model, worklet and ORT WASM from <code>node_modules</code> into <code>frontend/public/vad/</code>. ~25 lines, zero dependencies.</td></tr><tr><td style="text-align:left"><code>frontend/public/vad/</code> <em>(generated, gitignored)</em></td><td style="text-align:left">Where the assets are served from, in dev and in <code>dist/</code> alike.</td></tr><tr><td style="text-align:left"><code>backend/app/pipeline/audio.py</code></td><td style="text-align:left"><code>pcm16_to_wav()</code> — the RIFF header Groq's API needs.</td></tr><tr><td style="text-align:left"><code>backend/app/pipeline/turn.py</code></td><td style="text-align:left"><code>run_turn()</code> — the one place STT → LLM → TTS is orchestrated, against the Protocols, so it is testable with fakes.</td></tr><tr><td style="text-align:left"><code>backend/app/providers/groq_stt.py</code></td><td style="text-align:left"><code>GroqSTT</code></td></tr><tr><td style="text-align:left"><code>backend/app/providers/gemini_llm.py</code></td><td style="text-align:left"><code>GeminiLLM</code></td></tr><tr><td style="text-align:left"><code>backend/app/providers/deepgram_tts.py</code></td><td style="text-align:left"><code>DeepgramTTS</code></td></tr><tr><td style="text-align:left"><code>backend/app/providers/factory.py</code></td><td style="text-align:left">Memoised <code>get_stt() / get_llm() / get_tts()</code>; raises <code>ProviderUnavailable</code> rather than crashing the app.</td></tr><tr><td style="text-align:left"><code>backend/tests/test_audio.py</code></td><td style="text-align:left">WAV header correctness</td></tr><tr><td style="text-align:left"><code>backend/tests/test_turn.py</code></td><td style="text-align:left">Every row of §Failure paths that lives server-side, against fakes</td></tr><tr><td style="text-align:left"><code>docs/measurements/block2-voice-loop.md</code></td><td style="text-align:left">Endpointing sweep, Deepgram TTFB, voice choice</td></tr><tr><td style="text-align:left"><code>docs/PRs/PR_VOICE_LOOP.md</code></td><td style="text-align:left">Summary · Problem · Solution · Changes · How to Test · Changelog</td></tr></tbody></table></div>
+<h3 id="modified"><span class="htext">Modified</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">File</th><th style="text-align:left">Change</th></tr></thead><tbody><tr><td style="text-align:left"><code>backend/app/pipeline/protocol.py</code></td><td style="text-align:left"><code>PROTOCOL_VERSION = 2</code>; <code>StartIn</code>/<code>EndIn</code>/<code>BargeIn</code>; <code>TranscriptOut</code>/<code>ReplyOut</code>/<code>AudioStartOut</code>/<code>AudioEndOut</code>/<code>TurnFailedOut</code></td></tr><tr><td style="text-align:left"><code>backend/app/main.py</code></td><td style="text-align:left">Binary frames accepted into a per-connection turn buffer; <code>start</code>/<code>end</code>/<code>barge</code> dispatch; turn task lifecycle and cancellation; optional <code>GZipMiddleware</code></td></tr><tr><td style="text-align:left"><code>backend/app/providers/base.py</code></td><td style="text-align:left"><code>LLM.complete</code> → <code>LLM.reply</code> (see §Contracts)</td></tr><tr><td style="text-align:left"><code>backend/app/config.py</code></td><td style="text-align:left">Explicit dotenv paths; <code>deepgram_api_key</code>; <code>deepgram_tts_model</code>; <strong><code>rapidapi_key</code> becomes optional</strong> — Block 5 re-tightens it in its own adapter. Today a missing RapidAPI key would stop Block 2's app dead.</td></tr><tr><td style="text-align:left"><code>backend/tests/test_protocol.py</code>, <code>test_ws.py</code></td><td style="text-align:left">New messages; F15</td></tr><tr><td style="text-align:left"><code>frontend/src/protocol.ts</code></td><td style="text-align:left">Mirror of the above, by hand, no zod</td></tr><tr><td style="text-align:left"><code>frontend/src/net/connection.ts</code></td><td style="text-align:left"><code>sendBinary()</code>; callbacks <code>onTranscript</code>, <code>onReply</code>, <code>onAudioStart</code>, <code>onAudioChunk</code>, <code>onAudioEnd</code>, <code>onTurnFailed</code>; <code>ws.binaryType = &quot;arraybuffer&quot;</code></td></tr><tr><td style="text-align:left"><code>frontend/src/audio/capture.ts</code></td><td style="text-align:left">Real body: shared mic stream, constraints, <code>floatToPCM16()</code> (the conversion math lifted verbatim from the spike worklet)</td></tr><tr><td style="text-align:left"><code>frontend/src/audio/turn.ts</code></td><td style="text-align:left">Real body: asset guard, <code>MicVAD</code> construction and options, endpointing instrumentation, the gate flag</td></tr><tr><td style="text-align:left"><code>frontend/src/audio/playback.ts</code></td><td style="text-align:left">Real body: <code>PlaybackQueue</code> class with explicit scheduling and immediate <code>stop()</code></td></tr><tr><td style="text-align:left"><code>frontend/src/App.tsx</code></td><td style="text-align:left">The state machine, the permission states, Start/Stop, transcript + reply display</td></tr><tr><td style="text-align:left"><code>frontend/package.json</code></td><td style="text-align:left"><code>dev</code> and <code>build</code> run the sync script first; add a <code>test</code> script</td></tr><tr><td style="text-align:left"><code>frontend/eslint.config.js</code></td><td style="text-align:left">Drop the <code>src/spike/**</code> ignore once the spike is deleted</td></tr><tr><td style="text-align:left"><code>.gitignore</code></td><td style="text-align:left"><code>frontend/public/vad/</code></td></tr><tr><td style="text-align:left"><code>.env.example</code></td><td style="text-align:left"><code>DEEPGRAM_API_KEY</code>, <code>DEEPGRAM_TTS_MODEL</code></td></tr></tbody></table></div>
+<h3 id="deleted-in-the-same-commit-that-lands-real-capture"><span class="htext">Deleted — in the same commit that lands real capture</span></h3>
+<p><code>frontend/spike.html</code>, <code>frontend/src/spike/main.ts</code>, <code>frontend/src/spike/worklet.js</code>. Block 1's plan committed to this (&quot;not later, or they become permanent&quot;). The int16 conversion math survives, in <code>capture.ts</code>.</p>
+<hr />
+<h2 id="task-list"><span class="htext">Task list</span></h2>
+<p>Ordered. Each item is independently checkable.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Task</th><th style="text-align:left">Verification</th><th style="text-align:left">Est</th></tr></thead><tbody><tr><td style="text-align:left">1</td><td style="text-align:left"><strong>VAD assets.</strong> <code>sync-vad-assets.mjs</code> copies <code>vad.worklet.bundle.min.js</code>, <code>silero_vad_v5.onnx</code>, <code>silero_vad_legacy.onnx</code> from <code>@ricky0123/vad-web/dist</code>, and <code>ort-wasm-simd-threaded.mjs</code> + <code>ort-wasm-simd-threaded.wasm</code> from <code>onnxruntime-web/dist</code>, into <code>frontend/public/vad/</code>. Wire it into <code>dev</code> and <code>build</code> with <code>&amp;&amp;</code> (explicit, not an npm <code>pre</code> lifecycle hook). <code>.gitignore</code> the output</td><td style="text-align:left"><code>npm run dev</code>, then <code>curl -sI http://localhost:5173/vad/silero_vad_v5.onnx</code> → <code>200</code> and <code>content-length</code> ≈ 2 327 524, <strong>not</strong> <code>content-type: text/html</code></td><td style="text-align:left">30 m</td></tr><tr><td style="text-align:left">2</td><td style="text-align:left"><strong>F1 + F2 first.</strong> <code>assertVadAssets()</code> HEAD-checks each URL and throws a legible error naming the URL and status. <code>App</code> renders that error as the <code>unavailable</code> state with the Start button disabled</td><td style="text-align:left">Rename <code>public/vad/</code> temporarily → the page says exactly which file is missing and offers no dead Start button. Rename back</td><td style="text-align:left">15 m</td></tr><tr><td style="text-align:left">3</td><td style="text-align:left"><strong>Protocol v2</strong>, both ends, plus <code>test_protocol.py</code> cases</td><td style="text-align:left"><code>make test</code> — new messages parse, <code>extra=&quot;forbid&quot;</code> rejects an unknown field, an unknown <code>t</code> is ignored client-side</td><td style="text-align:left">30 m</td></tr><tr><td style="text-align:left">4</td><td style="text-align:left"><strong>Config.</strong> Explicit dotenv paths (<code>backend/.env</code> then repo-root <code>.env</code>, <code>override=False</code>); <code>deepgram_api_key</code>, <code>deepgram_tts_model</code>; <code>rapidapi_key</code> optional</td><td style="text-align:left"><code>uv run python -c &quot;from app.config import load_settings; print(load_settings().deepgram_tts_model)&quot;</code> from <code>backend/</code></td><td style="text-align:left">15 m</td></tr><tr><td style="text-align:left">5</td><td style="text-align:left"><strong><code>run_turn()</code> + every server-side failure path (F7–F12, F14) against fakes.</strong> No real provider yet</td><td style="text-align:left"><code>make test</code> — one test per failure row, each asserting the exact message sequence</td><td style="text-align:left">45 m</td></tr><tr><td style="text-align:left">6</td><td style="text-align:left"><strong>STT adapter + <code>pcm16_to_wav</code></strong></td><td style="text-align:left"><code>make test</code> for the header; then a throwaway script sends a WAV of Omar's voice and prints the transcript</td><td style="text-align:left">25 m</td></tr><tr><td style="text-align:left">7</td><td style="text-align:left"><strong>LLM adapter</strong> (streaming, text deltas only, <code>thought</code> ignored)</td><td style="text-align:left">Throwaway script: prompt in, sentence out, and <code>llm_first_text_delta_ms</code> logged</td><td style="text-align:left">25 m</td></tr><tr><td style="text-align:left">8</td><td style="text-align:left"><strong>TTS adapter</strong> — Deepgram WS, <code>container=none</code>, the <code>RIFF</code> assertion, <code>tts_ttfb_ms</code> log</td><td style="text-align:left">Throwaway script writes a <code>.wav</code> (header added locally) from the returned PCM; play it and hear it. The RIFF assertion does not fire</td><td style="text-align:left">45 m</td></tr><tr><td style="text-align:left">9</td><td style="text-align:left"><strong>Wire <code>main.py</code></strong>: binary buffer, <code>start</code>/<code>end</code>/<code>barge</code>, turn task + cancellation, F13/F15</td><td style="text-align:left"><code>make test</code> extended <code>test_ws.py</code>; binary-with-no-turn returns <code>error</code> and the socket survives</td><td style="text-align:left">30 m</td></tr><tr><td style="text-align:left">10</td><td style="text-align:left"><strong>Client capture + VAD + endpointing.</strong> One stream, <code>getStream</code> override; <code>startOnLoad: false</code>; <strong>override <code>pauseStream</code>/<code>resumeStream</code></strong> (see trap below); gate flag during playback; F3–F6</td><td style="text-align:left">Browser: speak → <code>listening</code>; go quiet → <code>end</code> sent; say &quot;mhm&quot; → <code>onVADMisfire</code>, no turn</td><td style="text-align:left">45 m</td></tr><tr><td style="text-align:left">11</td><td style="text-align:left"><strong>Playback queue + barge-in stop</strong></td><td style="text-align:left">Browser: a synthetic PCM stream plays gaplessly; <code>stop()</code> silences it within one frame</td><td style="text-align:left">35 m</td></tr><tr><td style="text-align:left">12</td><td style="text-align:left"><strong>UI state machine and permission states</strong></td><td style="text-align:left">Every state in §Failure paths is reachable and legible. No spinner without an operation behind it</td><td style="text-align:left">30 m</td></tr><tr><td style="text-align:left">13</td><td style="text-align:left">🚩 <strong>Full local turn, on speakers.</strong> Say <em>&quot;What's the capital of Japan?&quot;</em> and hear the answer</td><td style="text-align:left">The gate's happy path, locally. Echo cancellation confirmed: Sarjy does not interrupt itself</td><td style="text-align:left">30 m</td></tr><tr><td style="text-align:left">14</td><td style="text-align:left"><strong>Endpointing sweep.</strong> See §Measuring endpointing</td><td style="text-align:left"><code>docs/measurements/block2-voice-loop.md</code> has a table, a chosen value, and a written reason</td><td style="text-align:left">30 m</td></tr><tr><td style="text-align:left">15</td><td style="text-align:left">🚩 <strong>Deploy and walk the gate against the public URL.</strong> Collect Deepgram TTFB n≥5 from <code>modal app logs sarjy</code>. Try Safari; record the result either way</td><td style="text-align:left">§The gate, in order</td><td style="text-align:left">35 m</td></tr><tr><td style="text-align:left">16</td><td style="text-align:left"><strong>Delete the spike</strong>, drop the eslint ignore, PR doc, commit drafts, walkthrough with Omar</td><td style="text-align:left"><code>npm run lint</code> clean with no ignore; <code>docs/PRs/PR_VOICE_LOOP.md</code> exists</td><td style="text-align:left">30 m</td></tr></tbody></table></div>
+<p>≈ <strong>7 h 15 m</strong> at task level; call it <strong>6.5–7.5 h</strong>, with tasks 5–9 compressing if nothing surprises.</p>
+<h3 id="traps-inside-task-10-all-read-from-the-installed-package-sou"><span class="htext">🪤 Traps inside task 10, all read from the installed package source</span></h3>
+<ul>
+<li><strong><code>getStream</code> override is mandatory.</strong> vad-web's default <code>getStream</code> calls its own <code>getUserMedia</code>, which would open a <em>second</em> mic stream — exactly what Block 0 noted the spike did and said Block 2 must not.</li>
+<li>🚨 <strong><code>pauseStream</code> default calls <code>track.stop()</code> on every track.</strong> With a shared stream that permanently kills the mic, and the default <code>resumeStream</code> then re-prompts via a fresh <code>getUserMedia</code>. Override both to no-ops that return the shared stream. <strong>Better still: never call <code>vad.pause()</code> during a conversation</strong> — gate with a boolean instead. The VAD must keep running during playback, because that is what makes barge-in possible.</li>
+<li><strong><code>startOnLoad: false</code>.</strong> The default is <code>true</code>, which fires <code>getUserMedia</code> inside <code>MicVAD.new()</code> — a mic prompt on page load with no explanation, which <code>browser-audio.md</code> names as an anti-pattern. Construct at page load (downloads the ~16 MB of assets while the reviewer reads the screen), prompt on the Start click.</li>
+<li><strong><code>processorType: &quot;AudioWorklet&quot;</code></strong>, never <code>&quot;auto&quot;</code>. <code>ScriptProcessor</code> is deprecated and main-thread.</li>
+<li><strong><code>model: &quot;v5&quot;</code></strong>, not the package default <code>&quot;legacy&quot;</code>. v5 uses 512-sample frames (32 ms) against legacy's 1536 (96 ms), so endpointing granularity is 3× finer — and endpointing is the largest term in the budget. <code>silero_vad_legacy.onnx</code> is copied too (1.8 MB) so falling back is a one-word change if v5 misfires on breaths.</li>
+<li><strong><code>ortConfig: (ort) =&gt; { ort.env.wasm.numThreads = 1; ort.env.logLevel = &quot;warning&quot;; }</code>.</strong> Without cross-origin isolation <code>SharedArrayBuffer</code> is unavailable and the threaded build falls back anyway; pinning it removes a worker-spawn path that can fail obscurely. <code>logLevel</code> stays loud enough to see problems during the build.</li>
+<li><strong>The AudioContext is created at page load (suspended) and passed in as <code>audioContext</code></strong> — options are frozen at <code>new()</code>. <code>captureCtx.resume()</code> and <code>playbackCtx.resume()</code> both happen <strong>inside the Start button's click handler</strong>, which is the user gesture the Web Audio spec requires.</li>
+</ul>
+<h3 id="traps-inside-task-15"><span class="htext">🪤 Traps inside task 15</span></h3>
+<ul>
+<li><code>frontend/dist/vad/*</code> must actually reach the container. <code>modal_app.py</code> reads the <em>local</em> <code>dist/</code> tree at deploy time and <strong>will not tell you it is stale</strong> — <code>make deploy</code> runs <code>build-frontend</code> first, so use <code>make deploy</code>, never a bare <code>modal deploy</code>.</li>
+<li>Python's <code>mimetypes</code> maps <code>.wasm</code> → <code>application/wasm</code> and <code>.mjs</code> → <code>text/javascript</code> (verified locally), so Starlette's <code>StaticFiles</code> serves both correctly. <code>.onnx</code> has <strong>no</strong> registered type and falls back to <code>application/octet-stream</code>, which is fine — it is fetched with <code>fetch()</code>, not <code>instantiateStreaming</code>.</li>
+<li>The ORT WASM blob is ~14 MB. <code>app.add_middleware(GZipMiddleware, minimum_size=1024)</code> roughly quarters the first load, costs two lines, and does not touch the WebSocket scope. <strong>This is the first thing to cut if the block runs long.</strong></li>
+</ul>
+<hr />
+<h2 id="measuring-endpointing-task-14"><span class="htext">Measuring endpointing (task 14)</span></h2>
+<p>The spike measured speech-<strong>start</strong> → speech-end, which includes the utterance itself and is not the latency term. The term we want is <strong>acoustic end of speech → <code>onSpeechEnd</code> fires</strong>.</p>
+<p><strong>The instrument, and it is four lines:</strong></p>
+<div class="codewrap"><pre><code>onFrameProcessed(probs, frame):
+    if probs.isSpeech &gt; positiveSpeechThreshold: tLastSpeechFrame = performance.now()
+onSpeechEnd(audio):
+    endpointDelayMs = performance.now() - tLastSpeechFrame</code></pre></div>
+<p><strong>The sweep:</strong> <code>redemptionMs</code> ∈ {400, 600, 800}, five utterances each, same sentence, same room.</p>
+<p>Record per value: <strong>median <code>endpointDelayMs</code></strong>, and the <strong>false-cut count</strong> (times Sarjy endpointed while Omar was mid-sentence, e.g. across a natural comma pause). Then say &quot;mhm&quot; five times at the chosen value and confirm every one produces <code>onVADMisfire</code>, not a turn.</p>
+<p><strong>Write the chosen value and the reason down.</strong> <code>.claude/rules/voice/browser-audio.md</code> and <code>pipeline.md</code> both require it: <em>&quot;the silence threshold is a product decision, not a constant.&quot;</em> It trades cutting the user off against making them wait, and it is the largest single term in the chain — larger than any provider call, which is worth saying out loud in the walkthrough because a reviewer will not expect it.</p>
+<p>Then <strong>update <code>TDD.md</code> §Latency budget</strong>, replacing the &quot;~600 ms (still an estimate)&quot; endpointing row with the measurement and its <code>n</code>.</p>
+<hr />
+<h2 id="two-deliberate-design-decisions-recorded-because-they-will-b"><span class="htext">Two deliberate design decisions, recorded because they will be questioned</span></h2>
+<h3 id="1-the-audio-that-reaches-stt-comes-from-the-vad-not-from-a-s"><span class="secnum">1</span><span class="htext">The audio that reaches STT comes from the VAD, not from a second capture worklet</span></h3>
+<p><code>onSpeechEnd</code> hands back a <code>Float32Array</code> at 16 kHz that already includes <code>preSpeechPadMs</code> of lead-in — the exact segment we want. Running our own parallel <code>AudioWorklet</code> capture graph and slicing a ring buffer by VAD timestamps would produce the same bytes with twice the moving parts, on the tightest day of the schedule.</p>
+<p><strong>What is lifted from the spike</strong> is the float32 → int16 conversion (clamp to [-1, 1], <code>s &lt; 0 ? s * 0x8000 : s * 0x7fff</code>) and the 16 kHz <code>AudioContext</code> decision that Section A proved. What is dropped is a second capture graph the VAD already provides.</p>
+<p><strong>The cost, stated plainly:</strong> the whole utterance uploads <em>after</em> speech ends — roughly 160 KB for 5 s, ~130 ms on a decent uplink, more on bad conference wifi. Streaming during speech would hide that, but it requires the second capture graph <em>and</em> it would break Block 1's &quot;a turn never spans a connection&quot; invariant by starting the network work before <code>ensureFresh()</code> can run. <strong>Block 3 measures this leg. If it turns out to matter, the dual-capture path is the named upgrade.</strong></p>
+<h3 id="2-nothing-goes-over-the-network-until-onspeechend"><span class="secnum">2</span><span class="htext">Nothing goes over the network until <code>onSpeechEnd</code></span></h3>
+<div class="codewrap"><pre><code>onSpeechStart → state &quot;listening&quot; (local only, no network)
+onSpeechEnd   → await connection.ensureFresh()   ← Block 1's contract, here
+              → send {&quot;t&quot;:&quot;start&quot;} + binary chunks + {&quot;t&quot;:&quot;end&quot;}</code></pre></div>
+<p>Because STT is batch (Groq's Whisper is a 30 s window; the turn must be endpointed before it is sent — <code>TDD.md</code> §The batch-STT constraint), there is nothing to gain from streaming during speech. And awaiting <code>ensureFresh()</code> here makes <em>&quot;a turn never spans a connection&quot;</em> true by construction rather than by care: a socket rotation can only happen while idle or while the user is speaking, never between <code>start</code> and <code>audio_end</code>.</p>
+<p><code>ensureFresh()</code> already exists in <code>frontend/src/net/connection.ts</code> and rotates the socket if less than <code>TURN_BUDGET_MS</code> (30 s) of its life remains. <strong>This is the single call that keeps Block 1's reconnect design intact.</strong> It goes on the first line of the <code>onSpeechEnd</code> handler.</p>
+<hr />
+<h2 id="verification"><span class="htext">Verification</span></h2>
+<p>Run all of these. Show the output; do not assert it passed.</p>
+<div class="codewrap"><pre><code class="lang-bash"># Backend
+cd /Users/omarsalama/Projects/Sarjy/backend
+make typecheck        # mypy strict, 0 errors
+make lint             # ruff, 0 warnings
+make test             # pytest -q
+
+# Frontend
+cd /Users/omarsalama/Projects/Sarjy/frontend
+npm run typecheck     # 0 errors
+npm run lint          # 0 warnings, and no src/spike ignore left
+npm run build         # then: ls -la dist/vad/  -&gt; 5 files present
+
+# The VAD assets are actually served
+curl -sI http://localhost:5173/vad/silero_vad_v5.onnx | head -3
+curl -sI http://localhost:5173/vad/vad.worklet.bundle.min.js | head -3
+curl -sI http://localhost:5173/vad/ort-wasm-simd-threaded.wasm | head -3
+#  -&gt; HTTP/1.1 200 OK on all three, and NOT content-type: text/html
+
+# Same three against the deployment, after `make deploy`
+curl -sI https://&lt;deployed-url&gt;/vad/silero_vad_v5.onnx | head -3</code></pre></div>
+<p><strong>What proves it worked, in order:</strong></p>
+<ol>
+<li><code>make test</code> prints <code>N passed</code> with a test for <strong>every row</strong> of §Failure paths that is server-side (F7–F15).</li>
+<li><code>npm run build</code> produces <code>dist/vad/</code> containing the model, the worklet and the two ORT files.</li>
+<li>The three <code>curl -sI</code> calls return <code>200</code> with a binary content type — locally <strong>and</strong> against the deployment.</li>
+<li><strong>An end-to-end voice turn against the deployed URL</strong>, on speakers: state moves <code>idle → listening → thinking → speaking → idle</code>, the transcript and reply appear on screen, and the answer is audible and correct.</li>
+<li><code>modal app logs sarjy</code> shows <code>tts_ttfb_ms=…</code> for at least 5 turns, with a median recorded in <code>docs/measurements/block2-voice-loop.md</code> <strong>beside the vendor's &lt;200 ms claim</strong>.</li>
+<li><code>docs/measurements/block2-voice-loop.md</code> has the endpointing table, the chosen <code>redemptionMs</code>, and the reason.</li>
+</ol>
+<hr />
+<h2 id="the-gate-walked-in-order-against-the-deployed-url"><span class="htext">The gate — walked in order, against the deployed URL</span></h2>
+<p>Master plan: <em>&quot;speak to the deployed URL and hear a sensible spoken reply. Requirement #1.&quot;</em> Concretely:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Do</th><th style="text-align:left">Pass looks like</th></tr></thead><tbody><tr><td style="text-align:left">1</td><td style="text-align:left">Open the public URL in a fresh Chrome window</td><td style="text-align:left">Calm screen, state <code>idle</code>, one Start button with a reason for the mic attached. No mic prompt yet</td></tr><tr><td style="text-align:left">2</td><td style="text-align:left">Click Start</td><td style="text-align:left">Mic prompt appears. Allow it. State stays <code>idle</code>, and the page says it is listening for you</td></tr><tr><td style="text-align:left">3</td><td style="text-align:left">Say <em>&quot;What's the capital of Japan?&quot;</em>, then stop</td><td style="text-align:left"><code>listening</code> while speaking; within the measured endpointing delay of going quiet it moves to <code>thinking</code></td></tr><tr><td style="text-align:left">4</td><td style="text-align:left">Wait</td><td style="text-align:left">Transcript appears, then the reply text, then audio — <strong>audible on speakers</strong>, correct, and Sarjy does <strong>not</strong> interrupt itself</td></tr><tr><td style="text-align:left">5</td><td style="text-align:left">Say <em>&quot;and what about Korea?&quot;</em></td><td style="text-align:left">It answers coherently — in-session history is working</td></tr><tr><td style="text-align:left">6</td><td style="text-align:left">Start a long answer, then talk over it</td><td style="text-align:left">Audio stops <strong>immediately</strong>, not at the end of the chunk, and the new turn starts</td></tr><tr><td style="text-align:left">7</td><td style="text-align:left">Deny the mic in a fresh incognito window</td><td style="text-align:left">A legible recoverable message and a Retry button. Not a dead end, not a spinner</td></tr><tr><td style="text-align:left">8</td><td style="text-align:left">Leave the tab open 3 minutes, then speak again</td><td style="text-align:left">Still works — Block 1's rotation happened underneath and a turn never spanned it</td></tr><tr><td style="text-align:left">9</td><td style="text-align:left">Kill wifi mid-answer, restore it</td><td style="text-align:left">Playback clears, a notice explains, state returns to <code>idle</code>, and the next turn works</td></tr></tbody></table></div>
+<p><strong>Steps 4, 6 and 7 are the block.</strong> Step 4 is requirement #1. Step 6 is the voice-UX rubric line. Step 7 is Invariant 7.</p>
+<hr />
+<h2 id="draft-commits"><span class="htext">Draft commits</span></h2>
+<p>Small and coherent; Omar commits. Suggested boundaries:</p>
+<ol>
+<li><code>build(frontend): serve VAD model and ONNX runtime from /vad</code> — sync script, <code>.gitignore</code>, package scripts, asset guard</li>
+<li><code>feat(protocol): v2 — turn start/end/barge, transcript, reply, audio framing</code></li>
+<li><code>feat(providers): Groq STT, Gemini text reply, Deepgram streaming TTS</code></li>
+<li><code>feat(pipeline): run_turn, with every failure path visible</code></li>
+<li><code>feat(frontend): capture, VAD endpointing, playback queue, barge-in</code></li>
+<li><code>feat(frontend): conversation state machine and microphone permission states</code></li>
+<li><code>chore: remove the Block 0 audio spike, now that capture is real</code></li>
+<li><code>docs: Block 2 measurements — endpointing sweep and Deepgram TTFB</code></li>
+</ol>
+<hr />
+<h2 id="carried-into-block-3"><span class="htext">Carried into Block 3</span></h2>
+<ul>
+<li><code>llm_first_text_delta_ms</code>, <code>stt_ms</code>, <code>tts_ttfb_ms</code> already exist as <code>logger.info</code> lines. Block 3 turns them into the <code>timings</code> message with monotonic clocks, adds <code>endpoint_ms</code> (measured client-side, sent on <code>end</code>) and <code>first_audio_ms</code>.</li>
+<li>The measured endpointing value — Block 3's budget starts from it, not from the ~600 ms estimate.</li>
+<li>The upload-after-endpoint leg (§Design decision 1). If it is material, dual-capture streaming is the named upgrade.</li>
+<li><code>run_turn()</code> is the seam Block 4 splits into call 1 / opener / call 2.</li>
+<li><code>PlaybackQueue</code> already handles two sources per turn; Block 4's opener needs no change to it.</li>
+</ul>
+<hr />
+<h2 id="open-assumed-stated-rather-than-buried"><span class="htext">Open / assumed, stated rather than buried</span></h2>
+<ul>
+<li><strong>Unverified:</strong> Deepgram's &lt;200 ms TTFB. That is why task 15 measures it. If the measured median is above ~600 ms, the TDD's opener arithmetic (§Latency budget) needs re-deriving <em>again</em> and Omar should hear about it the same day.</li>
+<li><strong>Assumed:</strong> <code>await client.aio.interactions.create(..., stream=True)</code> then <code>async for</code>. The sync form is verified from Block 0; the async form is inferred from the installed type signature. A 30-second discovery if wrong.</li>
+<li><strong>Assumed:</strong> ORT 1.30 requests <code>ort-wasm-simd-threaded.{mjs,wasm}</code> and not the <code>.jsep</code> variant, because we import <code>onnxruntime-web/wasm</code>. <strong>Verify in the browser's Network tab in task 1.</strong> If it asks for <code>.jsep</code>, that file is 28 MB and the trade-off needs a decision rather than a reflex copy.</li>
+<li><strong>Assumed:</strong> Safari accepts <code>new AudioContext({sampleRate})</code> for both 16 kHz and 24 kHz. F6 covers the capture side. If playback's context lands at a different rate, <code>createBuffer(1, n, 24000)</code> still resamples on playback — degraded, not broken.</li>
+<li><strong>Open:</strong> whether echo cancellation holds on Omar's laptop speakers. Unknown until task 13, and Block 0 never tested it. <code>BARGE_IN_ENABLED</code> exists because of this.</li>
+<li><strong>Deliberate:</strong> the frontend has no unit tests. Its failure modes are browser-level — permissions, audio graphs, worklet loading — and none of them are caught by a Node test runner. The verification is the end-to-end turn. A <code>test</code> script exists so the command contract in <code>AGENTS.md</code> holds; adding vitest for one pure function is not worth the dependency on this schedule. <strong>Say this out loud in the walkthrough rather than letting it be found.</strong></li>
+<li><strong>Not re-litigated here:</strong> the region tension in Block 0 §S2. <code>us-east</code> is deployed and the URL is not yet shared. Task 15 is the last cheap moment to change it.</li>
+</ul>
+  </main>
+</div>

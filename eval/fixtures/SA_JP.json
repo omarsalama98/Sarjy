@@ -1,0 +1,43 @@
+{
+  "_provenance": "REAL -- copied verbatim from data/reference/visa_reqs_SA_JP.json (one live /v2/visa/check call, already spent before this block began).",
+  "data": {
+    "passport": {
+      "code": "SA",
+      "name": "Saudi Arabia",
+      "currency_code": "SAR"
+    },
+    "destination": {
+      "code": "JP",
+      "name": "Japan",
+      "continent": "Asia",
+      "capital": "Tokyo",
+      "currency_code": "JPY",
+      "currency": "Japanese Yen",
+      "exchange": "0.02391",
+      "passport_validity": "Valid on arrival",
+      "phone_code": "+81",
+      "timezone": "+09:00",
+      "population": 124214766,
+      "area_km2": 377974,
+      "embassy_url": "https://www.embassypages.com/saudiarabia#titlePlaceholder2"
+    },
+    "mandatory_registration": {
+      "name": "Customs declaration",
+      "color": "yellow",
+      "link": "https://link.travel-buddy.ai/?link=86E331T3"
+    },
+    "visa_rules": {
+      "primary_rule": {
+        "name": "eVisa",
+        "duration": "90 days",
+        "color": "blue",
+        "link": "https://link.travel-buddy.ai/?link=86E411T1"
+      }
+    }
+  },
+  "meta": {
+    "version": "2.0",
+    "language": "en",
+    "generated_at": "2026-09-20T14:28:07+00:00"
+  }
+}

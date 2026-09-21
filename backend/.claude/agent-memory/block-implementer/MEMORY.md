@@ -1,0 +1,1 @@
+- [import modal works in deployed containers](modal_import_in_container.md) — confirmed live via an ephemeral probe; modal.Dict is the real quota-ledger backend, not a dormant fallback.

@@ -1,0 +1,124 @@
+/* The only stylesheet in this app (D2, docs/plans/blocks/C-demoable.md).
+   One flat file, no framework, no CSS-in-JS. There was no stylesheet at
+   all before this -- every screenshot was Times New Roman on white. */
+
+:root {
+  color-scheme: dark;
+  --bg: #12141a;
+  --surface: #1b1f29;
+  --border: #2c3140;
+  --text: #e8eaf0;
+  --text-dim: #8892a6;
+  --accent: #5fb3ff;
+  --danger: #ff6b6b;
+  --warn: #e8b84b;
+  --ok: #4fd18b;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+}
+main {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+h1 { margin: 0; }
+h2, h3 { margin: 0 0 8px; }
+
+/* The four conversation states -- distinguishable at a glance (Invariant 7). */
+.conversation-state {
+  display: inline-block;
+  width: fit-content;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-weight: 600;
+  text-transform: capitalize;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.state-idle { color: var(--text-dim); }
+.state-listening { border-color: var(--accent); color: var(--accent); }
+.state-thinking { border-color: var(--warn); color: var(--warn); }
+.state-speaking { border-color: var(--ok); color: var(--ok); }
+.state-mic-blocked, .state-mic-missing, .state-unavailable {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+button {
+  font: inherit;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+button:hover:not(:disabled) { border-color: var(--accent); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+a { color: var(--accent); }
+
+.notice { padding: 8px 12px; border-radius: 8px; background: var(--surface); border: 1px solid var(--warn); }
+.voice-issue, .turn-failed { border-color: var(--danger); }
+.transcript, .reply { padding: 10px 14px; border-radius: 8px; background: var(--surface); overflow-wrap: break-word; }
+
+/* The gate on screen -- rejected is struck through and dimmed, never hidden. */
+.segments { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.segment { padding: 8px 12px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); overflow-wrap: break-word; }
+.segment-rejected { opacity: 0.55; text-decoration: line-through; }
+.segment-kind {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 0.75em;
+  font-weight: 600;
+  background: var(--border);
+  color: var(--text-dim);
+  text-decoration: none;
+}
+.segment-reason { color: var(--danger); }
+.segment-provenance { color: var(--text-dim); font-size: 0.9em; }
+
+/* The fact card -- the deep dive's only visible surface (D15). */
+.fact-card { padding: 12px 16px; border-radius: 10px; background: var(--surface); border: 1px solid var(--accent); }
+.fact-card-refusal { border-color: var(--danger); }
+.fact-card-facts { margin: 0; padding: 0 0 0 1.1em; }
+.card-degraded {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--warn);
+  color: #26210a;
+  font-size: 0.75em;
+  font-weight: 700;
+  margin-right: 6px;
+}
+.card-provenance { color: var(--text-dim); font-size: 0.85em; margin: 8px 0 0; }
+
+.metrics, .status-line {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8em;
+  color: var(--text-dim);
+}
+
+/* The memory panel -- a bordered second panel, not a sidebar library. */
+.memory-panel { margin-top: 16px; padding: 14px 16px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); }
+.memory-facts { margin: 0; padding: 0 0 0 1.1em; }
+.memory-fact-meta, .memory-capacity { color: var(--text-dim); font-size: 0.85em; }
+.sign-in-form { display: flex; gap: 8px; margin: 10px 0; }
+.sign-in-form input {
+  font: inherit;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}

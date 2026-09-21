@@ -3,13 +3,15 @@
 A connection is not a session (docs/plans/blocks/01-skeleton-deploy.md). A
 session is identified by a server-minted, opaque uuid4 the client never
 proposes -- a guessable id would let one browser resume another's session,
-which is exactly the cross-session leakage Block 7's memory gate asserts
+which is exactly the cross-session leakage Block B's memory gate (D3) asserts
 against.
 
-The registry is an in-process dict in Block 1 (modal.Dict arrives in Block 7
-with memory) -- which is why modal_app.py pins max_containers=1: a reconnect
-landing on a second container would find no session here and silently start
-a new one.
+The registry itself is an in-process dict, and stays that way even after
+Block B gives memory its own durable `modal.Dict` (app/memory/store.py) --
+which is why modal_app.py still pins max_containers=1: a reconnect landing
+on a second container would find no session here and silently start a new
+one. Only the FACTS a user has taught Sarjy are durable; which connection is
+"live" for a session is not, and does not need to be (D6).
 
 Records expire on a TTL swept lazily on each `hello`, never on the socket
 closing -- Block 0 measured the server not noticing a dead client for up to
@@ -23,7 +25,10 @@ from dataclasses import dataclass, field
 
 from fastapi import WebSocket
 
+from app.memory.store import MemoryRecord
+
 SESSION_TTL_MS = 15 * 60 * 1000
+HISTORY_TURNS = 6
 
 
 def now_ms() -> int:
@@ -50,9 +55,37 @@ class Session:
     seq: int = 0
     live: WebSocket | None = field(default=None, repr=False, compare=False)
 
+    # In-session conversation history -- (user_text, assistant_text) tuples,
+    # oldest first, capped at HISTORY_TURNS. This is NOT memory (Block B's
+    # job): it lives only as long as this session does, and it exists so a
+    # second turn like "and what about Korea?" makes sense. See
+    # docs/plans/blocks/02-voice-loop.md, "Scope" -> "In-session
+    # conversation history is in scope and is not memory."
+    history: list[tuple[str, str]] = field(default_factory=list)
+
+    # Block B -- D2's anonymous tier: an in-process record that survives a
+    # reconnect (this session's connection can be replaced any number of
+    # times) but NOT a reload, since a reload mints a brand new session with
+    # its own fresh MemoryRecord. Gains a name_key/pin_hash once sign-in
+    # succeeds, at which point it also gets loaded from / saved to
+    # app.memory.store's modal.Dict on every change.
+    memory: MemoryRecord = field(default_factory=MemoryRecord)
+
+    # D8's voice sign-in sub-flow, and M4's attempt counter. Both live on the
+    # SESSION, not the connection's _TurnState -- a reconnect happens every
+    # ~75s by design (Block 1's rotation), so a per-connection counter would
+    # reset itself continuously and M4's "5 failed attempts, then refused
+    # until reload" would never actually fire.
+    awaiting_pin: bool = False
+    pin_attempts: int = 0
+
     def next_seq(self) -> int:
         self.seq += 1
         return self.seq
+
+    def remember_turn(self, user_text: str, assistant_text: str) -> None:
+        self.history.append((user_text, assistant_text))
+        self.history = self.history[-HISTORY_TURNS:]
 
 
 class SessionRegistry:

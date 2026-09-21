@@ -1,0 +1,603 @@
+<title>Block C — Demoable</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --ink:       #14171c;
+    --ink-2:     #474e5a;
+    --ink-3:     #767e8b;
+    --line:      #e2e5ea;
+    --line-2:    #eef0f4;
+    --accent:    #2d4a7c;
+    --accent-bg: #edf1f8;
+    --warn:      #a6421f;
+    --warn-bg:   #fbf0eb;
+    --code-bg:   #f0f2f6;
+    --shadow:    0 1px 2px rgba(20,23,28,.05), 0 8px 24px -12px rgba(20,23,28,.15);
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #101317;
+      --surface:   #171b21;
+      --ink:       #e7eaef;
+      --ink-2:     #a8b0bc;
+      --ink-3:     #7b838f;
+      --line:      #2a2f38;
+      --line-2:    #22262d;
+      --accent:    #8fb0e6;
+      --accent-bg: #1a2130;
+      --warn:      #e2916d;
+      --warn-bg:   #2a1d17;
+      --code-bg:   #1d222a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #101317;
+    --surface:   #171b21;
+    --ink:       #e7eaef;
+    --ink-2:     #a8b0bc;
+    --ink-3:     #7b838f;
+    --line:      #2a2f38;
+    --line-2:    #22262d;
+    --accent:    #8fb0e6;
+    --accent-bg: #1a2130;
+    --warn:      #e2916d;
+    --warn-bg:   #2a1d17;
+    --code-bg:   #1d222a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .5rem 2.25rem; margin: 0; }
+  dl.meta div { display: flex; flex-direction: column; gap: .1rem; }
+  dl.meta dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  dl.meta dd { margin: 0; font-size: .9rem; color: var(--ink-2); }
+
+  /* ---- toc ---- */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 3rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--ink-3);
+    margin: 0 0 .75rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: flex;
+    gap: .7rem;
+    font-size: .92rem;
+    border-radius: 2px;
+  }
+  .toc a:hover { color: var(--accent); }
+  .tocnum, .secnum {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: .8em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- headings ---- */
+  h2, h3, h4 { font-family: var(--serif); letter-spacing: -.01em; text-wrap: balance; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    font-weight: 600;
+    margin: 3.5rem 0 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .75rem;
+    align-items: baseline;
+  }
+  h3 { font-size: 1.14rem; font-weight: 600; margin: 2.25rem 0 .7rem; display: flex; gap: .6rem; align-items: baseline; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; color: var(--ink-2); }
+  h2 .secnum, h3 .secnum { flex: none; }
+
+  p { margin: 0 0 1.05rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line-2); margin: 2.5rem 0; }
+
+  ul, ol { margin: 0 0 1.15rem; padding-left: 1.35rem; max-width: 68ch; }
+  li { margin-bottom: .38rem; }
+  li::marker { color: var(--ink-3); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+  .codewrap { overflow-x: auto; margin: 0 0 1.4rem; }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 0;
+    min-width: min-content;
+  }
+  pre code { background: none; padding: 0; font-size: .845rem; line-height: 1.6; }
+
+  blockquote {
+    margin: 0 0 1.4rem;
+    padding: .1rem 0 .1rem 1.15rem;
+    border-left: 3px solid var(--line);
+    color: var(--ink-2);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+  }
+  .callout p { margin-bottom: .6rem; color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--warn); }
+
+  .tablewrap { overflow-x: auto; margin: 0 0 1.6rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  th, td { padding: .6rem .85rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <h1>Block C — Demoable</h1>
+    <dl class="meta"><div><dt>Date</dt><dd>2026-09-21 · <strong>Needs:</strong> Block B · <strong>Lands:</strong> requirement #6 (presentation) and finishes</dd></div><div><dt>note</dt><dd>requirement #1 (voice) · <strong>Deadline: today, 19:00</strong></dd></div><div><dt>note</dt><dd><strong>The last block.</strong> Everything after this is recording, committing and submitting.</dd></div></dl>
+  </header>
+  <nav class="toc" aria-label="Contents"><p class="eyebrow">Contents</p><ol><li><a href="#goal">Goal</a></li><li><a href="#decisions-read-this-page-then-the-block-runs">Decisions — read this page, then the block runs</a></li><li><a href="#scope">Scope</a></li><li><a href="#files">Files</a></li><li><a href="#contracts">Contracts</a></li><li><a href="#failure-paths-build-these-before-the-happy-path-they-protect">Failure paths — build these before the happy path they protect</a></li><li><a href="#task-list">Task list</a></li><li><a href="#verification">Verification</a></li><li><a href="#gate">Gate</a></li><li><a href="#open-questions-the-implementer-will-hit">Open questions the implementer will hit</a></li><li><a href="#what-i-found-upstream">What I found upstream</a></li></ol></nav>
+  <main>
+<h2 id="goal"><span class="htext">Goal</span></h2>
+<p>A stranger can open <code>https://vitas7777v--sarjy-fastapi-app.us-east.modal.run</code>, understand what Sarjy is within five seconds, have a grounded conversation whose evidence is visible on screen, and — separately — a reviewer who never opens the URL can read one README and watch one Loom and know exactly what was built, what works, and what does not.</p>
+<hr />
+<h2 id="decisions-read-this-page-then-the-block-runs"><span class="htext">Decisions — read this page, then the block runs</span></h2>
+<h3 id="d1-the-clock-is-the-design-these-times-are-pre-committed-not"><span class="htext">D1 — The clock is the design. These times are pre-committed, not aspirational</span></h3>
+<p>It is 2026-09-21. Submission closes at <strong>19:00</strong>. Omar still has to sleep, run the human browser gates that Blocks A and B both left open, record a Loom, and submit through Ashby.</p>
+<p>Master-plan estimates on this project have run <strong>~2.5× low</strong> once planned in detail. This plan assumes the same and is scoped to roughly <strong>4 hours of build time</strong>, not a day.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Clock</th><th style="text-align:left">What happens</th><th style="text-align:left">Hard?</th></tr></thead><tbody><tr><td style="text-align:left">09:00–09:20</td><td style="text-align:left"><strong>Preflight (human).</strong> Deploy is live · <code>SARJY_MEMORY_SALT</code> set on Modal · <code>QUOTA_SPENT_SEED</code> set from the RapidAPI dashboard · one voice turn works</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left">09:20–10:00</td><td style="text-align:left"><strong>Group 1</strong> — the fact card renders</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left">10:00–10:25</td><td style="text-align:left"><strong>Group 2</strong> — the minimum stylesheet</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left">10:25–11:45</td><td style="text-align:left"><strong>Group 3</strong> — README, demo script, Loom outline, written against what is true <em>right now</em></td><td style="text-align:left">—</td></tr><tr><td style="text-align:left">11:45–13:00</td><td style="text-align:left"><strong>Group 4</strong> — Arabic. Rung 1, then rung 2</td><td style="text-align:left">🚨 <strong>STOP at 13:00 wherever it is</strong></td></tr><tr><td style="text-align:left">13:00–13:20</td><td style="text-align:left"><strong>Group 5</strong> — amend the three documents to match what actually shipped</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><strong>14:00</strong></td><td style="text-align:left">🚨 <strong>CODE FREEZE.</strong> Nothing but doc edits and blocker fixes after this</td><td style="text-align:left">🚨</td></tr><tr><td style="text-align:left">14:00–15:30</td><td style="text-align:left">Human gates: <code>/demo-check</code>, Block A's 9-row table, Block B's 9-step table, one <code>make measure</code> run</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left">15:30–16:00</td><td style="text-align:left"><code>submission-reviewer</code> agent. Fix <strong>blocking</strong> findings only</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left"><strong>16:00</strong></td><td style="text-align:left">🚨 <strong>Loom recording starts</strong> regardless of state</td><td style="text-align:left">🚨</td></tr><tr><td style="text-align:left">17:00–18:00</td><td style="text-align:left">Commit, push, repo access to the reviewer, Ashby</td><td style="text-align:left">—</td></tr><tr><td style="text-align:left">18:00–19:00</td><td style="text-align:left">Reserve</td><td style="text-align:left">—</td></tr></tbody></table></div>
+<h3 id="d2-the-ranking-and-where-this-plan-disagrees-with-its-brief"><span class="htext">D2 — The ranking, and where this plan disagrees with its brief</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Rank</th><th style="text-align:left">Item</th><th style="text-align:left">Status</th></tr></thead><tbody><tr><td style="text-align:left">1</td><td style="text-align:left"><strong>README · demo script · Loom outline</strong></td><td style="text-align:left"><strong>Never cut.</strong> They <em>are</em> requirement #6</td></tr><tr><td style="text-align:left">2</td><td style="text-align:left"><strong>The fact card renders</strong></td><td style="text-align:left">Near-never cut. The deep dive's only visible surface; Block A already put <code>fact_card</code> on the wire and nothing paints it</td></tr><tr><td style="text-align:left">3</td><td style="text-align:left"><strong>A minimum stylesheet</strong> (~20 min)</td><td style="text-align:left"><strong>Promoted into the never-cut tier — a deviation from the brief, argued below</strong></td></tr><tr><td style="text-align:left">4</td><td style="text-align:left"><strong>Arabic</strong></td><td style="text-align:left">Promised to Sarj in writing. Two rungs (D5); rung 1 is ~15 min</td></tr><tr><td style="text-align:left">5</td><td style="text-align:left">The UI <em>pass</em> (polish beyond the stylesheet)</td><td style="text-align:left">First to cut</td></tr><tr><td style="text-align:left">6</td><td style="text-align:left">The canned opener clip</td><td style="text-align:left"><strong>Cut now, before starting</strong> (D8)</td></tr></tbody></table></div>
+<p><strong>The deviation.</strong> <code>frontend/</code> contains <strong>no stylesheet of any kind</strong> — no <code>.css</code> file anywhere, no CSS-in-JS, nothing. <code>App.tsx</code> renders bare <code>&lt;h1&gt;</code>, <code>&lt;p&gt;</code>, <code>&lt;ul&gt;</code>, <code>&lt;button&gt;</code> against browser defaults. Every screenshot in the Loom, and the reviewer's first five seconds, is Times New Roman on white with an unstyled bulleted list of gate segments.</p>
+<p>The rubric asks <em>&quot;Is the UI delightful?&quot;</em> by name. Twenty minutes of one flat stylesheet moves that line further than any other twenty minutes available in this block, and it moves the Loom — which is what most of the reviewing actually happens against — more than Arabic does. So a <strong>single <code>frontend/src/index.css</code>, ~120 lines, no new dependency, no component restructuring</strong> is treated as never-cut. The <em>UI pass</em> (transitions, a waveform, a layout rework) stays first-to-cut and is explicitly out of scope.</p>
+<h3 id="d3-the-cut-ladder-with-the-clock-time-each-rung-fires"><span class="htext">D3 — The cut ladder, with the clock time each rung fires</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Rung</th><th style="text-align:left">Fires at</th><th style="text-align:left">Cut</th><th style="text-align:left">What the README then says</th></tr></thead><tbody><tr><td style="text-align:left">0</td><td style="text-align:left">now</td><td style="text-align:left">The canned opener clip</td><td style="text-align:left">Nothing — it was already cut in the master plan</td></tr><tr><td style="text-align:left">1</td><td style="text-align:left">13:20</td><td style="text-align:left">The UI pass (anything past <code>index.css</code>)</td><td style="text-align:left">Nothing — <code>index.css</code> is the UI pass we claim</td></tr><tr><td style="text-align:left">2</td><td style="text-align:left"><strong>13:00</strong></td><td style="text-align:left">Arabic rung 2 (spoken Arabic)</td><td style="text-align:left"><em>&quot;Sarjy understands spoken Arabic and answers in English. Arabic voice output is not shipped — Deepgram Aura-2 has no Arabic voice, and the Arabic alternative (Groq Orpheus) caps a request at 200 characters and 100 requests/day, which does not survive a conversation. See §What I'd do with another week.&quot;</em></td></tr><tr><td style="text-align:left">3</td><td style="text-align:left"><strong>11:45</strong></td><td style="text-align:left">Arabic entirely, if groups 1–3 are not done</td><td style="text-align:left"><em>&quot;Bilingual English/Arabic was scoped and not built. The STT and TTS interfaces both already carry a <code>language</code> parameter; nothing implements it. This is the single biggest gap between what was promised and what shipped, and it is named here rather than omitted.&quot;</em></td></tr><tr><td style="text-align:left">4</td><td style="text-align:left">15:00</td><td style="text-align:left">Any un-run human gate</td><td style="text-align:left">The README's §Verified / §Not verified table carries it — see D4</td></tr></tbody></table></div>
+<p><strong>Rungs 2 and 3 have their README sentence written in advance, in this plan, deliberately.</strong> At 13:00 nobody is in a state to write an honest sentence about their own unfinished work. It is already written; paste it.</p>
+<h3 id="d4-the-readme-states-unproven-claims-as-unproven-it-never-om"><span class="htext">D4 — The README states unproven claims as unproven. It never omits them</span></h3>
+<p>Several things in this codebase are built and tested but have <strong>never been exercised by a human</strong>, and at least one — the live Travel Buddy call with real quota — may still be unexercised at submission (<code>PR_GROUNDED_ANSWERS.md</code> §Gate status: &quot;Zero spent&quot;).</p>
+<p>The rule for this block: <strong>an unproven claim is stated with its limit attached, in the same sentence.</strong> It is never dropped, and it is never softened into the present tense.</p>
+<p>Concretely, the README carries a table with exactly three columns and no fourth:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Capability</th><th style="text-align:left">Verified how</th><th style="text-align:left">Limit</th></tr></thead><tbody></tbody></table></div>
+<ul>
+<li><em>Verified how</em> is one of: <strong>live, by hand</strong> · <strong>live, scripted</strong> · <strong>unit tests only</strong> ·</li>
+<p><strong>not run</strong>.</p>
+<li>A row whose <em>Verified how</em> is &quot;unit tests only&quot; or &quot;not run&quot; <strong>must</strong> have a non-empty <em>Limit</em>.</li>
+<li>No row is deleted because it looks bad. A &quot;not run&quot; row costs less than a reviewer finding it.</li>
+</ul>
+<p>This is the graded behaviour. The brief's own deep-dive text asks what <em>&quot;didn't&quot;</em> work, by name.</p>
+<h3 id="d5-arabic-ships-in-two-rungs-and-rung-1-is-worth-having-on-i"><span class="htext">D5 — Arabic ships in two rungs, and rung 1 is worth having on its own</span></h3>
+<p>**Rung 1 — Sarjy <em>understands</em> Arabic. ~15 minutes.** A language toggle in the UI → <code>lang</code> on the <code>start</code> message → <code>stt.transcribe(pcm16, language=&quot;ar&quot;)</code> → one line in the user block telling the model the user spoke Arabic and to answer in English. Answer text and voice stay English. For a Gulf traveller this is a real, defensible product behaviour, not a stub.</p>
+<p>**Rung 2 — Sarjy <em>speaks</em> Arabic. ~60 minutes, and genuinely risky.<strong> Deepgram Aura-2 has </strong>no Arabic voice** — verified 2026-09-21, Aura-2 covers English, Spanish, Dutch, French, German, Italian, Japanese only (<a href="https://developers.deepgram.com/docs/tts-models">Deepgram voices &amp; languages</a>). So Arabic needs a second TTS provider, and the decided one is Groq Orpheus.</p>
+<p>🪤 <strong>Every one of these is a trap that will cost the implementer time if it is discovered at 12:30 instead of read here.</strong> Verified 2026-09-21 against <a href="https://console.groq.com/docs/text-to-speech/orpheus">console.groq.com/docs/text-to-speech/orpheus</a>:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Fact</th><th style="text-align:left">Consequence</th></tr></thead><tbody><tr><td style="text-align:left"><strong>200 characters maximum per request</strong></td><td style="text-align:left">The answer must be chunked. <code>quoted</code> segments alone are allowed 400 chars (Q5) — the collision <code>PR_GROUNDED_ANSWERS.md</code> flagged for this block</td></tr><tr><td style="text-align:left"><strong><code>response_format</code> accepts <code>&quot;wav&quot;</code> only</strong></td><td style="text-align:left">The playback path expects raw PCM s16le. The adapter must strip the RIFF header</td></tr><tr><td style="text-align:left"><strong>Streaming is not documented</strong></td><td style="text-align:left">It is a batch call. <code>tts_ttfb_ms</code> for Arabic is full synthesis time, and chunks are sequential. An Arabic turn will be visibly slower. <strong>Measure it, quote it, do not hide it</strong></td></tr><tr><td style="text-align:left"><strong>Free tier: 10 RPM / 100 RPD / 1 200 TPM</strong></td><td style="text-align:left">A 400-char answer is 2 requests. ~50 Arabic turns per day for the whole org, and 10 RPM will 429 you mid-conversation. <strong>Arabic is a demo-able turn, not a mode</strong> — say exactly that in the README</td></tr><tr><td style="text-align:left"><strong>Listed under Preview Models</strong></td><td style="text-align:left">It can change under us. Not a reason to skip it; a reason to name it</td></tr><tr><td style="text-align:left">Endpoint</td><td style="text-align:left"><code>https://api.groq.com/openai/v1/audio/speech</code>, OpenAI-compatible. The <code>groq</code> SDK is <strong>already a dependency</strong> (<code>GroqSTT</code> uses <code>AsyncGroq</code>) and <code>GROQ_API_KEY</code> is <strong>already configured</strong>. No new secret, no new package</td></tr><tr><td style="text-align:left">Arabic voices</td><td style="text-align:left"><code>Abdullah</code>, <code>Fahad</code>, <code>Sultan</code>, <code>Lulwa</code>, <code>Noura</code>, <code>Aisha</code>. Pick one, put it in <code>config.py</code>, say why in a comment</td></tr><tr><td style="text-align:left">Vocal directions (<code>[cheerful]</code>)</td><td style="text-align:left"><strong>English model only.</strong> Never emit a bracketed direction on the Arabic path</td></tr></tbody></table></div>
+<p><strong>AR-0 is a 5-minute probe and it runs before any adapter code is written</strong> — see the task list. If the probe says the WAV is not 24 kHz mono 16-bit, rung 2 is cut on the spot and rung 1 ships.</p>
+<h3 id="d6-language-routes-inside-the-tts-boundary-not-through-the-f"><span class="htext">D6 — Language routes inside the TTS boundary, not through the factory signature</span></h3>
+<p><code>TTS.synthesize(text, *, language: str | None = None)</code> <strong>already has the parameter</strong> (<code>base.py</code>); nothing implements it and <code>turn.py</code> hardcodes <code>language=None</code> at both call sites.</p>
+<p><code>factory.get_tts()</code> stays <strong>zero-argument</strong> and returns a small <code>RoutedTTS</code> that holds both adapters and dispatches on <code>language</code>. It does not become <code>get_tts(lang)</code>.</p>
+<p><strong>Why:</strong> <code>get_tts</code> is typed <code>Callable[[], TTS]</code> through <code>run_turn</code>'s signature, <code>main.py</code>'s pass-through, and every fake in <code>test_turn.py</code> / <code>test_ws.py</code>. Changing its arity is ~12 mechanical edits across Block A's and Block B's test contracts, at 12:00 on deadline day, for no behavioural gain. The router is one class, one dispatch line, and one sentence to explain out loud: <em>&quot;Deepgram has no Arabic voice, so the TTS boundary picks the voice from the language the turn is in.&quot;</em></p>
+<p><strong>The cost, named:</strong> <code>timings.tts_model</code> will read the router's composite string rather than the voice that actually spoke. Closed by adding <code>TurnTimings.lang: str = &quot;en&quot;</code> — the pair (<code>tts_model</code>, <code>lang</code>) is unambiguous, and <code>lang</code> is a field <code>measure.py</code> wants anyway.</p>
+<h3 id="d7-protocol_version-is-not-bumped"><span class="htext">D7 — <code>PROTOCOL_VERSION</code> is <strong>not</strong> bumped</span></h3>
+<p><code>main.py:881</code> does a strict <code>hello.v != PROTOCOL_VERSION</code> equality check and hard-closes the socket with <code>recoverable=False</code> on mismatch. A bump on deadline day adds a hard-failure mode for any client holding a stale bundle and buys nothing here, because <strong><code>lang</code> is an additive optional field with a default</strong> — an old client omitting it and a new server reading it are wire-compatible in both directions.</p>
+<p>Stays at <strong>5</strong>. Record the additive change in <code>protocol.py</code>'s module docstring instead. If a future block removes or retypes a field, that one bumps.</p>
+<h3 id="d8-the-canned-opener-clip-is-cut-now-and-the-readme-says-wha"><span class="htext">D8 — The canned opener clip is cut now, and the README says what replaced it</span></h3>
+<p>The master plan's opener story has already moved twice: the <code>update()</code> opener was cut, and a pre-recorded clip was to cover the lookup. That clip is cut too, at rung 0, before this block starts. It is a recording session, an asset pipeline, a playback-queue interaction with barge-in, and a new failure mode (&quot;the clip plays over the answer&quot;) for a perceived-latency win that <code>state: thinking</code> already half-delivers.</p>
+<p>What the README says instead: the visible state machine flips to <code>thinking</code> within one round trip, the fact card paints <strong>before call 2 starts</strong> (Block A's send-order contract), so the reviewer is reading real data while the answer is still being written. That is the honest perceived-latency story and it is already built.</p>
+<h3 id="d9-the-deep-dives-fallback-layer-cannot-be-demonstrated-live"><span class="htext">D9 — The deep dive's fallback layer cannot be demonstrated live, and the demo script says so</span></h3>
+<p>Block A's gate line reads <em>&quot;pulling the network still answers correctly and names which layer served it.&quot;</em> There is <strong>no live affordance for this.</strong> <code>SARJY_FAKE_VENDOR=1</code> is an environment variable (redeploy), and <code>TravelBuddyTool.lookup()</code> has no per-call layer override — adding one means a new keyword on the <code>VisaTool</code> Protocol, <code>FakeVisaTool</code>, and their tests.</p>
+<p><strong>That is scope-out.</strong> The demo script proves the fallback with the artefacts that already exist: the fact card's own <code>layer</code> badge (which reads <code>map</code> or <code>csv</code> whenever live misses), the eval's <code>vendor-failure-1</code> case, and <code>tests/test_vendor.py</code>. A one-click <em>&quot;pretend the vendor is down&quot;</em> toggle goes in §What I'd do with another week — where it reads as a considered omission rather than a hole.</p>
+<hr />
+<h2 id="scope"><span class="htext">Scope</span></h2>
+<h3 id="in"><span class="htext">In</span></h3>
+<ol>
+<li><strong><code>fact_card</code> renders</strong> — the card, the refusal card, the degraded badge, and the stale-card fix.</li>
+<li><strong><code>frontend/src/index.css</code></strong> — one flat stylesheet, ~120 lines, no dependency.</li>
+<li><strong><code>README.md</code>, rewritten</strong> — currently describes a stack that no longer exists (D-upstream-1).</li>
+<li><strong><code>docs/DEMO-SCRIPT.md</code></strong> — the ordered utterance list.</li>
+<li><strong><code>docs/LOOM-OUTLINE.md</code></strong> — a 5-minute shot list with timings.</li>
+<li><strong>Arabic rung 1</strong> — toggle → <code>lang</code> on <code>start</code> → Whisper <code>language=&quot;ar&quot;</code> → one prompt line.</li>
+<li><strong>Arabic rung 2</strong> — <code>GroqOrpheusTTS</code>, the 200-char chunker, WAV→PCM, <code>RoutedTTS</code>. Timeboxed.</li>
+<li><strong><code>docs/PRs/PR_DEMOABLE.md</code></strong> — per <code>.claude/rules/workflow.md</code> phase 5.</li>
+</ol>
+<h3 id="out-do-not-expand-into-these"><span class="htext">Out — do not expand into these</span></h3>
+<ul>
+<li><strong>Any new external API, any new dependency, any new secret.</strong> Arabic reuses <code>GROQ_API_KEY</code>.</li>
+<li><strong>Spending RapidAPI quota.</strong> The ledger is locked and its real spent count is unresolved. No task</li>
+<p>here fires a live vendor request. <code>scripts/fetch_reference.py</code> is Omar's to run, or not.</p>
+<li><strong><code>?force_layer=</code> or any live fallback toggle</strong> (D9).</li>
+<li><strong>Arabic code-switching, RTL layout beyond <code>dir=&quot;rtl&quot;</code> on the transcript line, an Arabic UI.</strong></li>
+<p>Master plan overflow rung 3 already cut this: <em>&quot;Keep the bare Arabic turn. Name the gap out loud.&quot;</em></p>
+<li><strong>Widening the gate for Arabic.</strong> <code>NUMBER_WORDS</code> and the <code>wrong_pair</code> place-name list are both</li>
+<p>English-only. Making them bilingual is a change to Block A's contract on deadline day. It is a <strong>named limit in the README</strong>, not a task (F-AR4).</p>
+<li><strong>The canned opener clip</strong> (D8).</li>
+<li><strong>Any UI work past <code>index.css</code></strong> — no animation, no avatar, no waveform, no component library.</li>
+<li><strong>Re-running the eval</strong>, re-measuring anything already measured, or touching <code>eval/</code>.</li>
+<li><strong><code>git add</code> / <code>git commit</code> / <code>git push</code> / any <code>gh</code> write.</strong> Agents draft messages. Omar commits.</li>
+</ul>
+<hr />
+<h2 id="files"><span class="htext">Files</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">File</th><th style="text-align:left">Purpose</th></tr></thead><tbody><tr><td style="text-align:left"><code>frontend/src/ui/FactCard.tsx</code></td><td style="text-align:left"><strong>New.</strong> The card component. <code>ui/</code> already exists and is empty — it was scaffolded for this</td></tr><tr><td style="text-align:left"><code>frontend/src/index.css</code></td><td style="text-align:left"><strong>New.</strong> The only stylesheet. Imported once, from <code>main.tsx</code></td></tr><tr><td style="text-align:left"><code>frontend/src/App.tsx</code></td><td style="text-align:left">Renders <code>&lt;FactCard&gt;</code>; clears the card on turn start (F-FC4); the language toggle; <code>dir</code> on the transcript/reply/segments</td></tr><tr><td style="text-align:left"><code>frontend/src/main.tsx</code></td><td style="text-align:left">One line: <code>import &quot;./index.css&quot;;</code></td></tr><tr><td style="text-align:left"><code>frontend/src/protocol.ts</code></td><td style="text-align:left"><code>lang</code> on the start message; <code>Lang</code> type</td></tr><tr><td style="text-align:left"><code>frontend/src/net/connection.ts</code></td><td style="text-align:left"><code>startTurn(turnId, lang)</code></td></tr><tr><td style="text-align:left"><code>backend/app/pipeline/protocol.py</code></td><td style="text-align:left"><code>StartIn.lang: Lang = &quot;en&quot;</code>; module docstring notes the additive change (D7)</td></tr><tr><td style="text-align:left"><code>backend/app/pipeline/turn.py</code></td><td style="text-align:left"><code>run_turn(..., lang)</code>; <code>_speak(..., lang)</code>; <code>language=lang</code> at both provider call sites; deterministic phrases pinned to <code>&quot;en&quot;</code> (F-AR5)</td></tr><tr><td style="text-align:left"><code>backend/app/pipeline/timings.py</code></td><td style="text-align:left"><code>lang: str = &quot;en&quot;</code></td></tr><tr><td style="text-align:left"><code>backend/app/main.py</code></td><td style="text-align:left">Reads <code>msg.lang</code>, passes it to <code>run_turn</code></td></tr><tr><td style="text-align:left"><code>backend/app/prompts.py</code></td><td style="text-align:left"><code>build_user_block(..., lang)</code> → the <code>&lt;reply_language&gt;</code> block</td></tr><tr><td style="text-align:left"><code>backend/app/providers/groq_tts.py</code></td><td style="text-align:left"><strong>New.</strong> <code>GroqOrpheusTTS</code> — chunker, WAV→PCM, the rate assertion</td></tr><tr><td style="text-align:left"><code>backend/app/providers/factory.py</code></td><td style="text-align:left"><code>RoutedTTS</code></td></tr><tr><td style="text-align:left"><code>backend/app/providers/base.py</code></td><td style="text-align:left">Docstring only: what <code>language</code> now means</td></tr><tr><td style="text-align:left"><code>backend/app/config.py</code></td><td style="text-align:left"><code>groq_tts_model</code>, <code>groq_tts_voice</code></td></tr><tr><td style="text-align:left"><code>backend/app/measure.py</code></td><td style="text-align:left"><code>lang</code> in the record fields</td></tr><tr><td style="text-align:left"><code>backend/tests/test_groq_tts.py</code></td><td style="text-align:left"><strong>New.</strong> Chunking + WAV parsing + the rate assertion. No network</td></tr><tr><td style="text-align:left"><code>backend/tests/test_turn.py</code>, <code>test_ws.py</code>, <code>test_protocol.py</code></td><td style="text-align:left"><code>lang</code> threading</td></tr><tr><td style="text-align:left"><code>README.md</code></td><td style="text-align:left"><strong>Rewritten.</strong> The front door</td></tr><tr><td style="text-align:left"><code>docs/DEMO-SCRIPT.md</code></td><td style="text-align:left"><strong>New.</strong> Ordered utterances</td></tr><tr><td style="text-align:left"><code>docs/LOOM-OUTLINE.md</code></td><td style="text-align:left"><strong>New.</strong> The 5-minute shot list</td></tr><tr><td style="text-align:left"><code>docs/PRs/PR_DEMOABLE.md</code></td><td style="text-align:left"><strong>New.</strong> Summary · Problem · Solution · Changes · How to Test · Changelog</td></tr><tr><td style="text-align:left"><code>scratch/spikes/orpheus_probe.py</code></td><td style="text-align:left"><strong>New, not committed.</strong> AR-0's 5-minute probe</td></tr></tbody></table></div>
+<hr />
+<h2 id="contracts"><span class="htext">Contracts</span></h2>
+<h3 id="1-the-fact-card-already-on-the-wire-frontendsrcprotocolts-un"><span class="secnum">1</span><span class="htext">— The fact card, already on the wire (<code>frontend/src/protocol.ts</code>, unchanged)</span></h3>
+<p>Copy these field names exactly. They are what Block A emits.</p>
+<div class="codewrap"><pre><code class="lang-ts">export interface FactRowWire {
+  path: string;        // &quot;visa.duration&quot; — the same path the gate substitutes from
+  label: string;       // &quot;Maximum stay&quot;
+  value: string;       // the SAME string the gate would have substituted
+  kind: &quot;sourced&quot; | &quot;quoted&quot;;
+}
+
+export interface FactCardMessage {
+  t: &quot;fact_card&quot;;
+  turn_id: string;
+  passport: string;            // &quot;SA&quot;
+  passport_name: string;       // &quot;Saudi Arabia&quot;
+  destination: string;         // &quot;JP&quot;
+  destination_name: string;    // &quot;Japan&quot;
+  covered: boolean;            // false = pair resolved, no layer had it → the refusal card
+  facts: FactRowWire[];
+  layer: ToolLayer | null;     // &quot;cache&quot; | &quot;live&quot; | &quot;map&quot; | &quot;csv&quot;
+  degraded: boolean;           // layer in {map, csv}
+  source_name: string | null;
+  source_url: string | null;
+  source_date: string | null;  // the SOURCE's own date, never ours
+  retrieved: string | null;    // ours, ISO 8601 Z
+  embassy_url: string | null;  // the refusal route
+  seq: number;
+  ts_ms: number;
+}</code></pre></div>
+<h3 id="2-factcardtsx"><span class="secnum">2</span><span class="htext">— <code>FactCard.tsx</code></span></h3>
+<div class="codewrap"><pre><code class="lang-tsx">export function FactCard({ card }: { card: FactCardMessage }): JSX.Element</code></pre></div>
+<p>Renders exactly three shapes, chosen in this order:</p>
+<ol>
+<li><strong><code>covered === false</code></strong> → the refusal card. Header <code>{passport_name} → {destination_name}</code>, the</li>
+<p>line <em>&quot;No source covers this pair.&quot;</em>, and — when <code>embassy_url</code> is non-null — an <code>&lt;a target=&quot;_blank&quot; rel=&quot;noreferrer&quot;&gt;</code> to it labelled <em>&quot;Embassy page&quot;</em>. <strong>Never an empty box.</strong></p>
+<li><strong><code>covered === true</code> and <code>facts.length === 0</code></strong> → header plus the provenance footer, plus</li>
+<p><em>&quot;Nothing to show for this pair.&quot;</em> Reachable when no <code>LABELS</code> path is present on this layer.</p>
+<li><strong><code>covered === true</code> and <code>facts.length &gt; 0</code></strong> → header, one <code>&lt;li&gt;</code> per fact</li>
+<p>(<code>{label} — {value}</code> plus a <code>kind</code> badge whose class matches the existing segment badge), then the provenance footer.</p>
+</ol>
+<p>Provenance footer, in this order, omitting any null: <code>{source_name}</code> · <code>{source_date}</code> · <code>retrieved {retrieved}</code> · <code>{layer}</code>. When <code>degraded === true</code>, prepend a visible <code>&lt;span className=&quot;card-degraded&quot;&gt;</code> reading <strong>&quot;fallback source&quot;</strong>.</p>
+<p><code>source_url</code> wraps <code>source_name</code> as a link when non-null.</p>
+<h3 id="3-wire-lang"><span class="secnum">3</span><span class="htext">— Wire: <code>lang</code></span></h3>
+<div class="codewrap"><pre><code class="lang-python"># backend/app/pipeline/protocol.py
+Lang = Literal[&quot;en&quot;, &quot;ar&quot;]
+
+class StartIn(BaseModel):
+    model_config = ConfigDict(extra=&quot;forbid&quot;)
+    t: Literal[&quot;start&quot;]
+    turn_id: str
+    client_ts_ms: int
+    lang: Lang = &quot;en&quot;      # additive, defaulted. PROTOCOL_VERSION stays 5 (D7)</code></pre></div>
+<div class="codewrap"><pre><code class="lang-ts">// frontend/src/protocol.ts
+export type Lang = &quot;en&quot; | &quot;ar&quot;;
+// connection.ts
+startTurn(turnId: string, lang: Lang = &quot;en&quot;): void
+//   → this.send({ t: &quot;start&quot;, turn_id: turnId, client_ts_ms: Date.now(), lang })</code></pre></div>
+<h3 id="4-the-turn"><span class="secnum">4</span><span class="htext">— The turn</span></h3>
+<div class="codewrap"><pre><code class="lang-python">async def run_turn(*, ..., lang: str = &quot;en&quot;) -&gt; AsyncIterator[TurnItem]: ...
+
+async def _speak(text, turn_id, get_tts, failed, next_seq, now_ms, timings, *, lang: str) -&gt; ...</code></pre></div>
+<ul>
+<li><code>turn.py:223</code> — <code>await stt.transcribe(pcm16, language=lang)</code> (was <code>language=None</code>).</li>
+<li><code>turn.py:537</code> — <code>tts.synthesize(text, language=lang)</code> (was <code>language=None</code>).</li>
+<li><code>timings.lang = lang</code>, set next to <code>timings.stt_model</code>.</li>
+<li><strong>Every deterministic fixed-phrase call site passes <code>lang=&quot;en&quot;</code> explicitly</strong> — the sign-in</li>
+<p>sub-flow, the <code>NO_COVERAGE</code> refusal, the gate's rejection phrase (F-AR5).</p>
+</ul>
+<h3 id="5-the-arabic-prompt-line-backendapppromptspy"><span class="secnum">5</span><span class="htext">— The Arabic prompt line (<code>backend/app/prompts.py</code>)</span></h3>
+<p><code>build_user_block(..., lang: str = &quot;en&quot;)</code> appends this block, and <strong>only</strong> when <code>lang == &quot;ar&quot;</code>:</p>
+<div class="codewrap"><pre><code>&lt;reply_language&gt;
+The user is speaking Arabic. Write every segment's `text` in Arabic.
+Field placeholders such as {visa.duration} must be copied EXACTLY as written, in Latin
+characters, with their braces — never translated, never transliterated, never reformatted.
+Keep each segment under 25 words.
+&lt;/reply_language&gt;</code></pre></div>
+<p>🪤 <strong>The second sentence is load-bearing.</strong> If the model translates a placeholder or its braces, <code>PLACEHOLDER_RE = re.compile(r&quot;\{([a-z0-9_.]+)\}&quot;)</code> matches nothing, the <code>placeholder</code> rule fires, and <strong>every sourced segment in the turn is rejected</strong>. The failure looks like &quot;the gate is broken in Arabic&quot;; it is the prompt.</p>
+<p>The third sentence is the 200-char cap pushed upstream: short segments mean fewer Orpheus requests.</p>
+<h3 id="6-groqorpheustts-backendappprovidersgroq_ttspy"><span class="secnum">6</span><span class="htext">— <code>GroqOrpheusTTS</code> (<code>backend/app/providers/groq_tts.py</code>)</span></h3>
+<div class="codewrap"><pre><code class="lang-python">MODEL = &quot;canopylabs/orpheus-arabic-saudi&quot;
+MAX_CHARS = 200          # Groq's hard per-request cap, not a tuning knob
+EXPECTED_SAMPLE_RATE = 24_000
+
+class GroqOrpheusTTS:
+    model: str
+    def __init__(self, api_key: str, model: str, voice: str) -&gt; None: ...
+    async def synthesize(self, text: str, *, language: str | None = None) -&gt; AsyncIterator[bytes]:
+        ...
+
+def chunk_for_orpheus(text: str, limit: int = MAX_CHARS) -&gt; list[str]: ...
+def wav_to_pcm16(wav: bytes) -&gt; tuple[bytes, int]: ...   # (pcm_s16le, sample_rate_hz)</code></pre></div>
+<ul>
+<li><code>chunk_for_orpheus</code> splits on sentence terminators first (<code>.</code>, <code>؟</code>, <code>!</code>, <code>۔</code>, <code>؛</code>, newline),</li>
+<p>packing greedily up to <code>limit</code>. A single sentence longer than <code>limit</code> splits at the <strong>last space at or before <code>limit</code></strong>; a run with no space at all hard-splits at <code>limit</code>. It <strong>never returns a chunk longer than <code>limit</code></strong> and <strong>never drops a character</strong> — both are asserted in tests.</p>
+<li><code>wav_to_pcm16</code> reads the RIFF/<code>fmt </code>/<code>data</code> chunks, returns the <code>data</code> payload and the header's</li>
+<p>sample rate. It raises <code>RuntimeError</code> on a non-RIFF body, on non-PCM format, on channels ≠ 1, and on bits-per-sample ≠ 16 — each with the observed value in the message.</p>
+<li><code>synthesize</code> calls `client.audio.speech.create(model=..., voice=..., input=chunk,</li>
+<p>response_format=&quot;wav&quot;)<code> **once per chunk, sequentially**, and yields each chunk's PCM. If the first chunk's sample rate ≠ </code>EXPECTED_SAMPLE_RATE<code> it raises </code>RuntimeError` naming both numbers (F-AR3).</p>
+<li>Timeout and retries are <strong>explicit</strong>, never the SDK default — same rule <code>GroqSTT</code> follows</li>
+<p>(<code>max_retries=1</code>, <code>timeout=8.0</code>). Copy those constants.</p>
+<li><code>language</code> is accepted and ignored: this adapter <em>is</em> the Arabic branch. Say so in a comment.</li>
+</ul>
+<h3 id="7-routedtts-backendappprovidersfactorypy"><span class="secnum">7</span><span class="htext">— <code>RoutedTTS</code> (<code>backend/app/providers/factory.py</code>)</span></h3>
+<div class="codewrap"><pre><code class="lang-python">class RoutedTTS:
+    &quot;&quot;&quot;Deepgram Aura-2 has no Arabic voice (verified 2026-09-21), so the TTS
+    boundary picks the voice from the language the turn is in. `TTS.synthesize`
+    always carried `language`; this is the first thing to implement it.&quot;&quot;&quot;
+    model: str  # &quot;routed(en=&lt;deepgram model&gt;, ar=&lt;orpheus model&gt;)&quot; — see D6 on why, and `TurnTimings.lang`
+
+    def synthesize(self, text: str, *, language: str | None = None) -&gt; AsyncIterator[bytes]:
+        return (self._ar if language == &quot;ar&quot; else self._en).synthesize(text, language=language)</code></pre></div>
+<p><code>get_tts()</code> keeps <code>@functools.lru_cache(maxsize=1)</code> and its zero-argument signature.</p>
+<hr />
+<h2 id="failure-paths-build-these-before-the-happy-path-they-protect"><span class="htext">Failure paths — build these before the happy path they protect</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Failure</th><th style="text-align:left">Visible behaviour</th></tr></thead><tbody><tr><td style="text-align:left"><strong>F-FC1</strong></td><td style="text-align:left"><code>covered === false</code></td><td style="text-align:left">The refusal card: the pair, <em>&quot;No source covers this pair.&quot;</em>, and the embassy link when known. <strong>Never an empty box, never a blank card area</strong></td></tr><tr><td style="text-align:left"><strong>F-FC2</strong></td><td style="text-align:left"><code>degraded === true</code></td><td style="text-align:left">A <strong>&quot;fallback source&quot;</strong> badge next to the layer name. A degraded answer must never look identical to a live one — this is the visible half of Invariant 7</td></tr><tr><td style="text-align:left"><strong>F-FC3</strong></td><td style="text-align:left"><code>covered === true</code>, <code>facts === []</code></td><td style="text-align:left">Header + provenance footer + <em>&quot;Nothing to show for this pair.&quot;</em> No empty <code>&lt;ul&gt;</code></td></tr><tr><td style="text-align:left"><strong>F-FC4</strong></td><td style="text-align:left">A new turn starts while last turn's card is on screen</td><td style="text-align:left">The card is cleared in <code>handleUtterance</code>, in the same block as <code>setSegments([])</code> (App.tsx ~line 232). <strong><code>setFactCard(null)</code> is missing there today — this is a live bug, not a hypothetical.</strong> A card describing Japan must never sit under an answer about Thailand</td></tr><tr><td style="text-align:left"><strong>F-FC5</strong></td><td style="text-align:left"><code>source_url</code> / <code>embassy_url</code> present</td><td style="text-align:left"><code>target=&quot;_blank&quot; rel=&quot;noreferrer&quot;</code>. A demo that navigates away from the WebSocket mid-turn kills the turn</td></tr><tr><td style="text-align:left"><strong>F-CSS1</strong></td><td style="text-align:left">A long transcript, a 400-char <code>quoted</code> segment, or a 10-row card</td><td style="text-align:left">No horizontal scroll, no overlap, nothing pushed off-screen at 1280×800 — the Loom's frame</td></tr><tr><td style="text-align:left"><strong>F-AR1</strong></td><td style="text-align:left">Arabic answer &gt; 200 chars</td><td style="text-align:left"><code>chunk_for_orpheus</code> splits it. Sequential requests, concatenated PCM, one <code>audio_start</code>/<code>audio_end</code> pair for the whole turn. <strong>Never truncate</strong></td></tr><tr><td style="text-align:left"><strong>F-AR2</strong></td><td style="text-align:left">Groq 429 (10 RPM) part-way through the chunks</td><td style="text-align:left">If audio already started: emit <code>audio_end</code> for what played, then <code>turn_failed(&quot;tts&quot;, &quot;My Arabic voice hit its rate limit partway through — the answer above is still correct.&quot;)</code>. If not: <code>turn_failed(&quot;tts&quot;, &quot;The Arabic voice is rate-limited right now. Switch to English and try again.&quot;)</code>. <code>_speak</code>'s existing <code>audio_started</code> branch already has this shape — reuse it, do not write a second one</td></tr><tr><td style="text-align:left"><strong>F-AR3</strong></td><td style="text-align:left">Orpheus returns a WAV that is not 24 kHz mono 16-bit</td><td style="text-align:left"><code>RuntimeError</code> naming the observed value → <code>turn_failed</code> with a legible message. <strong>Never</strong> stream it at the wrong rate — that plays as pitch-shifted noise and looks like a broken app</td></tr><tr><td style="text-align:left"><strong>F-AR4</strong></td><td style="text-align:left">A fabricated Arabic number in a <code>sourced</code> segment</td><td style="text-align:left">⚠️ <strong>Passes.</strong> <code>_NUMBER_WORD_RE</code> is English-only and <code>wrong_pair</code>'s place-name scan reads English names from <code>destinations.json</code>. <code>DIGIT_RE = re.compile(r&quot;\d&quot;)</code> <strong>does</strong> catch Arabic-Indic digits (gate.py:51 says so) — so numerals are caught, number <em>words</em> and wrong-country names are not. <strong>This is a named limit, not a bug to fix here</strong> (scope out). It goes in the README's limits table and in §What I'd do with another week, and the demo script's Arabic turn does <strong>not</strong> claim gate coverage</td></tr><tr><td style="text-align:left"><strong>F-AR5</strong></td><td style="text-align:left">A deterministic fixed phrase fires during an Arabic turn</td><td style="text-align:left">The seven fixed phrases are English strings. They are spoken by the <strong>English</strong> voice — every deterministic call site passes <code>lang=&quot;en&quot;</code>. An Arabic voice reading English text is the worst possible demo artefact</td></tr><tr><td style="text-align:left"><strong>F-AR6</strong></td><td style="text-align:left">The user toggles to Arabic and speaks English</td><td style="text-align:left">Whisper with <code>language=&quot;ar&quot;</code> will mistranscribe or translate. Accepted and user-driven. The toggle's label is the affordance; no code</td></tr><tr><td style="text-align:left"><strong>F-AR7</strong></td><td style="text-align:left">The model translates a placeholder (<code>{مدة_التأشيرة}</code>)</td><td style="text-align:left">Every sourced segment is rejected for <code>placeholder</code> and the turn hedges. Mitigated by Contract 5's second sentence. If it is still seen during verification, <strong>cut to rung 1</strong> rather than debugging a prompt at 13:00</td></tr></tbody></table></div>
+<hr />
+<h2 id="task-list"><span class="htext">Task list</span></h2>
+<p>Ordered. Each item is independently checkable.</p>
+<h3 id="group-0-preflight-human-0900"><span class="htext">Group 0 — Preflight (human, 09:00)</span></h3>
+<ol>
+<li>Open the deployed URL. Confirm it loads, the socket connects, and <strong>one voice turn works</strong> before</li>
+<p>any code is touched. If it does not, that is the whole morning — stop and fix it.</p>
+<li>Confirm <code>SARJY_MEMORY_SALT</code> is set on the Modal deployment (<code>PR_MEMORY.md</code> asks for this by</li>
+<p>name; unset, it silently defaults to <code>&quot;sarjy-dev-salt&quot;</code>).</p>
+<li>Check the RapidAPI dashboard's real spent count and set <code>QUOTA_SPENT_SEED</code> to it. ⚠️ The default</li>
+<p>is <strong>120</strong> (the whole budget), which means an unseeded deployment <strong>never fires a live request</strong> and every visa answer is served degraded from the CSV. Getting this wrong makes the demo look broken in a way that is hard to diagnose live.</p>
+</ol>
+<h3 id="group-1-the-fact-card-0920-40-min"><span class="htext">Group 1 — The fact card (09:20, ~40 min)</span></h3>
+<ol>
+<li><strong>F-FC4 first.</strong> Add <code>setFactCard(null)</code> to <code>handleUtterance</code>'s reset block, beside</li>
+<p><code>setSegments([])</code>. Change <code>const [, setFactCard]</code> to <code>const [factCard, setFactCard]</code>.</p>
+<li>Write <code>FactCard.tsx</code> handling <strong>F-FC1 (refusal) and F-FC3 (empty) before</strong> the populated case.</li>
+<li>Add F-FC2's degraded badge and F-FC5's link attributes.</li>
+<li>Render <code>{factCard &amp;&amp; &lt;FactCard card={factCard} /&gt;}</code> in <code>App.tsx</code>, <strong>above</strong> the segment list — the</li>
+<p>card is the evidence, the segments are the audit trail of the sentence built from it.</p>
+<li><code>npm run typecheck &amp;&amp; npm run lint &amp;&amp; npm run build</code>.</li>
+</ol>
+<h3 id="group-2-the-stylesheet-1000-25-min-hard-25"><span class="htext">Group 2 — The stylesheet (10:00, ~25 min, hard 25)</span></h3>
+<ol>
+<li><code>frontend/src/index.css</code> + <code>import &quot;./index.css&quot;;</code> in <code>main.tsx</code>. One flat file. No framework,</li>
+<p>no dependency, no component restructuring, no CSS modules.</p>
+<li>Cover, and nothing else: a page container capped around 760 px with real padding · a legible</li>
+<p>system font stack · one dark surface and one accent · the four conversation states as four distinguishable colours on <code>.conversation-state</code> · <code>.segment-rejected</code> unmistakably struck and dimmed · <code>.segment-kind</code> / card <code>kind</code> badges as small pills · the fact card as a bordered panel with a visually distinct <code>.card-degraded</code> badge · the memory panel as a sidebar or a second panel · buttons that look like buttons · <code>.metrics</code> and <code>.status-line</code> small and monospace.</p>
+<li><strong>F-CSS1</strong> at 1280×800: a long transcript, a 400-char quoted segment, a 10-row card. No</li>
+<p>horizontal scroll, nothing clipped.</p>
+</ol>
+<h3 id="group-3-the-three-documents-1025-80-min-never-cut"><span class="htext">Group 3 — The three documents (10:25, ~80 min) — <strong>NEVER CUT</strong></span></h3>
+<ol>
+<li><strong><code>README.md</code>, rewritten.</strong> It is currently wrong in four separate ways (see §What I found</li>
+<p>upstream). Sections, in order:</p>
+<ul>
+<li>One-paragraph what-and-why, then the <strong>live URL</strong> — not <code>_TBD_</code>.</li>
+<li><strong>What a reviewer should do in 90 seconds</strong> — three utterances, lifted from the demo script.</li>
+<li><strong>The deep dive</strong>: three registers, the nine <code>sourced</code> rules, value-level substitution, the</li>
+<p><code>?gate_demo=1</code> affordance, the eval's headline (<strong>7/8, with <code>injection-2</code> a labelled, predicted failure</strong>) and a link to <code>eval/results/2026-09-20-gate-eval.md</code>.</p>
+<li><strong>The external API, and why this one</strong> — keep the existing justification paragraph; it is</li>
+<p>good. <strong>Delete GOV.UK and Aladhan from &quot;supporting sources&quot;</strong> — they were excluded (<code>AGENTS.md</code> §Decided).</p>
+<li><strong>How it works</strong> — keep the pipeline diagram and the cascaded-vs-speech-to-speech paragraph;</li>
+<p>both are still exactly true and both are strong.</p>
+<li><strong>Measured latency</strong>, from <code>docs/measurements/2026-09-20-two-corrected-numbers.md</code>:</li>
+<p><code>upload 1195 ms · stt 149 ms · llm_ttft 890 ms · tts_ttfb 566 ms · server 1822 ms</code>. Quote the caveat in the same breath — <strong>scripted from a sandbox, not a browser; <code>endpoint_ms</code> and <code>first_audio_ms</code> are null because a script has no VAD and no speaker.</strong> Include the story that two of these numbers were wrong and got corrected; it is the best evidence in the repo that the measurement is real.</p>
+<li><strong>§Verified / §Not verified</strong>, the three-column table from D4. Populate it from</li>
+<p><code>PR_GROUNDED_ANSWERS.md</code> §Gate status and <code>PR_MEMORY.md</code> §Not run here, plus whatever Group 6 actually lands. The live vendor row is <strong>&quot;not run&quot;</strong> until Omar runs it.</p>
+<li><strong>§What I'd do with another week.</strong> Minimum five entries, each one sentence of what and one of</li>
+<p>why: (a) speech-to-speech is off the table while the gate needs a text checkpoint — here is the latency that costs, measured; (b) the paraphrased injection (<code>injection-2</code>) still gets through, by design and by admission; (c) <code>judgement</code> is ungated by design — the honest boundary of the claim; (d) <code>NUMBER_WORDS</code> and <code>wrong_pair</code> are English-only, so the Arabic register is weaker than the English one; (e) a one-click <em>&quot;pretend the vendor is down&quot;</em> toggle, because the fallback currently has no live demo (D9); (f) <code>sourced</code>-as-hedge is not gate-enforceable and only a weak proxy exists.</p>
+<li><strong>Stack table</strong> — <code>aura-2-thalia-en</code>, <strong>not</strong> <code>gemini-3.1-flash-tts-preview</code>.</li>
+<li><strong>Status</strong> — every box reflecting reality on the day.</li>
+</ul>
+<li><strong><code>docs/DEMO-SCRIPT.md</code>.</strong> An ordered table: <strong>Say this · What should happen · Proves</strong>. Exactly</li>
+<p>this sequence (Arabic line added by task 24, or replaced by rung 2's README sentence):</p>
+</ol>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Say / do</th><th style="text-align:left">Should happen</th><th style="text-align:left">Proves</th></tr></thead><tbody><tr><td style="text-align:left">0</td><td style="text-align:left">Open the URL cold. Click <strong>Start talking</strong>, allow the mic</td><td style="text-align:left">State reads <code>idle</code> → <code>Listening for you…</code></td><td style="text-align:left">#4, #1</td></tr><tr><td style="text-align:left">1</td><td style="text-align:left">Type name + PIN in the panel, <strong>Sign in</strong></td><td style="text-align:left">Panel reads <em>&quot;Signed in as …&quot;</em></td><td style="text-align:left">#2 setup</td></tr><tr><td style="text-align:left">2</td><td style="text-align:left"><em>&quot;I'm travelling on a Saudi passport and my favourite colour is green.&quot;</em></td><td style="text-align:left">Panel gains two facts, each with the <strong>verbatim sentence that taught it</strong> and a timestamp</td><td style="text-align:left">#2, Invariant 4</td></tr><tr><td style="text-align:left">3</td><td style="text-align:left"><em>&quot;Do I need a visa for Japan?&quot;</em></td><td style="text-align:left">Spoken answer · a <code>sourced</code> segment per claim with citation, layer and date · <strong>the fact card paints with the same values</strong> · the quota chip decrements</td><td style="text-align:left">#1, #3, #5</td></tr><tr><td style="text-align:left">4</td><td style="text-align:left"><strong>Hard reload</strong> (⌘⇧R). Sign back in with the same name + PIN. <em>&quot;What's my favourite colour?&quot;</em></td><td style="text-align:left"><em>&quot;Green&quot;</em> — and the panel shows the <strong>original</strong> <code>learned_at</code>, not a new one</td><td style="text-align:left"><strong>#2, the graded one</strong></td></tr><tr><td style="text-align:left">5</td><td style="text-align:left">Reload with <code>?gate_demo=1</code>. Ask #3 again</td><td style="text-align:left">One extra segment appears <strong>struck through with its rejection reason</strong>. The spoken answer does not contain it</td><td style="text-align:left"><strong>#5 — the deep dive, live</strong></td></tr><tr><td style="text-align:left">6</td><td style="text-align:left"><em>&quot;Do I need a visa for Wakanda?&quot;</em> (or any uncovered pair)</td><td style="text-align:left"><em>&quot;I don't have a source for that&quot;</em> + the embassy link, on screen and in the card. <strong>No invented answer</strong></td><td style="text-align:left">Invariant 6</td></tr><tr><td style="text-align:left">7</td><td style="text-align:left">Barge in: start a question, then interrupt mid-answer</td><td style="text-align:left">Audio stops immediately, state returns to <code>listening</code></td><td style="text-align:left">#1, Invariant 7</td></tr><tr><td style="text-align:left">8</td><td style="text-align:left">Toggle to <strong>العربية</strong>, ask a visa question in Arabic</td><td style="text-align:left"><em>(rung 2)</em> answer spoken in Arabic · <em>(rung 1)</em> Arabic understood, answered in English</td><td style="text-align:left">#1, the bilingual promise</td></tr></tbody></table></div>
+<p>Each row also carries <strong>&quot;if this breaks, say ___&quot;</strong> — one honest sentence Omar can use live, because the reviewer is watching either way. Row 5 additionally carries the sentence that makes the demo: <em>&quot;the model wrote that number; deterministic code refused to let it be spoken.&quot;</em></p>
+<ol>
+<li><strong><code>docs/LOOM-OUTLINE.md</code></strong> — a <strong>5-minute</strong> shot list with per-section timings:</li>
+<ul>
+<li>0:00–0:20 what Sarjy is, in one sentence, and the live URL on screen.</li>
+<li>0:20–1:40 demo script rows 0–4, real-time, no cuts.</li>
+<li>1:40–3:00 <strong>the deep dive</strong> — row 5, then one screen of <code>gate.py</code>'s nine <code>sourced</code> rules.</li>
+<li>3:00–3:45 row 6 (refusal + embassy), and the honest sentence about the fallback layer having</li>
+<p>no live demo (D9).</p>
+<li>3:45–4:20 the measured latency slide, <strong>including that two numbers were wrong and corrected</strong>.</li>
+<li>4:20–5:00 §What I'd do with another week — the brief asks for it by name.</li>
+<li>Then: recording notes (one browser, one tab, mic tested, quota checked, <code>?gate_demo=1</code> opened</li>
+<p>in a second tab in advance) and <strong>what to do if a turn fails on camera: keep rolling and say what happened.</strong> A recovered failure is better evidence than a clean take.</p>
+</ul>
+</ol>
+<h3 id="group-4-arabic-1145-stop-at-1300"><span class="htext">Group 4 — Arabic (11:45, 🚨 <strong>stop at 13:00</strong>)</span></h3>
+<ol>
+<li><strong>AR-0, the probe. 5 minutes, before any adapter code.</strong> <code>scratch/spikes/orpheus_probe.py</code></li>
+<p>(not committed): one <code>AsyncGroq.audio.speech.create</code> call, ~20 Arabic characters, <code>response_format=&quot;wav&quot;</code>. Print: the response object's type and how the bytes come off it (<code>.read()</code> / <code>.content</code> / <code>.write_to_file</code>), the first 4 bytes, and the header's sample rate, channels and bits-per-sample. <strong>If it is not 24 000 / 1 / 16, cut to rung 1 now.</strong> Record the outcome in <code>docs/PRs/PR_DEMOABLE.md</code> either way — a five-minute probe that kills a feature is a good outcome, not a wasted one.</p>
+<li><strong>Rung 1.</strong> <code>StartIn.lang</code> (Contract 3) · <code>run_turn(..., lang)</code> and <code>_speak(..., lang)</code></li>
+<p>(Contract 4) · <code>timings.lang</code> · <code>main.py</code> passes <code>msg.lang</code> · <strong>F-AR5 first</strong>: pin every deterministic phrase call site to <code>lang=&quot;en&quot;</code> before anything else routes · the <code>&lt;reply_language&gt;</code> block (Contract 5) · the toggle in <code>App.tsx</code> (two buttons, <code>English</code> / <code>العربية</code>, disabled while a turn is in flight) · <code>startTurn(turnId, lang)</code> · <code>dir=&quot;rtl&quot;</code> on the transcript, reply and segment text when <code>lang === &quot;ar&quot;</code>.</p>
+<li>Update the <code>lang</code> fakes in <code>test_turn.py</code> / <code>test_ws.py</code>. 🪤 **<code>PR_MEMORY.md</code> records exactly</li>
+<p>this trap costing hours in Block B<strong>: a fake whose signature did not match was swallowed by <code>run_turn</code>'s own <code>except Exception</code> and surfaced as a generic <code>turn_failed</code>, and two barge tests then hung forever. <code>lang</code> has a </strong>default**, so the fakes will not break — but confirm by running the suite, not by reasoning about it.</p>
+<li><code>make typecheck &amp;&amp; make lint &amp;&amp; make test</code> — everything green. **Rung 1 is now shippable. If the</li>
+<p>clock reads 12:20 or later, stop here and go to Group 5.**</p>
+<li><strong>Rung 2.</strong> <code>wav_to_pcm16</code> and <code>chunk_for_orpheus</code> first, with <code>test_groq_tts.py</code> written</li>
+<p>alongside — no network in any test. Cases: empty string · exactly 200 chars · 201 chars · a 600-char single sentence with no terminator · a 300-char run with no spaces · Arabic punctuation (<code>؟</code> <code>،</code> <code>؛</code>) · a non-RIFF body · 48 kHz · stereo · 8-bit. Assert <strong>no chunk exceeds 200</strong> and <strong><code>&quot;&quot;.join(chunks)</code> loses no character</strong>.</p>
+<li><code>GroqOrpheusTTS.synthesize</code> — sequential per chunk, **F-AR3's rate assertion on the first chunk</li>
+<p>before any yield**, explicit timeout and <code>max_retries=1</code>.</p>
+<li><code>RoutedTTS</code> in <code>factory.py</code> (Contract 7) · <code>groq_tts_model</code> / <code>groq_tts_voice</code> in <code>config.py</code></li>
+<p>with a comment saying which voice and why.</p>
+<li>F-AR2: confirm <code>_speak</code>'s existing <code>audio_started</code> branch produces the right two messages for a</li>
+<p>mid-stream Groq failure. Do not write a second failure branch.</p>
+<li><strong>Verification turn</strong>: toggle to Arabic on the deployed URL, ask a visa question, confirm it is</li>
+<p>Arabic audio at the right pitch. Record <code>tts_ttfb_ms</code> and <code>tts_total_ms</code> for that turn and put both numbers in the PR doc. <strong>They will be worse than English. That is the finding, not a problem to hide.</strong></p>
+</ol>
+<h3 id="group-5-amend-the-documents-1300-20-min-never-cut"><span class="htext">Group 5 — Amend the documents (13:00, ~20 min) — <strong>NEVER CUT</strong></span></h3>
+<ol>
+<li>Set the Arabic line in the README, the demo script row 8, and the Loom outline to whichever rung</li>
+<p>actually landed. The sentences for rungs 2 and 3 are <strong>already written in D3</strong> — paste the one that applies.</p>
+<li>Fill the README's §Verified / §Not verified table with what Group 6 actually observed. **Every</li>
+<p>&quot;not run&quot; row keeps its limit sentence.**</p>
+<li><code>docs/PRs/PR_DEMOABLE.md</code> — including AR-0's outcome, the Arabic latency numbers if rung 2</li>
+<p>landed, and which cut-ladder rungs fired.</p>
+</ol>
+<h3 id="group-6-gates-1400-human"><span class="htext">Group 6 — Gates (14:00, human)</span></h3>
+<ol>
+<li>Run <code>/demo-check</code> against the deployed URL <strong>in a fresh browser profile</strong>, Chrome and Safari.</li>
+<p>Every unchecked box is a finding and goes in the README's table — not silently dropped.</p>
+<li>Run Block A's 9-row verification table and Block B's 9-step table. These are the human gates</li>
+<p>both blocks left open; this is the last chance.</p>
+<li><code>modal app logs sarjy --since 30m --tail 2000 | make measure ARGS=&quot;--label deployed-final&quot;</code> →</li>
+<p><code>docs/measurements/</code>. If the headline number moved from the README's quoted figure, <strong>the README changes, not the number.</strong></p>
+<li>Run the <code>submission-reviewer</code> agent. Fix <strong>blocking</strong> findings only; everything else goes into</li>
+<p>the README's limits table or §What I'd do with another week.</p>
+<li>Draft the commit messages (never run a git write):</li>
+<ul>
+<li><code>feat(ui): render the fact card — the deep dive's evidence, on screen</code></li>
+<li><code>feat(ui): one stylesheet — the app had none</code></li>
+<li><code>feat(voice): Arabic — Whisper language routing and a Groq Orpheus voice</code> <em>(or)</em></li>
+<p><code>feat(voice): Arabic input — Whisper language routing</code></p>
+<li><code>docs: README, demo script and Loom outline for submission</code></li>
+</ul>
+</ol>
+<hr />
+<h2 id="verification"><span class="htext">Verification</span></h2>
+<p>Run in this order. Output, not assertion.</p>
+<div class="codewrap"><pre><code class="lang-bash">cd /Users/omarsalama/Projects/Sarjy/backend
+make typecheck &amp;&amp; make lint &amp;&amp; make test
+cd ../frontend
+npm run typecheck &amp;&amp; npm run lint &amp;&amp; npm run build</code></pre></div>
+<p><strong>Proves it worked:</strong> <code>mypy</code> clean · <code>ruff</code> clean · pytest reports <strong>≥ 269 passed</strong> (Block B's baseline) plus whatever <code>test_groq_tts.py</code> adds, <strong>zero failures</strong> · <code>tsc --noEmit</code> silent · <code>eslint --max-warnings 0</code> silent · <code>vite build</code> succeeds with only the pre-existing chunk-size warning.</p>
+<p><strong>The end-to-end voice turn is mandatory</strong> (<code>AGENTS.md</code> §Verification before done). Against the <strong>deployed URL</strong>, in a fresh profile, not localhost:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Do</th><th style="text-align:left">Proves</th></tr></thead><tbody><tr><td style="text-align:left">V1</td><td style="text-align:left">Demo script rows 0–4 straight through, no restarts</td><td style="text-align:left">#1, #2, #3 and that two turns in a row work</td></tr><tr><td style="text-align:left">V2</td><td style="text-align:left">Row 3 — read the card and the segments side by side. <strong>Every value on the card appears identically in a spoken segment, or is absent from the answer entirely.</strong> Never a third value</td><td style="text-align:left">The card and the answer cannot contradict each other</td></tr><tr><td style="text-align:left">V3</td><td style="text-align:left">Row 5, <code>?gate_demo=1</code></td><td style="text-align:left">The struck-through segment is on screen <strong>and</strong> absent from the audio. The deep dive, live</td></tr><tr><td style="text-align:left">V4</td><td style="text-align:left">Row 6, an uncovered pair</td><td style="text-align:left">Refusal card, embassy link, no invented answer (Invariant 6)</td></tr><tr><td style="text-align:left">V5</td><td style="text-align:left">Start a new turn while a card from the previous one is showing</td><td style="text-align:left"><strong>The old card disappears before the new answer arrives</strong> (F-FC4)</td></tr><tr><td style="text-align:left">V6</td><td style="text-align:left">Deny the mic, then Retry</td><td style="text-align:left">Legible message, recoverable, no dead end</td></tr><tr><td style="text-align:left">V7</td><td style="text-align:left">Row 7, barge in mid-answer</td><td style="text-align:left">Audio stops now; state returns to <code>listening</code></td></tr><tr><td style="text-align:left">V8</td><td style="text-align:left">1280×800, a long answer and a 400-char quoted segment</td><td style="text-align:left">No horizontal scroll, nothing clipped (F-CSS1)</td></tr><tr><td style="text-align:left">V9</td><td style="text-align:left"><em>(rung 2 only)</em> Row 8, Arabic</td><td style="text-align:left">Arabic audio, correct pitch, no English phrase spoken by the Arabic voice (F-AR5). Record <code>tts_ttfb_ms</code></td></tr><tr><td style="text-align:left">V10</td><td style="text-align:left"><em>(rung 1 only)</em> Row 8, Arabic in</td><td style="text-align:left">The transcript is Arabic; the answer is English, spoken in English</td></tr></tbody></table></div>
+<hr />
+<h2 id="gate"><span class="htext">Gate</span></h2>
+<p>Restated from <code>MASTER-PLAN.md</code> §Block C, as observations:</p>
+<ol>
+<li>**<code>make typecheck &amp;&amp; make lint &amp;&amp; make test</code> green in <code>backend/</code>, and</li>
+<p><code>npm run typecheck &amp;&amp; npm run lint &amp;&amp; npm run build</code> green in <code>frontend/</code>.** pytest prints <code>269 passed</code> or more, zero failures. Output pasted into <code>PR_DEMOABLE.md</code>, not asserted.</p>
+<li>**A stranger opens the deployed URL and completes demo script rows 0–6 without being told</li>
+<p>anything** — no README, no instructions, no Omar. Run it on someone if one is available; if not, run it in a fresh profile and say in the PR doc that no second human was available.</p>
+<li><strong>The fact card paints on a real visa turn, and V2 holds</strong> — every value on it also appears in a</li>
+<p>spoken segment, or nowhere.</p>
+<li><strong><code>?gate_demo=1</code> produces a visibly struck-through segment that is not spoken</strong> (V3).</li>
+<li>**<code>/demo-check</code> has been run against the deployed URL in a fresh profile, and every unchecked box</li>
+<p>is written down** — in the README's limits table, not dropped.</p>
+<li><strong>The <code>submission-reviewer</code> agent has run and its blocking findings are resolved or named.</strong></li>
+<li><strong><code>README.md</code>, <code>docs/DEMO-SCRIPT.md</code> and <code>docs/LOOM-OUTLINE.md</code> exist</strong>, and the README's</li>
+<p>§Verified / §Not verified table has a limit sentence on every &quot;unit tests only&quot; and &quot;not run&quot; row (D4).</p>
+<li><strong>The Loom is recorded and shared before the meeting</strong> (brief §Presentation). Not part of this</li>
+<p>block's build, but it is the thing the block exists for.</p>
+</ol>
+<hr />
+<h2 id="open-questions-the-implementer-will-hit"><span class="htext">Open questions the implementer will hit</span></h2>
+<ol>
+<li><strong>How do bytes come off <code>AsyncGroq.audio.speech.create()</code>?</strong> The Groq docs' sample is</li>
+<p><code>response.write_to_file(path)</code>; the async binary-response object may need <code>await response.aread()</code> rather than <code>.read()</code> or <code>.content</code>. <strong>AR-0 answers this in five minutes.</strong> Do not guess it inside the adapter.</p>
+<li><strong>Is Orpheus's WAV 24 kHz mono 16-bit?</strong> Inferred from Orpheus's SNAC decoder, <strong>not verified</strong>.</li>
+<p>AR-0 answers it. If not, rung 2 is cut (D3 rung 2).</p>
+<li><strong>Does Groq's 10 RPM cap bite during a normal demo?</strong> One 400-char Arabic answer is 2 requests;</li>
+<p>two Arabic turns inside a minute is 4. Should be fine for the scripted demo and is <strong>not fine for a conversation</strong> — which is exactly what the README says.</p>
+<li><strong>Does Whisper <code>language=&quot;ar&quot;</code> transcribe Gulf dialect acceptably?</strong> Unverified against real</li>
+<p>speech. Only a human at a microphone answers it, in V10.</p>
+<li><strong>Will <code>gemini-3.5-flash-lite</code> keep placeholders intact when writing Arabic?</strong> Unverified.</li>
+<p>Contract 5's second sentence is the mitigation; F-AR7 is the fallback if it is not enough.</p>
+<li><strong>Is <code>QUOTA_SPENT_SEED</code> correct on the deployment?</strong> Unresolved at the time of writing. Task 3.</li>
+<p>Getting it wrong makes every visa answer silently degraded.</p>
+</ol>
+<hr />
+<h2 id="what-i-found-upstream"><span class="htext">What I found upstream</span></h2>
+<ol>
+<li><strong><code>README.md</code> is wrong in four ways and is currently the project's front door.</strong> It names</li>
+<p><strong><code>gemini-3.1-flash-tts-preview</code></strong> as the TTS (dropped for a 10-requests/day cap — <code>AGENTS.md</code> §Decided); it lists <strong>GOV.UK and Aladhan</strong> as supporting sources (both explicitly excluded); its live URL is <strong><code>_TBD_</code></strong> although the deployment has been live since Block 1; and every box in §Status is unchecked although six of the seven are done. Rewritten in task 12.</p>
+<li><strong><code>setFactCard(null)</code> is missing from <code>handleUtterance</code>'s reset block</strong> (<code>App.tsx</code> ~line 232,</li>
+<p>beside <code>setSegments([])</code>). Harmless today because nothing renders the card — a live stale-evidence bug the moment task 7 lands. Fixed first, as F-FC4.</p>
+<li><strong><code>frontend/</code> has no stylesheet at all.</strong> Not a thin one — none. This is the basis for D2's</li>
+<p>promotion of <code>index.css</code> into the never-cut tier.</p>
+<li>**The master plan's Block C line and <code>AGENTS.md</code> §Decided both still carry Arabic as</li>
+<p>&quot;Groq Orpheus out, 200-char cap&quot;<strong> without recording that </strong>Deepgram has no Arabic voice at all** (verified 2026-09-21). That is the actual reason a second TTS provider is needed, and it is the one-sentence answer to <em>&quot;why two TTS providers?&quot;</em> in the walkthrough. Worth a line in <code>AGENTS.md</code> when the decision closes.</p>
+<li>**Block A's gate line &quot;pulling the network still answers correctly and names which layer served</li>
+<p>it&quot; has no live affordance** (D9). It is provable from tests and the eval, not from the deployed UI. Named in the demo script and in §What I'd do with another week rather than papered over.</p>
+<li><strong>The <code>quoted</code> 400-char allowance vs Orpheus's 200-char cap</strong> — flagged by</li>
+<p><code>PR_GROUNDED_ANSWERS.md</code> for this block. Resolved by <strong>chunking in the adapter</strong> rather than by a language-aware ceiling in the gate: the cap is a property of one provider's HTTP endpoint, not of what Sarjy is allowed to quote, so it belongs at the provider boundary. Contract 6.</p>
+</ol>
+  </main>
+</div>

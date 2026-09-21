@@ -12,10 +12,19 @@ dependencies = [
     "python-dotenv>=1.0",
     "groq>=0.13",
     "google-genai>=0.3",
+    # The Deepgram TTS adapter opens a raw `websockets` connection, which
+    # (unlike httpx, used by the Groq/Gemini adapters) does not fall back to
+    # certifi automatically -- it trusts the OS/interpreter's own CA store.
+    # A debian_slim container can lack one entirely (discovered running
+    # tasks 6-8's smoke test: TTS failed SSL verification locally on a
+    # python.org macOS build with the same root cause). Runtime dependency,
+    # not dev-only -- modal_app.py's pip_install_from_pyproject only installs
+    # this list, never the `dev` extra below.
+    "certifi>=2024",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "pytest-asyncio>=0.24", "ruff>=0.8", "mypy>=1.13", "modal>=1.5.5", "certifi>=2024"]
+dev = ["pytest>=8", "pytest-asyncio>=0.24", "ruff>=0.8", "mypy>=1.13", "modal>=1.5.5"]
 
 [tool.ruff]
 line-length = 100

@@ -1,0 +1,329 @@
+<title>PR: Instrumentation (Block 3)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --ink:       #14171c;
+    --ink-2:     #474e5a;
+    --ink-3:     #767e8b;
+    --line:      #e2e5ea;
+    --line-2:    #eef0f4;
+    --accent:    #2d4a7c;
+    --accent-bg: #edf1f8;
+    --warn:      #a6421f;
+    --warn-bg:   #fbf0eb;
+    --code-bg:   #f0f2f6;
+    --shadow:    0 1px 2px rgba(20,23,28,.05), 0 8px 24px -12px rgba(20,23,28,.15);
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #101317;
+      --surface:   #171b21;
+      --ink:       #e7eaef;
+      --ink-2:     #a8b0bc;
+      --ink-3:     #7b838f;
+      --line:      #2a2f38;
+      --line-2:    #22262d;
+      --accent:    #8fb0e6;
+      --accent-bg: #1a2130;
+      --warn:      #e2916d;
+      --warn-bg:   #2a1d17;
+      --code-bg:   #1d222a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #101317;
+    --surface:   #171b21;
+    --ink:       #e7eaef;
+    --ink-2:     #a8b0bc;
+    --ink-3:     #7b838f;
+    --line:      #2a2f38;
+    --line-2:    #22262d;
+    --accent:    #8fb0e6;
+    --accent-bg: #1a2130;
+    --warn:      #e2916d;
+    --warn-bg:   #2a1d17;
+    --code-bg:   #1d222a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .5rem 2.25rem; margin: 0; }
+  dl.meta div { display: flex; flex-direction: column; gap: .1rem; }
+  dl.meta dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  dl.meta dd { margin: 0; font-size: .9rem; color: var(--ink-2); }
+
+  /* ---- toc ---- */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 3rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--ink-3);
+    margin: 0 0 .75rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: flex;
+    gap: .7rem;
+    font-size: .92rem;
+    border-radius: 2px;
+  }
+  .toc a:hover { color: var(--accent); }
+  .tocnum, .secnum {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: .8em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- headings ---- */
+  h2, h3, h4 { font-family: var(--serif); letter-spacing: -.01em; text-wrap: balance; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    font-weight: 600;
+    margin: 3.5rem 0 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .75rem;
+    align-items: baseline;
+  }
+  h3 { font-size: 1.14rem; font-weight: 600; margin: 2.25rem 0 .7rem; display: flex; gap: .6rem; align-items: baseline; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; color: var(--ink-2); }
+  h2 .secnum, h3 .secnum { flex: none; }
+
+  p { margin: 0 0 1.05rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line-2); margin: 2.5rem 0; }
+
+  ul, ol { margin: 0 0 1.15rem; padding-left: 1.35rem; max-width: 68ch; }
+  li { margin-bottom: .38rem; }
+  li::marker { color: var(--ink-3); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+  .codewrap { overflow-x: auto; margin: 0 0 1.4rem; }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 0;
+    min-width: min-content;
+  }
+  pre code { background: none; padding: 0; font-size: .845rem; line-height: 1.6; }
+
+  blockquote {
+    margin: 0 0 1.4rem;
+    padding: .1rem 0 .1rem 1.15rem;
+    border-left: 3px solid var(--line);
+    color: var(--ink-2);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+  }
+  .callout p { margin-bottom: .6rem; color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--warn); }
+
+  .tablewrap { overflow-x: auto; margin: 0 0 1.6rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  th, td { padding: .6rem .85rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <h1>PR: Instrumentation (Block 3)</h1>
+    <dl class="meta"><div><dt>Plan</dt><dd><code>docs/plans/blocks/03-instrumentation.md</code> · <strong>Lands:</strong> Invariant 2 (latency is a measured</dd></div><div><dt>note</dt><dd>number, not an adjective) and makes <code>make measure</code> real</dd></div></dl>
+  </header>
+  <nav class="toc" aria-label="Contents"><p class="eyebrow">Contents</p><ol><li><a href="#summary">Summary</a></li><li><a href="#gate-status-whats-verified-what-needs-a-human">Gate status — what's verified, what needs a human</a></li><li><a href="#problem">Problem</a></li><li><a href="#solution">Solution</a></li><li><a href="#changes">Changes</a></li><li><a href="#how-to-test">How to test</a></li><li><a href="#for-omar">For Omar</a></li><li><a href="#changelog">Changelog</a></li></ol></nav>
+  <main>
+<h2 id="summary"><span class="htext">Summary</span></h2>
+<p>Every turn now prints <strong>one correlated, structured timing record</strong> — <code>turn_timings {...}</code> — that covers the whole chain, client legs included: endpointing → upload → STT → LLM TTFT → TTS TTFB → first audible sound. Stages Blocks 4/5/6 haven't built yet (<code>opener_ready_ms</code>, <code>tool_ms</code>, <code>gate_ms</code>, <code>answer_gap_ms</code>, <code>tts1_ttfb_ms</code>, <code>llm2_ms</code>) are reserved and emitted as explicit <code>null</code>, never omitted. <code>backend/app/measure.py</code> turns a capture of these lines into a median/p95 stage table against the deployment, and <code>make measure</code> — declared in <code>AGENTS.md</code> since before this block but never implemented — is now real. One line renders the last turn's voice-to-voice number on screen.</p>
+<p><strong>Deployed URL:</strong> <code>https://vitas7777v--sarjy-fastapi-app.us-east.modal.run</code></p>
+<h2 id="gate-status-whats-verified-what-needs-a-human"><span class="htext">Gate status — what's verified, what needs a human</span></h2>
+<p>Same honesty rule the last two PRs used: no browser, no microphone in this environment. Everything scriptable ran against the <strong>real deployment</strong>; the rest is flagged, not faked.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Gate step</th><th style="text-align:left">Status</th></tr></thead><tbody><tr><td style="text-align:left">1</td><td style="text-align:left">On screen: <code>last turn N.NN s voice-to-voice · endpoint N.NN s · redemption NNN ms</code></td><td style="text-align:left"><strong>Not verified visually</strong> — the component renders this by construction (<code>App.tsx</code>'s <code>lastTurn</code> state + the one <code>&lt;p className=&quot;metrics&quot;&gt;</code> line); <code>npm run typecheck &amp;&amp; npm run lint</code> and <code>npm run build</code> are clean, but nobody has looked at a screen yet</td></tr><tr><td style="text-align:left">2</td><td style="text-align:left">One <code>turn_timings {...}</code> line per turn, every field present, six Block 4/5/6 fields <code>null</code></td><td style="text-align:left"><strong>Verified against the deployment</strong>, twice (<code>modal app logs sarjy</code>) — see below</td></tr><tr><td style="text-align:left">3</td><td style="text-align:left">A median over ten, via <code>make measure</code> against the deployment</td><td style="text-align:left"><strong>Not done — needs a human.</strong> Two scripted turns ran (see below); the fixed ten-turn script needs a person speaking into a real microphone through a real browser, which this agent cannot do</td></tr><tr><td style="text-align:left">4</td><td style="text-align:left">A finding in the generated doc's <code>## Interpretation</code></td><td style="text-align:left"><strong>Not done</strong> — blocked on #3</td></tr><tr><td style="text-align:left">5</td><td style="text-align:left"><code>make typecheck &amp;&amp; make lint &amp;&amp; make test</code> / <code>npm run typecheck &amp;&amp; npm run lint</code> clean</td><td style="text-align:left"><strong>Verified</strong> — <code>mypy app</code>: 21 source files clean; <code>ruff check app tests</code>: clean; <code>pytest -q</code>: 81 passed; frontend <code>tsc --noEmit</code>, <code>eslint</code>, and <code>npm run build</code> all clean</td></tr></tbody></table></div>
+<p><strong>What actually ran against the deployment:</strong> two scripted turns via <code>scratch/spikes/block2/deployed_turn.py</code> (updated to speak protocol v3), driving <code>hello → start → binary PCM → end</code> exactly like the browser, using a pre-recorded utterance instead of a live microphone. Both produced a correct transcript, a correct reply, real Deepgram audio, and — the point of this block — exactly one <code>turn_timings</code> line each, server legs filled, client legs <code>null</code> (a scripted turn has no browser to report <code>client_timing</code> from), flushed via <code>flush_reason=&quot;connection_closed&quot;</code> when the script sent <code>bye</code> and disconnected. <strong>That null/flush combination is the correct, designed-for result for a scripted turn, not a bug</strong> — it's I2 from the block plan (<code>&quot;a turn never produces zero records&quot;</code>) doing exactly what it's for.</p>
+<div class="codewrap"><pre><code>turn_timings {&quot;turn_id&quot;:&quot;t-smoke-0&quot;,&quot;session&quot;:&quot;667248e5&quot;,&quot;connection_n&quot;:1,&quot;turn_index&quot;:1,
+&quot;env&quot;:&quot;modal&quot;,&quot;stt_model&quot;:&quot;whisper-large-v3-turbo&quot;,&quot;llm_model&quot;:&quot;gemini-3.5-flash-lite&quot;,
+&quot;tts_model&quot;:&quot;aura-2-thalia-en&quot;,&quot;llm_thinking_level&quot;:&quot;minimal&quot;,&quot;redemption_ms&quot;:null,
+&quot;outcome&quot;:&quot;ok&quot;,&quot;failed_stage&quot;:null,&quot;flush_reason&quot;:&quot;connection_closed&quot;,&quot;transcript_chars&quot;:29,
+&quot;reply_chars&quot;:30,&quot;endpoint_ms&quot;:null,&quot;first_audio_ms&quot;:null,&quot;output_latency_ms&quot;:null,
+&quot;upload_ms&quot;:789,&quot;stt_ms&quot;:258,&quot;llm_ms&quot;:1168,&quot;llm_ttft_ms&quot;:964,&quot;tts_ttfb_ms&quot;:650,
+&quot;tts_total_ms&quot;:1637,&quot;server_ms&quot;:4486,&quot;opener_ready_ms&quot;:null,&quot;tts1_ttfb_ms&quot;:null,
+&quot;tool_ms&quot;:null,&quot;llm2_ms&quot;:null,&quot;gate_ms&quot;:null,&quot;answer_gap_ms&quot;:null}</code></pre></div>
+<p><strong>A finding worth flagging, not fixing (this block doesn't optimise anything it measures):</strong> <code>llm_ttft_ms</code> came back 964 ms and 774 ms on the two runs — nowhere near Block 2's baseline of a 30 ms median. The gap between <code>llm_ttft_ms</code> and <code>llm_ms</code> (~200 ms both times) is real and consistent, which rules out the trap this block worries about by name (TTFT silently regressing to &quot;the whole completion&quot; would show <code>llm_ttft_ms ≈ llm_ms</code>, which this isn't). The likelier explanation is turn 1 of a <strong>freshly redeployed</strong> container (the docstring on <code>TurnTimings</code> literally calls turn 1 &quot;the cold one&quot;) plus this sandbox's own network path to <code>us-east</code> — the same caveat Block 2's PR raised about <code>t_thinking_ms</code>. Worth a clean n≥10 run from a normal connection before anyone quotes the 30 ms figure again.</p>
+<p><strong>What I'd ask Omar to do:</strong> the ten-turn script (fixed utterances, §Verification in the block plan) against the deployed URL, then <code>modal app logs sarjy --since 30m --tail 2000 | make measure ARGS=&quot;--label deployed-baseline&quot;</code>, then write the <code>## Interpretation</code> paragraph by hand. Also the endpointing sweep (<code>docs/plans/blocks/03-instrumentation.md</code> §&quot;The endpointing sweep, now runnable&quot;) — it needs a human ear and was already flagged as open after Block 2.</p>
+<h2 id="problem"><span class="htext">Problem</span></h2>
+<p>Latency numbers existed as three <code>logger.info</code> lines (<code>stt_ms</code>, <code>llm_first_text_delta_ms</code>, <code>tts_ttfb_ms</code>) nothing tied to a turn — no <code>turn_id</code>, no correlation, no way to compute a median without hand-grepping a live log during a call. The two legs that decide what a reviewer actually feels — endpointing and first audio out — weren't measured at all, because they only exist in the browser. And <code>make measure</code>, declared in <code>AGENTS.md</code> since Block 1, ran <code>python -m app.measure</code>, which didn't exist — a broken command that would have been caught mid-demo, not before it.</p>
+<h2 id="solution"><span class="htext">Solution</span></h2>
+<ul>
+<li><strong><code>TurnTimings</code> (<code>app/pipeline/timings.py</code>)</strong> — one Pydantic model, <code>extra=&quot;forbid&quot;</code>, every</li>
+<p>field named up front including the six Block 4/5/6 stages that don't exist yet. <code>emit()</code> is the <strong>only</strong> guarded call in the whole feature: every fill elsewhere is a plain attribute assignment mypy already validated at build time (<code>validate_assignment</code> is off), so a timing record can never break the turn it's describing.</p>
+<li><strong>Server legs measured at the call site, not inside the adapter.</strong> <code>run_turn()</code> times</li>
+<p><code>stt.transcribe()</code>, <code>llm.reply()</code>, and the <code>tts.synthesize()</code> pull directly — the adapter's own internal number (<code>tts_ttfb_after_connect_ms</code>, renamed from <code>tts_ttfb_ms</code> this block) excludes the Deepgram WebSocket handshake; the timing that matters to a user does not get to exclude it.</p>
+<li><strong><code>LLMReply</code> replaces a bare <code>str</code> return from <code>LLM.reply()</code>.</strong> TTFT — timed to the first</li>
+<p><code>delta.type == &quot;text&quot;</code>, never the first SSE event, unchanged from Block 2 and re-verified, not &quot;fixed&quot; — now travels with the text instead of dying in a log line nothing could correlate.</p>
+<li><strong>The merge lives in <code>main.py</code>, not <code>run_turn()</code>.</strong> <code>run_turn()</code> only knows the server side;</li>
+<p><code>_maybe_emit_timings()</code> prints once both <code>server_done</code> and <code>client_done</code> are true, and <code>_flush_timings()</code> covers the three cases where the client half never arrives (the next <code>start</code>, a barge, the connection closing) so <strong>a turn never produces zero records</strong> (I2).</p>
+<li><strong><code>client_timing</code> (protocol v2 → v3, both sides)</strong> carries the two legs only the browser can</li>
+<p>see — <code>endpoint_ms</code> (last VAD-classified speech frame → <code>onSpeechEnd</code>) and <code>first_audio_ms</code> (that same instant → the first playback buffer actually <em>scheduled</em>, the headline number) — plus the <code>redemption_ms</code> setting in force. <code>App.tsx</code>'s <code>reportTurnTiming()</code> enforces exactly one send per turn via a <code>sent</code> flag on <code>turnTimingRef</code>.</p>
+<li><strong><code>app/measure.py</code> reuses <code>TurnTimings</code> for parsing</strong> (<code>model_validate_json</code>), not a second</li>
+<p>schema — a drifted field is caught by the same model that produced it, not silently averaged past. De-dupes on <code>(session, turn_id, turn_index)</code>, excludes non-<code>ok</code> outcomes from every median and reports the excluded count separately, and warns <code>MIXED CONFIGURATION</code> (rather than silently averaging across two setups) if <code>env</code>/<code>redemption_ms</code>/any model id varies within one run.</p>
+<li><strong><code>turn.py</code> still never imports a provider adapter</strong> (Invariant 3) — the model ids that land in</li>
+<p><code>TurnTimings</code> come off the <code>model</code>/<code>thinking_level</code> Protocol attributes in <code>app/providers/base.py</code>, never a direct import. <code>main.py</code> imports <code>turn.py</code> at module level, so this is the trap the plan calls out twice, closed the same way Block 2 closed it for the SDKs themselves.</p>
+<li><strong>No transcript or reply text in the record — only lengths.</strong> <code>transcript_chars</code>/<code>reply_chars</code></li>
+<p>are what the measurement actually needs (TTS TTFB and generation both track text length); a measurement log built from these records is safe to paste into a PR or a Loom without reading it first.</p>
+</ul>
+<h2 id="changes"><span class="htext">Changes</span></h2>
+<p><strong>Created</strong></p>
+<ul>
+<li><code>backend/app/pipeline/timings.py</code> — <code>TurnTimings</code>, <code>LOG_PREFIX</code>, <code>elapsed_ms()</code>, <code>emit()</code></li>
+<li><code>backend/app/measure.py</code> — parses, de-dupes, aggregates, writes the doc; makes <code>make measure</code> real</li>
+<li><code>backend/tests/test_timings.py</code>, <code>backend/tests/test_measure.py</code></li>
+<li><code>docs/PRs/PR_INSTRUMENTATION.md</code> (this file)</li>
+</ul>
+<p><strong>Modified</strong></p>
+<ul>
+<li><code>backend/app/pipeline/protocol.py</code> — <code>PROTOCOL_VERSION</code> 2 → 3, <code>ClientTimingIn</code></li>
+<li><code>backend/app/pipeline/turn.py</code> — <code>timings: TurnTimings</code> (required, keyword-only), nine fills</li>
+<li><code>backend/app/providers/base.py</code> — <code>LLMReply</code>; <code>model</code> on all three Protocols; <code>thinking_level</code> on <code>LLM</code></li>
+<li><code>backend/app/providers/gemini_llm.py</code> — <code>THINKING_LEVEL</code> constant, returns <code>LLMReply</code></li>
+<li><code>backend/app/providers/groq_stt.py</code> — <code>MODEL</code> constant, drops the now-redundant <code>stt_ms</code> log line</li>
+<li><code>backend/app/providers/deepgram_tts.py</code> — <code>self.model</code>; log key renamed to <code>tts_ttfb_after_connect_ms</code></li>
+<li><code>backend/app/main.py</code> — <code>SARJY_ENV</code>, <code>_TURN_INDEX</code>, <code>_TurnState</code> timing fields, <code>_maybe_emit_timings</code>,</li>
+<p><code>_flush_timings</code>, <code>_handle_client_timing</code>, all call sites</p>
+<li><code>backend/modal_app.py</code> — <code>.env({&quot;SARJY_ENV&quot;: &quot;modal&quot;})</code> on the image (moved before <code>add_local_*</code> —</li>
+<p>Modal treats those as the end of an image's build steps)</p>
+<li><code>backend/Makefile</code> — <code>measure: uv run python -m app.measure $(ARGS)</code></li>
+<li><code>backend/tests/test_turn.py</code>, <code>backend/tests/test_ws.py</code> — fakes gain <code>model</code>/<code>thinking_level</code>,</li>
+<p><code>LLMReply</code>; new I2/I3 tests and a one-record-per-turn assertion</p>
+<li><code>frontend/src/protocol.ts</code> — <code>PROTOCOL_VERSION</code> 3, <code>ClientTimingMessage</code></li>
+<li><code>frontend/src/net/connection.ts</code> — <code>sendClientTiming()</code></li>
+<li><code>frontend/src/audio/turn.ts</code> — <code>EndpointTiming</code>, <code>onUtterance</code> gains a fourth argument</li>
+<li><code>frontend/src/App.tsx</code> — <code>turnTimingRef</code>, <code>reportTurnTiming</code>, <code>lastTurn</code> state, the one rendered line</li>
+<li><code>scratch/spikes/block2/deployed_turn.py</code> (gitignored, not shipped) — hello's <code>v</code> bumped 2 → 3 so</li>
+<p>the smoke script still speaks the current protocol</p>
+</ul>
+<h2 id="how-to-test"><span class="htext">How to test</span></h2>
+<div class="codewrap"><pre><code class="lang-bash">cd backend
+uv run mypy app                 # 21 source files, clean
+uv run ruff check app tests     # clean
+uv run pytest -q                # 81 passed</code></pre></div>
+<div class="codewrap"><pre><code class="lang-bash">cd frontend
+npm run typecheck               # clean
+npm run lint                    # clean
+npm run build                   # clean</code></pre></div>
+<div class="codewrap"><pre><code class="lang-bash"># the broken command is no longer broken
+cd backend
+uv run python -m app.measure                 # exits 2, prints usage, does not hang
+uv run python -m app.measure /dev/null       # exits 1, &quot;no turn_timings records found&quot;
+
+# against the deployment
+uv run modal deploy modal_app.py
+uv run python scratch/spikes/block2/deployed_turn.py \
+    wss://vitas7777v--sarjy-fastapi-app.us-east.modal.run/ws 1
+uv run modal app logs sarjy --since 5m | grep turn_timings</code></pre></div>
+<h2 id="for-omar"><span class="htext">For Omar</span></h2>
+<ul>
+<li><strong><code>.env.example</code> needs <code>SARJY_ENV</code> added as a documented name</strong> (optional, defaults to</li>
+<p><code>&quot;local&quot;</code>) — I don't have write access to that file by design (<code>CLAUDE.md</code>'s deny rule), so this line is the handoff.</p>
+<li>The ten-turn deployed run, <code>make measure</code>, and the <code>## Interpretation</code> paragraph are the three</li>
+<p>outstanding gate items — all need a human at a microphone, none can be scripted from here.</p>
+<li>The endpointing sweep (<code>?redemptionMs=400/600/800</code>, by ear) is still open from Block 2 and this</li>
+<p>block is what finally makes it measurable end to end.</p>
+</ul>
+<h2 id="changelog"><span class="htext">Changelog</span></h2>
+<ul>
+<li>feat(timings): one correlated timing record per turn</li>
+<li>feat(measure): make <code>make measure</code> real</li>
+<li>feat(ui): show the last turn's voice-to-voice number</li>
+</ul>
+  </main>
+</div>

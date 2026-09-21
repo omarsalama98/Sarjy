@@ -8,14 +8,33 @@ from pydantic import ValidationError
 
 from app.pipeline.protocol import (
     PROTOCOL_VERSION,
+    AudioEndOut,
+    AudioStartOut,
+    BargeIn,
     ByeIn,
+    ClientTimingIn,
     ClosingOut,
+    EndIn,
     ErrorOut,
+    FactCardOut,
+    FactOut,
+    FactRowOut,
+    ForgetIn,
     HelloIn,
+    MemoryOut,
     PingIn,
     PongOut,
+    QuotaOut,
     ReadyOut,
+    ReplyOut,
+    SegmentOut,
+    SegmentsOut,
+    SignInIn,
+    SignOutIn,
+    StartIn,
     StateOut,
+    TranscriptOut,
+    TurnFailedOut,
     parse_client_message,
 )
 
@@ -51,10 +70,71 @@ def test_bye_round_trips_for_each_reason() -> None:
         assert msg.reason == reason
 
 
-def test_unknown_t_is_rejected() -> None:
-    """start/end/barge are reserved for Block 2 -- not part of this union yet."""
+def test_start_round_trips() -> None:
+    raw = '{"t":"start","turn_id":"t-1","client_ts_ms":1758300000000}'
+    msg = parse_client_message(raw)
+    assert isinstance(msg, StartIn)
+    assert msg.turn_id == "t-1"
+
+
+def test_end_round_trips() -> None:
+    raw = '{"t":"end","turn_id":"t-1","samples":48000,"client_ts_ms":1758300003000}'
+    msg = parse_client_message(raw)
+    assert isinstance(msg, EndIn)
+    assert msg.samples == 48000
+
+
+def test_barge_round_trips() -> None:
+    raw = '{"t":"barge","turn_id":"t-1"}'
+    msg = parse_client_message(raw)
+    assert isinstance(msg, BargeIn)
+    assert msg.turn_id == "t-1"
+
+
+def test_client_timing_round_trips() -> None:
+    raw = (
+        '{"t":"client_timing","turn_id":"t-1","endpoint_ms":580,'
+        '"first_audio_ms":1830,"redemption_ms":600,"output_latency_ms":20}'
+    )
+    msg = parse_client_message(raw)
+    assert isinstance(msg, ClientTimingIn)
+    assert msg.endpoint_ms == 580
+    assert msg.first_audio_ms == 1830
+    assert msg.redemption_ms == 600
+    assert msg.output_latency_ms == 20
+
+
+def test_client_timing_allows_null_legs() -> None:
+    """A barge before any audio played means neither leg completed -- the
+    message is still valid, not an error, so main.py's merge still gets a
+    turn_id to key off."""
+    raw = (
+        '{"t":"client_timing","turn_id":"t-1","endpoint_ms":null,'
+        '"first_audio_ms":null,"redemption_ms":600,"output_latency_ms":null}'
+    )
+    msg = parse_client_message(raw)
+    assert isinstance(msg, ClientTimingIn)
+    assert msg.endpoint_ms is None
+    assert msg.first_audio_ms is None
+
+
+def test_client_timing_rejects_an_extra_field() -> None:
+    raw = (
+        '{"t":"client_timing","turn_id":"t-1","endpoint_ms":1,'
+        '"first_audio_ms":1,"redemption_ms":600,"output_latency_ms":null,"surprise":true}'
+    )
     with pytest.raises(ValidationError):
-        parse_client_message('{"t":"start","turn_id":"x"}')
+        parse_client_message(raw)
+
+
+def test_unknown_t_is_rejected() -> None:
+    with pytest.raises(ValidationError):
+        parse_client_message('{"t":"nonsense","turn_id":"x"}')
+
+
+def test_start_rejects_an_extra_field() -> None:
+    with pytest.raises(ValidationError):
+        parse_client_message('{"t":"start","turn_id":"x","client_ts_ms":0,"surprise":true}')
 
 
 def test_extra_field_is_rejected() -> None:
@@ -138,3 +218,215 @@ def test_closing_serialises_with_documented_keys() -> None:
         "seq": 4,
         "ts_ms": 0,
     }
+
+
+def test_transcript_serialises_with_documented_keys() -> None:
+    msg = TranscriptOut(turn_id="t-1", text="hello", seq=5, ts_ms=0)
+    assert msg.model_dump() == {
+        "t": "transcript",
+        "turn_id": "t-1",
+        "text": "hello",
+        "seq": 5,
+        "ts_ms": 0,
+    }
+
+
+def test_reply_serialises_with_documented_keys() -> None:
+    msg = ReplyOut(turn_id="t-1", text="Tokyo.", seq=6, ts_ms=0)
+    assert msg.model_dump() == {
+        "t": "reply",
+        "turn_id": "t-1",
+        "text": "Tokyo.",
+        "seq": 6,
+        "ts_ms": 0,
+    }
+
+
+def test_audio_start_serialises_with_documented_keys() -> None:
+    msg = AudioStartOut(turn_id="t-1", sample_rate=24000, seq=7, ts_ms=0)
+    assert msg.model_dump() == {
+        "t": "audio_start",
+        "turn_id": "t-1",
+        "sample_rate": 24000,
+        "seq": 7,
+        "ts_ms": 0,
+    }
+
+
+def test_audio_end_serialises_with_documented_keys() -> None:
+    msg = AudioEndOut(turn_id="t-1", samples=72000, seq=8, ts_ms=0)
+    assert msg.model_dump() == {
+        "t": "audio_end",
+        "turn_id": "t-1",
+        "samples": 72000,
+        "seq": 8,
+        "ts_ms": 0,
+    }
+
+
+def test_turn_failed_serialises_with_documented_keys() -> None:
+    msg = TurnFailedOut(turn_id="t-1", stage="stt", message="oops", seq=9, ts_ms=0)
+    assert msg.model_dump() == {
+        "t": "turn_failed",
+        "turn_id": "t-1",
+        "stage": "stt",
+        "message": "oops",
+        "seq": 9,
+        "ts_ms": 0,
+    }
+
+
+def test_turn_failed_accepts_the_two_new_stages() -> None:
+    """Block A adds `tool` and `gate` to TurnFailedStage."""
+    for stage in ("tool", "gate"):
+        msg = TurnFailedOut(turn_id="t-1", stage=stage, message="x", seq=1, ts_ms=0)  # type: ignore[arg-type]
+        assert msg.stage == stage
+
+
+def test_protocol_version_is_5() -> None:
+    """Bumped for Block B's sign_in/sign_out/forget/memory messages -- a
+    stale tab fails the handshake cleanly rather than half-understanding
+    a `memory` frame."""
+    assert PROTOCOL_VERSION == 5
+
+
+def test_segments_serialises_with_documented_keys() -> None:
+    msg = SegmentsOut(
+        turn_id="t-1",
+        segments=[
+            SegmentOut(
+                kind="sourced",
+                text="You can stay up to 90 days.",
+                ok=True,
+                reason=None,
+                attribution=None,
+                field=None,
+                citation="Travel Buddy",
+                source_url=None,
+                source_date="2026-09-20",
+                layer="live",
+            )
+        ],
+        spoken="You can stay up to 90 days.",
+        hedged=False,
+        seq=10,
+        ts_ms=0,
+    )
+    dumped = msg.model_dump()
+    assert dumped["t"] == "segments"
+    assert dumped["hedged"] is False
+    assert dumped["segments"][0]["kind"] == "sourced"
+    assert dumped["segments"][0]["ok"] is True
+
+
+def test_quota_serialises_with_documented_keys() -> None:
+    msg = QuotaOut(total=120, spent=10, reserve=40, remaining=70, seq=11, ts_ms=0)
+    assert msg.model_dump() == {
+        "t": "quota",
+        "total": 120,
+        "spent": 10,
+        "reserve": 40,
+        "remaining": 70,
+        "seq": 11,
+        "ts_ms": 0,
+    }
+
+
+def test_fact_card_serialises_with_documented_keys() -> None:
+    msg = FactCardOut(
+        turn_id="t-1",
+        passport="SA",
+        passport_name="Saudi Arabia",
+        destination="JP",
+        destination_name="Japan",
+        covered=True,
+        facts=[
+            FactRowOut(
+                path="visa.duration", label="Maximum stay", value="90 days", kind="sourced"
+            )
+        ],
+        layer="live",
+        degraded=False,
+        source_name="Travel Buddy",
+        source_url=None,
+        source_date="2026-09-20T14:28:07+00:00",
+        retrieved="2026-09-20T09:00:00Z",
+        embassy_url="https://www.embassypages.com/saudiarabia",
+        seq=12,
+        ts_ms=0,
+    )
+    dumped = msg.model_dump()
+    assert dumped["t"] == "fact_card"
+    assert dumped["covered"] is True
+    assert dumped["facts"][0]["path"] == "visa.duration"
+    assert dumped["degraded"] is False
+
+
+# ---------------------------------------------------------------------------
+# Block B -- sign_in/sign_out/forget (c->s) and memory (s->c).
+# ---------------------------------------------------------------------------
+
+
+def test_sign_in_round_trips() -> None:
+    raw = '{"t":"sign_in","name":"Omar","pin":"4712"}'
+    msg = parse_client_message(raw)
+    assert isinstance(msg, SignInIn)
+    assert msg.name == "Omar"
+    assert msg.pin == "4712"
+
+
+def test_sign_in_rejects_a_non_four_digit_pin() -> None:
+    with pytest.raises(ValidationError):
+        parse_client_message('{"t":"sign_in","name":"Omar","pin":"471"}')
+
+
+def test_sign_in_rejects_an_empty_name() -> None:
+    with pytest.raises(ValidationError):
+        parse_client_message('{"t":"sign_in","name":"","pin":"4712"}')
+
+
+def test_sign_out_round_trips() -> None:
+    msg = parse_client_message('{"t":"sign_out"}')
+    assert isinstance(msg, SignOutIn)
+
+
+def test_forget_round_trips_with_a_key() -> None:
+    msg = parse_client_message('{"t":"forget","key":"favourite_colour"}')
+    assert isinstance(msg, ForgetIn)
+    assert msg.key == "favourite_colour"
+
+
+def test_forget_round_trips_with_null_key_meaning_everything() -> None:
+    msg = parse_client_message('{"t":"forget","key":null}')
+    assert isinstance(msg, ForgetIn)
+    assert msg.key is None
+
+
+def test_memory_serialises_with_documented_keys() -> None:
+    msg = MemoryOut(
+        tier="signed_in",
+        name="Omar",
+        facts=[
+            FactOut(
+                key="favourite_colour",
+                label="Favourite colour",
+                value="green",
+                kind="open",
+                learned_at="2026-09-21T14:03:11Z",
+                turn_id="t-1",
+                quote="my favourite colour is green",
+            )
+        ],
+        used=1,
+        capacity=12,
+        persisted=True,
+        degraded=False,
+        message=None,
+        seq=3,
+        ts_ms=0,
+    )
+    dumped = msg.model_dump()
+    assert dumped["t"] == "memory"
+    assert dumped["tier"] == "signed_in"
+    assert dumped["facts"][0]["quote"] == "my favourite colour is green"
+    assert dumped["used"] == 1

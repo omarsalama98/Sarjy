@@ -1,0 +1,569 @@
+<title>Block 3 — Instrumentation</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --ink:       #14171c;
+    --ink-2:     #474e5a;
+    --ink-3:     #767e8b;
+    --line:      #e2e5ea;
+    --line-2:    #eef0f4;
+    --accent:    #2d4a7c;
+    --accent-bg: #edf1f8;
+    --warn:      #a6421f;
+    --warn-bg:   #fbf0eb;
+    --code-bg:   #f0f2f6;
+    --shadow:    0 1px 2px rgba(20,23,28,.05), 0 8px 24px -12px rgba(20,23,28,.15);
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #101317;
+      --surface:   #171b21;
+      --ink:       #e7eaef;
+      --ink-2:     #a8b0bc;
+      --ink-3:     #7b838f;
+      --line:      #2a2f38;
+      --line-2:    #22262d;
+      --accent:    #8fb0e6;
+      --accent-bg: #1a2130;
+      --warn:      #e2916d;
+      --warn-bg:   #2a1d17;
+      --code-bg:   #1d222a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #101317;
+    --surface:   #171b21;
+    --ink:       #e7eaef;
+    --ink-2:     #a8b0bc;
+    --ink-3:     #7b838f;
+    --line:      #2a2f38;
+    --line-2:    #22262d;
+    --accent:    #8fb0e6;
+    --accent-bg: #1a2130;
+    --warn:      #e2916d;
+    --warn-bg:   #2a1d17;
+    --code-bg:   #1d222a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .5rem 2.25rem; margin: 0; }
+  dl.meta div { display: flex; flex-direction: column; gap: .1rem; }
+  dl.meta dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  dl.meta dd { margin: 0; font-size: .9rem; color: var(--ink-2); }
+
+  /* ---- toc ---- */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 3rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--ink-3);
+    margin: 0 0 .75rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: flex;
+    gap: .7rem;
+    font-size: .92rem;
+    border-radius: 2px;
+  }
+  .toc a:hover { color: var(--accent); }
+  .tocnum, .secnum {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: .8em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- headings ---- */
+  h2, h3, h4 { font-family: var(--serif); letter-spacing: -.01em; text-wrap: balance; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    font-weight: 600;
+    margin: 3.5rem 0 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .75rem;
+    align-items: baseline;
+  }
+  h3 { font-size: 1.14rem; font-weight: 600; margin: 2.25rem 0 .7rem; display: flex; gap: .6rem; align-items: baseline; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; color: var(--ink-2); }
+  h2 .secnum, h3 .secnum { flex: none; }
+
+  p { margin: 0 0 1.05rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line-2); margin: 2.5rem 0; }
+
+  ul, ol { margin: 0 0 1.15rem; padding-left: 1.35rem; max-width: 68ch; }
+  li { margin-bottom: .38rem; }
+  li::marker { color: var(--ink-3); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+  .codewrap { overflow-x: auto; margin: 0 0 1.4rem; }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 0;
+    min-width: min-content;
+  }
+  pre code { background: none; padding: 0; font-size: .845rem; line-height: 1.6; }
+
+  blockquote {
+    margin: 0 0 1.4rem;
+    padding: .1rem 0 .1rem 1.15rem;
+    border-left: 3px solid var(--line);
+    color: var(--ink-2);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+  }
+  .callout p { margin-bottom: .6rem; color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--warn); }
+
+  .tablewrap { overflow-x: auto; margin: 0 0 1.6rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  th, td { padding: .6rem .85rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <h1>Block 3 — Instrumentation</h1>
+    <dl class="meta"><div><dt>Date</dt><dd>2026-09-20 · <strong>Needs:</strong> Block 2 (done, deployed) · <strong>Feeds:</strong> Blocks 4, 5, 6, 9, 11</dd></div><div><dt>Master plan</dt><dd><code>docs/plans/MASTER-PLAN.md</code> §Block 3 · <strong>Cut to 0.5 h by</strong> <code>docs/plans/CUT-DECISION.md</code></dd></div><div><dt>Governing rules</dt><dd><code>.claude/skills/measure/SKILL.md</code> (the stage table is the spec) · <code>.claude/rules/voice/pipeline.md</code> · <code>AGENTS.md</code> §Invariant 2</dd></div></dl>
+  </header>
+  <nav class="toc" aria-label="Contents"><p class="eyebrow">Contents</p><ol><li><a href="#summary-read-this-page">Summary — read this page</a></li><li><a href="#goal">Goal</a></li><li><a href="#scope">Scope</a></li><li><a href="#what-already-exists-verified-by-reading-not-assumed">What already exists — verified by reading, not assumed</a></li><li><a href="#contracts">Contracts</a></li><li><a href="#failure-paths-build-these-before-the-happy-path">Failure paths — build these before the happy path</a></li><li><a href="#traps-restated-because-they-will-not-be-remembered">Traps, restated because they will not be remembered</a></li><li><a href="#files">Files</a></li><li><a href="#task-list">Task list</a></li><li><a href="#the-estimate-honestly">The estimate, honestly</a></li><li><a href="#the-endpointing-sweep-now-runnable">The endpointing sweep, now runnable</a></li><li><a href="#secrets-and-what-goes-in-a-log-line">Secrets and what goes in a log line</a></li><li><a href="#verification">Verification</a></li><li><a href="#gate">Gate</a></li><li><a href="#draft-commits-agents-draft-omar-commits">Draft commits — agents draft, Omar commits</a></li><li><a href="#open-questions-and-stated-assumptions">Open questions and stated assumptions</a></li></ol></nav>
+  <main>
+<h2 id="summary-read-this-page"><span class="htext">Summary — read this page</span></h2>
+<p><strong>Goal.</strong> Every turn emits <strong>one correlated, structured timing record</strong> covering the whole chain — the client's two legs included — and the deployment can be reduced to a <strong>median over ten real turns</strong> with one command.</p>
+<p>Today the numbers exist as three uncorrelated <code>logger.info</code> lines (<code>stt_ms</code>, <code>llm_first_text_delta_ms</code>, <code>tts_ttfb_ms</code>) that nothing ties to a turn, and the two legs that decide what the user actually feels — <strong>endpointing</strong> and <strong>first audio out</strong> — are not measured at all. <code>make measure</code> is declared in <code>AGENTS.md</code> and <strong>is broken</strong>: it runs <code>python -m app.measure</code>, which does not exist.</p>
+<p><strong>The four things that decide this block:</strong></p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">The thing</th><th style="text-align:left">Why it decides the block</th></tr></thead><tbody><tr><td style="text-align:left">1</td><td style="text-align:left"><strong>The headline number can only be measured in the browser</strong></td><td style="text-align:left">&quot;User stops speaking → first audible sound&quot; starts at an acoustic event the server never sees and ends at a buffer the server never hears. The client measures both legs and sends them; the server merges. That merge <em>is</em> the instrument, not polish.</td></tr><tr><td style="text-align:left">2</td><td style="text-align:left">🪤 <strong>TTFT is timed to the first <code>delta.type == &quot;text&quot;</code>, never the first SSE event</strong></td><td style="text-align:left">A <code>thought</code> step always arrives first, even at <code>thinking_level: &quot;minimal&quot;</code>. <strong>Already correct</strong> in <code>gemini_llm.py:84–95</code> — verified by reading it. Block 3's job is to stop that number being thrown away, not to re-derive it.</td></tr><tr><td style="text-align:left">3</td><td style="text-align:left"><strong>Fields for stages that do not exist yet are emitted as <code>null</code>, never omitted</strong></td><td style="text-align:left"><code>opener_ready_ms</code>, <code>tool_ms</code>, <code>gate_ms</code>, <code>answer_gap_ms</code> belong to Blocks 4/5/6. Reserving them now is the entire reason for instrumenting before optimising — a record retrofitted in Block 6 tells you nothing about what Block 2 built.</td></tr><tr><td style="text-align:left">4</td><td style="text-align:left"><strong>Clocks are never crossed</strong></td><td style="text-align:left">Client legs are deltas between two <code>performance.now()</code> reads; server legs are deltas between two <code>time.monotonic()</code> reads. No client timestamp is ever subtracted from a server timestamp. That is why this record can be trusted without a skew correction. <code>ts_ms</code> (wall clock, display only) is never used for timing — <code>protocol.py</code>'s own docstring already says so.</td></tr></tbody></table></div>
+<p><strong>What lands:</strong> <code>turn_timings {...}</code> — one JSON line per turn in the server log · a <code>client_timing</code> client→server message · <code>backend/app/measure.py</code> + a working <code>make measure</code> · <strong>one line</strong> of on-screen text showing the last turn's voice-to-voice number, the endpoint delay and the <code>redemptionMs</code> in force.</p>
+<p><strong>What does not land:</strong> a synthetic-turn harness · a metrics HTTP endpoint · a timings panel, chart or history in the UI · a server→client <code>timings</code> message (stays reserved) · any optimisation of anything measured here.</p>
+<p>⚠️ <strong>The 0.5 h cut is not achievable as specified.</strong> Honest estimate <strong>~1.3 h</strong> (see §The estimate, honestly). The cut ladder in that section is pre-committed so the overrun is decided now rather than at midnight.</p>
+<hr />
+<h2 id="goal"><span class="htext">Goal</span></h2>
+<p>One sentence: <strong>after this block, every turn prints a single correlated timing record covering endpointing → upload → STT → LLM TTFT → TTS TTFB → first audible sound, with the not-yet-built stages reserved as <code>null</code>, and <code>make measure</code> turns ten of those records into a median table against the deployment.</strong></p>
+<hr />
+<h2 id="scope"><span class="htext">Scope</span></h2>
+<h3 id="in"><span class="htext">In</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Thing</th></tr></thead><tbody><tr><td style="text-align:left">1</td><td style="text-align:left"><code>TurnTimings</code> — the record type, every field named now, including the reserved ones</td></tr><tr><td style="text-align:left">2</td><td style="text-align:left">Server legs measured <strong>at the call site</strong> in <code>run_turn()</code>: <code>stt_ms</code>, <code>llm_ms</code>, <code>llm_ttft_ms</code>, <code>tts_ttfb_ms</code>, <code>tts_total_ms</code></td></tr><tr><td style="text-align:left">3</td><td style="text-align:left"><code>upload_ms</code> and <code>server_ms</code>, measured in <code>main.py</code> where <code>start</code>/<code>end</code>/the first audio byte actually happen</td></tr><tr><td style="text-align:left">4</td><td style="text-align:left"><code>LLMReply</code> — the LLM adapter returns its TTFT alongside the text instead of logging it into the void</td></tr><tr><td style="text-align:left">5</td><td style="text-align:left"><code>model</code> (and <code>thinking_level</code> on <code>LLM</code>) on the provider Protocols, so a record says what it measured</td></tr><tr><td style="text-align:left">6</td><td style="text-align:left"><code>client_timing</code> — a new client→server message carrying <code>endpoint_ms</code>, <code>first_audio_ms</code>, <code>redemption_ms</code>, <code>output_latency_ms</code></td></tr><tr><td style="text-align:left">7</td><td style="text-align:left">The merge: the record is printed when <strong>both</strong> sides are done, with three flush paths for when the client never reports</td></tr><tr><td style="text-align:left">8</td><td style="text-align:left"><code>backend/app/measure.py</code> + <code>make measure</code> — reads <code>turn_timings</code> lines from stdin or a file, prints median/p95 per stage, writes <code>docs/measurements/{date}-{label}.md</code></td></tr><tr><td style="text-align:left">9</td><td style="text-align:left"><strong>One line</strong> of on-screen text: <code>last turn 1.83 s voice-to-voice · endpoint 0.58 s · redemption 600 ms</code></td></tr><tr><td style="text-align:left">10</td><td style="text-align:left"><code>PROTOCOL_VERSION</code> 2 → 3, both sides</td></tr><tr><td style="text-align:left">11</td><td style="text-align:left"><code>SARJY_ENV</code> on the Modal image, so a record says whether it ran local or deployed</td></tr><tr><td style="text-align:left">12</td><td style="text-align:left">Tests: failure paths first, then the fills, then <code>measure.py</code>'s aggregation</td></tr><tr><td style="text-align:left">13</td><td style="text-align:left">The measurement run itself: 10 turns against the deployment, <code>make measure</code>, the doc, the interpretation paragraph</td></tr></tbody></table></div>
+<h3 id="out-say-no-to-all-of-these"><span class="htext">Out — say no to all of these</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Out</th><th style="text-align:left">Owner</th></tr></thead><tbody><tr><td style="text-align:left">A harness that drives synthetic turns (<code>scratch/spikes/block2/deployed_turn.py</code> already exists for smoke-testing; it is not <code>make measure</code>)</td><td style="text-align:left">nobody — deliberately not built</td></tr><tr><td style="text-align:left">A <code>/metrics</code> HTTP endpoint, a p95 dashboard, a Prometheus anything</td><td style="text-align:left">nobody</td></tr><tr><td style="text-align:left">Any UI beyond the one line: no panel, no chart, no per-turn history, no styling</td><td style="text-align:left">Block 8, <strong>which was cut to zero</strong> — so nothing later adds it. One line is the whole allowance</td></tr><tr><td style="text-align:left">The reserved server→client <code>timings</code> message</td><td style="text-align:left">stays reserved; the client already knows its own headline number, so no round trip is needed</td></tr><tr><td style="text-align:left">Optimising anything this block measures (shorter opener, streaming upload, a faster model)</td><td style="text-align:left">Block 4 onward — a finding here is a finding, not a task</td></tr><tr><td style="text-align:left"><code>opener_ready_ms</code>, <code>tts1_ttfb_ms</code>, <code>tool_ms</code>, <code>llm2_ms</code>, <code>gate_ms</code>, <code>answer_gap_ms</code> <strong>values</strong></td><td style="text-align:left">Blocks 4/5/6 — the <strong>fields</strong> land here, as <code>null</code></td></tr><tr><td style="text-align:left">Choosing the final <code>redemptionMs</code> value</td><td style="text-align:left">Omar, at a microphone — this block ships the instrument and the procedure (§The endpointing sweep)</td></tr><tr><td style="text-align:left">Arabic, memory, tools, the gate</td><td style="text-align:left">Blocks 10/7/4/6</td></tr></tbody></table></div>
+<hr />
+<h2 id="what-already-exists-verified-by-reading-not-assumed"><span class="htext">What already exists — verified by reading, not assumed</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Claim</th><th style="text-align:left">Status</th></tr></thead><tbody><tr><td style="text-align:left"><code>stt_ms</code> logged at <code>providers/groq_stt.py:44</code></td><td style="text-align:left">✅ exists, uncorrelated, timed after the WAV wrap</td></tr><tr><td style="text-align:left"><code>llm_first_text_delta_ms</code> at <code>providers/gemini_llm.py:84</code></td><td style="text-align:left">✅ exists, uncorrelated, <strong>and it is timed correctly</strong> — <code>event.event_type != &quot;step.delta&quot;</code> then <code>delta.type != &quot;text&quot;</code>, both skipped before the clock is read. Trap 2 is already closed; do not &quot;fix&quot; it</td></tr><tr><td style="text-align:left"><code>tts_ttfb_ms</code> at <code>providers/deepgram_tts.py:83</code></td><td style="text-align:left">✅ exists, uncorrelated, <strong>and it excludes the Deepgram WebSocket connect</strong> — <code>t_flush_sent</code> is taken <em>inside</em> <code>async with websockets.connect(...)</code>. The 85 ms median in <code>docs/measurements/block2-voice-loop.md</code> is therefore TTFB-after-connect, <strong>not</strong> what the user waits for</td></tr><tr><td style="text-align:left"><code>turn_id</code> + <code>client_ts_ms</code> on <code>StartIn</code> / <code>EndIn</code></td><td style="text-align:left">✅ exists in <code>pipeline/protocol.py</code>. Correlation reuses <code>turn_id</code>; <strong>no new id is invented</strong></td></tr><tr><td style="text-align:left"><code>logging.basicConfig()</code> at <code>main.py:66</code></td><td style="text-align:left">✅ wired — without it every <code>logger.info</code> was swallowed</td></tr><tr><td style="text-align:left"><code>make measure</code></td><td style="text-align:left">🚨 <strong>broken.</strong> <code>backend/Makefile</code> runs <code>uv run python -m app.measure</code>; <code>backend/app/measure.py</code> does not exist. <code>AGENTS.md</code> §Commands declares the command. This block makes it real</td></tr><tr><td style="text-align:left">Endpointing instrument in <code>frontend/src/audio/turn.ts</code></td><td style="text-align:left">✅ <code>onFrameProcessed</code> records <code>lastSpeechFrameAt</code>; <code>onSpeechEnd</code> computes the delay and <strong><code>console.log</code>s it</strong>. It goes nowhere else. This block routes it into the record</td></tr><tr><td style="text-align:left"><code>?redemptionMs=</code> URL override, <code>getRedemptionMs()</code></td><td style="text-align:left">✅ exists and is exported</td></tr><tr><td style="text-align:left"><code>speakingStartedAtRef.current = performance.now()</code> in <code>App.tsx</code>'s <code>beginTurn</code> callback</td><td style="text-align:left">✅ exists — it already marks the instant the <strong>first buffer is scheduled</strong>, which is the end of the headline leg</td></tr><tr><td style="text-align:left">Block 2 baselines, n=5, deployed</td><td style="text-align:left"><code>stt_ms</code> median 296 · <code>llm_first_text_delta_ms</code> median 30 · <code>tts_ttfb_ms</code> median 85 (after-connect)</td></tr></tbody></table></div>
+<hr />
+<h2 id="contracts"><span class="htext">Contracts</span></h2>
+<h3 id="1-the-record-backendapppipelinetimingspy-new"><span class="secnum">1</span><span class="htext">The record — <code>backend/app/pipeline/timings.py</code> (new)</span></h3>
+<p>Pydantic, <code>extra=&quot;forbid&quot;</code>, <strong>no field ever omitted</strong> (<code>model_dump_json()</code> with no <code>exclude_none</code>). Copy these names exactly; <code>measure.py</code>, Blocks 4–6 and the writeup all key off them.</p>
+<div class="codewrap"><pre><code class="lang-python">LOG_PREFIX = &quot;turn_timings &quot;   # the grep handle. One space, then JSON.
+
+class TurnTimings(BaseModel):
+    model_config = ConfigDict(extra=&quot;forbid&quot;)
+
+    # -- identity and configuration -------------------------------------
+    turn_id: str
+    session: str                  # session_id[:8] ONLY -- never the full id
+    connection_n: int
+    turn_index: int               # 1-based per container process; turn 1 is the cold one
+    env: str                      # &quot;modal&quot; | &quot;local&quot;, from SARJY_ENV
+    stt_model: str | None = None
+    llm_model: str | None = None
+    tts_model: str | None = None
+    llm_thinking_level: str | None = None
+    redemption_ms: int | None = None      # the client VAD setting in force, from client_timing
+
+    # -- outcome --------------------------------------------------------
+    outcome: Literal[&quot;ok&quot;, &quot;failed&quot;, &quot;barged&quot;, &quot;incomplete&quot;] = &quot;incomplete&quot;
+    failed_stage: str | None = None       # TurnFailedStage when outcome == &quot;failed&quot;
+    flush_reason: Literal[&quot;complete&quot;, &quot;next_turn&quot;, &quot;connection_closed&quot;] = &quot;complete&quot;
+    transcript_chars: int | None = None   # length, NOT the text (see §Secrets)
+    reply_chars: int | None = None
+
+    # -- client legs (performance.now() deltas; null if the client never reported)
+    endpoint_ms: int | None = None        # last speech frame -&gt; onSpeechEnd fired
+    first_audio_ms: int | None = None     # HEADLINE: last speech frame -&gt; first buffer scheduled
+    output_latency_ms: int | None = None  # AudioContext.outputLatency, null on Safari
+
+    # -- server legs (time.monotonic() deltas) ---------------------------
+    upload_ms: int | None = None          # `start` received -&gt; `end` received
+    stt_ms: int | None = None             # around stt.transcribe(), includes the WAV wrap
+    llm_ms: int | None = None             # around llm.reply(), request -&gt; full string
+    llm_ttft_ms: int | None = None        # to the first delta.type == &quot;text&quot; (see trap 2)
+    tts_ttfb_ms: int | None = None        # first pull -&gt; first chunk, INCLUDING the DG connect
+    tts_total_ms: int | None = None       # first pull -&gt; last chunk
+    server_ms: int | None = None          # `end` received -&gt; first audio byte on the wire
+
+    # -- RESERVED. Emitted as null in this block. Never omit one. ---------
+    opener_ready_ms: int | None = None    # Block 4
+    tts1_ttfb_ms: int | None = None       # Block 4 -- the OPENER's TTS
+    tool_ms: int | None = None            # Block 5
+    llm2_ms: int | None = None            # Block 4
+    gate_ms: int | None = None            # Block 6
+    answer_gap_ms: int | None = None      # Block 4</code></pre></div>
+<p><strong>Naming note Block 4 must honour:</strong> when the opener lands, the opener's TTS goes in <code>tts1_ttfb_ms</code> and the <strong>answer's stays in <code>tts_ttfb_ms</code></strong> — i.e. <code>tts_ttfb_ms</code> <em>is</em> the skill table's &quot;TTS #2 TTFB&quot;. Do not rename it; <code>measure.py</code> and every earlier measurement key off it.</p>
+<div class="codewrap"><pre><code class="lang-python">def elapsed_ms(t0: float) -&gt; int:
+    &quot;&quot;&quot;time.monotonic() delta, rounded to ms.&quot;&quot;&quot;
+
+def emit(record: TurnTimings) -&gt; None:
+    &quot;&quot;&quot;One line, never raises. A timing record must never break a turn.&quot;&quot;&quot;
+    try:
+        logger.info(&quot;%s%s&quot;, LOG_PREFIX, record.model_dump_json())
+    except Exception:
+        logger.warning(&quot;turn_timings emit failed&quot;, exc_info=True)</code></pre></div>
+<p><code>timings.py</code> imports pydantic and stdlib only. It must stay safe for <code>app.main</code> to import at module level (<code>main.py</code>'s docstring: no <code>app.config</code>, no provider SDK in that module graph).</p>
+<h3 id="2-the-wire-backendapppipelineprotocolpy-frontendsrcprotocolt"><span class="secnum">2</span><span class="htext">The wire — <code>backend/app/pipeline/protocol.py</code> + <code>frontend/src/protocol.ts</code></span></h3>
+<div class="codewrap"><pre><code class="lang-python">PROTOCOL_VERSION = 3          # was 2, both sides
+
+class ClientTimingIn(BaseModel):
+    &quot;&quot;&quot;The two legs only the browser can see, plus the VAD setting that
+    produced them. Sent once per turn, at the first of: first audio buffer
+    scheduled, or turn_failed.&quot;&quot;&quot;
+    model_config = ConfigDict(extra=&quot;forbid&quot;)
+
+    t: Literal[&quot;client_timing&quot;]
+    turn_id: str
+    endpoint_ms: int | None
+    first_audio_ms: int | None
+    redemption_ms: int
+    output_latency_ms: int | None</code></pre></div>
+<p>Added to <code>ClientMessage</code>, to <code>parse_client_message</code>'s return annotation, and handled in <code>_serve</code>'s dispatch chain.</p>
+<div class="codewrap"><pre><code class="lang-ts">export const PROTOCOL_VERSION = 3;
+
+export interface ClientTimingMessage {
+  t: &quot;client_timing&quot;;
+  turn_id: string;
+  endpoint_ms: number | null;
+  first_audio_ms: number | null;
+  redemption_ms: number;
+  output_latency_ms: number | null;
+}</code></pre></div>
+<p>Added to the <code>ClientMessage</code> union. <strong>No parser change</strong> — <code>parseServerMessage</code> only handles server→client.</p>
+<h3 id="3-the-provider-boundary-backendappprovidersbasepy"><span class="secnum">3</span><span class="htext">The provider boundary — <code>backend/app/providers/base.py</code></span></h3>
+<div class="codewrap"><pre><code class="lang-python">@dataclass(frozen=True)
+class LLMReply:
+    &quot;&quot;&quot;Text plus the one number only the adapter can see. `reply()` returned
+    a bare `str`; TTFT is measured inside the streaming loop and had nowhere
+    to go but a log line nothing could correlate.&quot;&quot;&quot;
+    text: str
+    first_text_delta_ms: int | None
+
+
+class STT(Protocol):
+    model: str
+    async def transcribe(self, pcm16: bytes, *, language: str | None = None) -&gt; str: ...
+
+
+class LLM(Protocol):
+    model: str
+    thinking_level: str | None
+    async def reply(self, *, system: str, history: list[tuple[str, str]], user: str) -&gt; LLMReply: ...
+
+
+class TTS(Protocol):
+    model: str
+    def synthesize(self, text: str, *, language: str | None = None) -&gt; AsyncIterator[bytes]: ...</code></pre></div>
+<p>🪤 <strong><code>app/pipeline/turn.py</code> must never import an adapter module to read a model id.</strong> <code>main.py</code> imports <code>turn.py</code> at module level; <code>groq_stt</code>/<code>gemini_llm</code>/<code>deepgram_tts</code> each pull a provider SDK, and dragging one into that graph is exactly what F14 and <code>main.py</code>'s docstring forbid. The model id reaches the record through the Protocol attribute and no other way.</p>
+<h3 id="4-run_turn-backendapppipelineturnpy"><span class="secnum">4</span><span class="htext"><code>run_turn()</code> — <code>backend/app/pipeline/turn.py</code></span></h3>
+<div class="codewrap"><pre><code class="lang-python">async def run_turn(
+    *,
+    turn_id: str,
+    pcm16: bytes,
+    system: str,
+    history: list[tuple[str, str]],
+    next_seq: Callable[[], int],
+    now_ms: Callable[[], int],
+    get_stt: Callable[[], STT],
+    get_llm: Callable[[], LLM],
+    get_tts: Callable[[], TTS],
+    timings: TurnTimings,        # NEW, required, keyword-only, no default
+) -&gt; AsyncIterator[TurnItem]:</code></pre></div>
+<p>Required, not optional: mypy strict then names every call site that forgot it, and the tests get to assert on the record. Fills, in reading order:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Where</th><th style="text-align:left">Fill</th></tr></thead><tbody><tr><td style="text-align:left">after <code>stt = get_stt()</code></td><td style="text-align:left"><code>timings.stt_model = stt.model</code></td></tr><tr><td style="text-align:left">around <code>await stt.transcribe(...)</code></td><td style="text-align:left"><code>timings.stt_ms = elapsed_ms(t0)</code></td></tr><tr><td style="text-align:left">after a successful transcript</td><td style="text-align:left"><code>timings.transcript_chars = len(text)</code></td></tr><tr><td style="text-align:left">after <code>llm = get_llm()</code></td><td style="text-align:left"><code>timings.llm_model = llm.model</code>, <code>timings.llm_thinking_level = llm.thinking_level</code></td></tr><tr><td style="text-align:left">around <code>await llm.reply(...)</code></td><td style="text-align:left"><code>timings.llm_ms = elapsed_ms(t0)</code>, <code>timings.llm_ttft_ms = reply.first_text_delta_ms</code></td></tr><tr><td style="text-align:left">after the reply is non-empty</td><td style="text-align:left"><code>timings.reply_chars = len(reply.text)</code></td></tr><tr><td style="text-align:left">after <code>tts = get_tts()</code></td><td style="text-align:left"><code>timings.tts_model = tts.model</code></td></tr><tr><td style="text-align:left">first chunk out of <code>async for chunk in audio</code></td><td style="text-align:left"><code>timings.tts_ttfb_ms = elapsed_ms(t_tts)</code> where <code>t_tts</code> is taken immediately before the <code>async for</code></td></tr><tr><td style="text-align:left">after the loop drains</td><td style="text-align:left"><code>timings.tts_total_ms = elapsed_ms(t_tts)</code></td></tr></tbody></table></div>
+<p><code>t_tts</code> is taken <strong>before</strong> the <code>async for</code>, not before <code>tts.synthesize(...)</code> — calling <code>synthesize()</code> only builds the generator; nothing executes until the first pull. Measuring from the pull is what makes <code>tts_ttfb_ms</code> include the Deepgram WebSocket handshake, which the adapter's own number excludes and the user does not.</p>
+<p>Every fill is a plain attribute assignment on a pydantic model with <code>validate_assignment</code> off — it cannot raise, so <strong>no <code>try/except</code> goes around a fill</strong>. The only guarded call in the whole feature is <code>emit()</code>.</p>
+<h3 id="5-mainpy-the-merge"><span class="secnum">5</span><span class="htext"><code>main.py</code> — the merge</span></h3>
+<p><code>_TurnState</code> gains:</p>
+<div class="codewrap"><pre><code class="lang-python">timings: TurnTimings | None = None
+turn_started_at: float = 0.0    # time.monotonic() at `start`
+end_received_at: float = 0.0    # time.monotonic() at `end`
+server_done: bool = False
+client_done: bool = False</code></pre></div>
+<p>Module level: <code>TURN_INDEX</code> counter (a plain <code>itertools.count(1)</code> or an int guarded by nothing — one container, one event loop, no lock needed; say so in a comment) and <code>SARJY_ENV = os.environ.get(&quot;SARJY_ENV&quot;, &quot;local&quot;)</code>.</p>
+<p>Two functions, both sync, both tiny:</p>
+<div class="codewrap"><pre><code class="lang-python">def _maybe_emit_timings(turns: _TurnState) -&gt; None:
+    &quot;&quot;&quot;Prints the record once both halves of the turn are done -- the
+    server's last audio chunk and the client's first audible sound. Neither
+    side alone knows the whole chain.&quot;&quot;&quot;
+
+def _flush_timings(turns: _TurnState, reason: Literal[&quot;next_turn&quot;, &quot;connection_closed&quot;]) -&gt; None:
+    &quot;&quot;&quot;Prints an incomplete record rather than losing it. The client leg can
+    legitimately never arrive: a barge before any audio, a closed tab, a
+    stale bundle.&quot;&quot;&quot;</code></pre></div>
+<p>Call sites, exhaustively:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Site</th><th style="text-align:left">Action</th></tr></thead><tbody><tr><td style="text-align:left"><code>_handle_start</code>, first line</td><td style="text-align:left"><code>_flush_timings(turns, &quot;next_turn&quot;)</code> — the previous turn's record, if the client never reported</td></tr><tr><td style="text-align:left"><code>_handle_start</code>, after</td><td style="text-align:left">build the record: <code>turn_id</code>, <code>session=session.session_id[:8]</code>, <code>connection_n</code>, <code>turn_index</code>, <code>env</code>; <code>turns.turn_started_at = time.monotonic()</code></td></tr><tr><td style="text-align:left"><code>_handle_end</code></td><td style="text-align:left"><code>turns.end_received_at = time.monotonic()</code>; <code>timings.upload_ms = elapsed_ms(turns.turn_started_at)</code></td></tr><tr><td style="text-align:left"><code>_process_turn</code>, first <code>bytes</code> item</td><td style="text-align:left"><code>if timings.server_ms is None: timings.server_ms = elapsed_ms(turns.end_received_at)</code></td></tr><tr><td style="text-align:left"><code>_process_turn</code>, on <code>TurnFailedOut</code></td><td style="text-align:left"><code>outcome = &quot;failed&quot;</code>, <code>failed_stage = item.stage</code></td></tr><tr><td style="text-align:left"><code>_process_turn</code>, generator drained with no failure</td><td style="text-align:left"><code>outcome = &quot;ok&quot;</code></td></tr><tr><td style="text-align:left"><code>_process_turn</code>, <code>except asyncio.CancelledError</code></td><td style="text-align:left"><code>outcome = &quot;barged&quot;</code> <strong>before</strong> the <code>raise</code> (sync assignment only — never <code>await</code> in a cancellation handler)</td></tr><tr><td style="text-align:left"><code>_process_turn</code>, <code>finally</code></td><td style="text-align:left"><code>turns.server_done = True; _maybe_emit_timings(turns)</code> — one place covers the superseded-mid-turn early <code>return</code> too</td></tr><tr><td style="text-align:left"><code>_handle_client_timing</code></td><td style="text-align:left">fill the four client fields, <code>turns.client_done = True</code>, <code>_maybe_emit_timings(turns)</code></td></tr><tr><td style="text-align:left"><code>_serve</code>'s existing <code>finally</code></td><td style="text-align:left"><code>_flush_timings(turns, &quot;connection_closed&quot;)</code> after <code>_cancel_active_turn</code></td></tr></tbody></table></div>
+<p><code>_process_turn</code> takes <code>turns: _TurnState</code> as a new parameter — it is created in <code>_handle_end</code> inside the same connection scope, and a turn never spans a connection (Block 1's invariant), so nothing here needs to survive a reconnect.</p>
+<h3 id="6-backendappmeasurepy-new-the-makefile"><span class="secnum">6</span><span class="htext"><code>backend/app/measure.py</code> (new) + the Makefile</span></h3>
+<div class="codewrap"><pre><code>usage: python -m app.measure [--label LABEL] [--redemption MS] [--out PATH] [FILE]</code></pre></div>
+<ul>
+<li>Reads <code>FILE</code>, or stdin when no file is given.</li>
+<li>Per line: locate <code>turn_timings </code> and <code>TurnTimings.model_validate_json(rest)</code>. Reusing the model is the point — <code>extra=&quot;forbid&quot;</code> means a drifted schema is caught here rather than silently averaging a missing field.</li>
+<li><strong>De-dupes</strong> on <code>(session, turn_id, turn_index)</code>. Overlapping <code>--since</code> windows otherwise double-weight a turn.</li>
+<li>Aggregates <strong>only <code>outcome == &quot;ok&quot;</code></strong> records, and prints the excluded count by outcome. A turn that failed at STT has no TTS leg and would wreck the median.</li>
+<li>Header block: <code>n</code>, date, source, and the distinct values of <code>env</code>, <code>redemption_ms</code>, <code>stt_model</code>, <code>llm_model</code>, <code>tts_model</code>, <code>llm_thinking_level</code>. <strong>If any of those has more than one distinct value, print a <code>MIXED CONFIGURATION</code> warning above the table</strong> — a stage table averaged across two configs is the anti-pattern the measure skill names by name.</li>
+<li>Stage table, fixed order, one row each: <code>endpoint_ms</code>, <code>upload_ms</code>, <code>stt_ms</code>, <code>llm_ttft_ms</code>, <code>llm_ms</code>, <code>tts_ttfb_ms</code>, <code>tts_total_ms</code>, <code>server_ms</code>, <strong><code>first_audio_ms</code> (headline, last)</strong>. Columns: <code>n</code>, <code>median</code>, <code>p95</code> (nearest-rank: <code>sorted[min(len-1, ceil(0.95*len)-1)]</code>), <code>min</code>, <code>max</code>. Nulls skipped per row, so <code>n</code> is per stage.</li>
+<li><strong><code>residual_ms</code></strong>, computed per record where all of <code>first_audio_ms, endpoint_ms, upload_ms, stt_ms, llm_ms, tts_ttfb_ms</code> are present:</li>
+<p><code>residual = first_audio_ms - (endpoint_ms + upload_ms + stt_ms + llm_ms + tts_ttfb_ms)</code>. Reported as its own row. The stage chain is strictly sequential in this block, so the residual is real unaccounted time: <code>onSpeechEnd</code> → <code>ensureFresh()</code> (which can rotate the socket) → <code>start</code> on the wire, plus the server→client audio hop and playback scheduling. <strong>The gap is a finding, and chasing it is Block 4's business, not this block's.</strong> ⚠️ This subtraction stops being valid in Block 4, when the opener makes the chain concurrent — say so in the generated doc.</p>
+<li>Writes markdown to <code>--out</code>, default <code>docs/measurements/{YYYY-MM-DD}-{label}.md</code> (<code>label</code> defaults to <code>run</code>), resolved from <code>Path(__file__).resolve().parents[2] / &quot;docs&quot; / &quot;measurements&quot;</code>. Leaves an <code>## Interpretation</code> heading with a <code>_to be written by hand_</code> placeholder — the skill requires naming the largest term and what you would do about it, and a script cannot do that.</li>
+</ul>
+<p>Makefile:</p>
+<div class="codewrap"><pre><code class="lang-make"># Latency measurement run -&gt; docs/measurements/
+# Usage: modal app logs sarjy --since 30m --tail 2000 | make measure ARGS=&quot;--label deployed-baseline&quot;
+#    or: make measure ARGS=&quot;--label local /tmp/sarjy.log&quot;
+measure:
+	uv run python -m app.measure $(ARGS)</code></pre></div>
+<p>✅ Verified against the installed modal 1.5.5 client (<code>modal app logs --help</code>): <strong><code>modal app logs</code> fetches the last 100 entries and exits by default</strong> — <code>-f</code> is what streams. So the pipe terminates, and <code>--since 30m --tail 2000</code> is a safe capture for a ten-turn run.</p>
+<h3 id="7-the-one-line-of-ui-frontendsrcapptsx"><span class="secnum">7</span><span class="htext">The one line of UI — <code>frontend/src/App.tsx</code></span></h3>
+<div class="codewrap"><pre><code class="lang-tsx">{lastTurn &amp;&amp; (
+  &lt;p className=&quot;metrics&quot; aria-live=&quot;off&quot;&gt;
+    last turn {fmt(lastTurn.firstAudioMs)} voice-to-voice · endpoint {fmt(lastTurn.endpointMs)}
+    {&quot; · redemption &quot;}{lastTurn.redemptionMs} ms
+  &lt;/p&gt;
+)}</code></pre></div>
+<p><code>fmt</code> renders <code>1.83 s</code> (two decimals) or <code>—</code> when null. <code>aria-live=&quot;off&quot;</code> is deliberate: a screen reader announcing a latency figure after every turn is noise, and the value is diagnostic, not conversational. <strong>One line. No panel, no history, no chart, no CSS</strong> — there is no stylesheet in this project and this block does not add one.</p>
+<h3 id="8-frontend-plumbing"><span class="secnum">8</span><span class="htext">Frontend plumbing</span></h3>
+<p><code>frontend/src/audio/turn.ts</code> — the callback grows one argument:</p>
+<div class="codewrap"><pre><code class="lang-ts">export interface EndpointTiming {
+  endpointMs: number;      // last frame above POSITIVE_SPEECH_THRESHOLD -&gt; onSpeechEnd
+  acousticEndAtMs: number; // that frame's performance.now(), so App can close the headline leg
+  redemptionMs: number;
+}
+
+onUtterance(pcm: ArrayBuffer, sampleRate: number, durationMs: number, endpoint: EndpointTiming): void;</code></pre></div>
+<p>Built from the values already computed in <code>onSpeechEnd</code>. <strong>Keep the existing <code>console.log</code></strong> — it is what makes the sweep runnable without the UI.</p>
+<p><code>frontend/src/net/connection.ts</code>:</p>
+<div class="codewrap"><pre><code class="lang-ts">sendClientTiming(m: Omit&lt;ClientTimingMessage, &quot;t&quot;&gt;): void   // -&gt; this.send({ t: &quot;client_timing&quot;, ...m })</code></pre></div>
+<p><code>frontend/src/App.tsx</code>:</p>
+<ul>
+<li><code>turnTimingRef: useRef&lt;{ turnId: string; acousticEndAtMs: number; endpointMs: number; redemptionMs: number; sent: boolean } | null&gt;</code> — set in <code>handleUtterance</code> after the turn id is minted. <code>acousticEndAtMs</code> is a timestamp from the past, so awaiting <code>ensureFresh()</code> first cannot corrupt it.</li>
+<li><code>reportTurnTiming(turnId: string, firstAudioMs: number | null)</code> — returns early unless the ref exists, matches <code>turnId</code>, and <code>sent === false</code>; sets <code>sent = true</code>; sends; and <code>setLastTurn(...)</code> for the on-screen line. <strong>Exactly one send per turn</strong>, enforced here.</li>
+<li>Called from <strong>two</strong> places: inside the existing <code>playbackQueueRef.current?.beginTurn(() =&gt; ...)</code> callback (alongside <code>speakingStartedAtRef.current = performance.now()</code>), with <code>firstAudioMs = Math.round(performance.now() - ref.acousticEndAtMs)</code>; and from <code>onTurnFailed</code>, with <code>null</code>.</li>
+<li><code>output_latency_ms</code>: 🪤 <code>lib.dom.d.ts</code> types <code>AudioContext.outputLatency</code> as <code>readonly outputLatency: number</code>, but <strong>Safari does not implement it</strong> and returns <code>undefined</code> at runtime. Guard with <code>Number.isFinite(ctx.outputLatency) ? Math.round(ctx.outputLatency * 1000) : null</code> and comment <em>why</em> the guard looks redundant to the type checker.</li>
+</ul>
+<hr />
+<h2 id="failure-paths-build-these-before-the-happy-path"><span class="htext">Failure paths — build these before the happy path</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Case</th><th style="text-align:left">Defined, visible behaviour</th></tr></thead><tbody><tr><td style="text-align:left"><strong>I1</strong></td><td style="text-align:left"><code>emit()</code> raises (a field that will not serialise, a logging handler blowing up)</td><td style="text-align:left">Caught inside <code>emit</code>; <code>logger.warning(&quot;turn_timings emit failed&quot;, exc_info=True)</code>; <strong>the turn continues and the user notices nothing.</strong> Asserted by a test that monkeypatches <code>model_dump_json</code> to raise</td></tr><tr><td style="text-align:left"><strong>I2</strong></td><td style="text-align:left">The client never sends <code>client_timing</code> (barge before any audio, tab closed, stale bundle)</td><td style="text-align:left">The record is still printed — client legs <code>null</code>, <code>flush_reason</code> = <code>next_turn</code> or <code>connection_closed</code>. <strong>A turn never produces zero records</strong></td></tr><tr><td style="text-align:left"><strong>I3</strong></td><td style="text-align:left"><code>client_timing</code> arrives for an unknown or stale <code>turn_id</code> (a barge racing a reconnect)</td><td style="text-align:left">Ignored. <code>logger.info(&quot;client timing for unknown turn %s&quot;, ...)</code>. <strong>No <code>bad_message</code>, no exception</strong> — this is a legitimate race, not a client bug</td></tr><tr><td style="text-align:left"><strong>I4</strong></td><td style="text-align:left">The turn fails at STT / LLM / TTS</td><td style="text-align:left">Record printed with <code>outcome=&quot;failed&quot;</code>, <code>failed_stage</code> set, later stages <code>null</code>. <code>measure.py</code> <strong>excludes it from every median</strong> and reports the count separately</td></tr><tr><td style="text-align:left"><strong>I5</strong></td><td style="text-align:left"><code>make measure</code> with no file and stdin attached to a terminal</td><td style="text-align:left">Prints usage, exits 2. <strong>Never blocks on a tty</strong> — a declared command that hangs is worse than one that fails</td></tr><tr><td style="text-align:left"><strong>I6</strong></td><td style="text-align:left">A truncated or interleaved log line, or a line whose JSON no longer matches the model</td><td style="text-align:left">Skipped, counted, reported as <code>skipped: N malformed</code>. Aggregation never crashes on one bad line</td></tr><tr><td style="text-align:left"><strong>I7</strong></td><td style="text-align:left">Zero <code>ok</code> records in the input</td><td style="text-align:left">Prints <code>no turn_timings records found in N lines</code>, exits 1, <strong>writes no document</strong>. An empty measurement file is worse than none</td></tr><tr><td style="text-align:left"><strong>I8</strong></td><td style="text-align:left">A stale browser tab on protocol v2</td><td style="text-align:left">The existing handshake path rejects it: <code>error{code:&quot;protocol_version&quot;}</code> then <code>closing{reconnect:false}</code> → <em>&quot;A new version is available — reload.&quot;</em> Unchanged code; re-verified because the constant moved</td></tr><tr><td style="text-align:left"><strong>I9</strong></td><td style="text-align:left"><code>measure.py</code> fed records with two different <code>redemption_ms</code> (or <code>env</code>, or a model id)</td><td style="text-align:left"><code>MIXED CONFIGURATION</code> warning printed above the table, listing the distinct values. The table is still printed — the warning is what stops it being quoted</td></tr></tbody></table></div>
+<hr />
+<h2 id="traps-restated-because-they-will-not-be-remembered"><span class="htext">Traps, restated because they will not be remembered</span></h2>
+<ol>
+<li>🪤 <strong>TTFT is to the first <code>delta.type == &quot;text&quot;</code>.</strong> <code>gemini_llm.py</code> already does this correctly. The risk in this block is a refactor of <code>reply()</code> that loses the skip conditions. If <code>llm_ttft_ms</code> comes back near-zero <em>and</em> <code>llm_ms</code> is large, the skip was lost and the number is a fiction.</li>
+<li>🪤 <strong><code>turn.py</code> must not import a provider adapter.</strong> Model ids come off the Protocol attribute. An <code>from app.providers.gemini_llm import MODEL</code> in <code>turn.py</code> puts the genai SDK into <code>main.py</code>'s import graph and can take <code>/health</code> and the static mount down with it — requirement #4, lost to a model id.</li>
+<li>🪤 <strong><code>ts_ms</code> is wall clock and display-only.</strong> <code>protocol.py</code>'s docstring says Block 3 must not reuse it. Every timing in this block is a monotonic delta.</li>
+<li>🪤 <strong>Do not subtract a client timestamp from a server timestamp.</strong> <code>client_ts_ms</code> exists on <code>StartIn</code>/<code>EndIn</code> for correlation and cross-checks, not for latency arithmetic. There is no clock-sync protocol here, and skew would silently swamp <code>upload_ms</code>.</li>
+<li>🪤 <strong>The adapter's <code>tts_ttfb_ms</code> and the record's <code>tts_ttfb_ms</code> are different numbers.</strong> The adapter's excludes the Deepgram WebSocket handshake. Rename the adapter's log key to <code>tts_ttfb_after_connect_ms</code> (one line) so the 85 ms figure from Block 2 can never be quoted as a user-facing number by accident.</li>
+<li>🪤 <strong><code>AudioContext.outputLatency</code> is typed as <code>number</code> and is <code>undefined</code> on Safari.</strong></li>
+<li>🪤 <strong><code>extra=&quot;forbid&quot;</code> on <code>TurnTimings</code> means a typo'd attribute assignment raises at runtime.</strong> That is desirable (mypy catches it first), but it is one more reason <code>emit()</code> is the only guarded call: assignments are validated by mypy at build time, not by pydantic at run time.</li>
+</ol>
+<hr />
+<h2 id="files"><span class="htext">Files</span></h2>
+<h3 id="created"><span class="htext">Created</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">File</th><th style="text-align:left">Purpose</th></tr></thead><tbody><tr><td style="text-align:left"><code>backend/app/pipeline/timings.py</code></td><td style="text-align:left"><code>TurnTimings</code>, <code>LOG_PREFIX</code>, <code>elapsed_ms()</code>, <code>emit()</code></td></tr><tr><td style="text-align:left"><code>backend/app/measure.py</code></td><td style="text-align:left">Reads <code>turn_timings</code> lines, aggregates, prints the table, writes the doc. Makes <code>make measure</code> real</td></tr><tr><td style="text-align:left"><code>backend/tests/test_timings.py</code></td><td style="text-align:left">Fills, failure paths I1/I4, the emit guard</td></tr><tr><td style="text-align:left"><code>backend/tests/test_measure.py</code></td><td style="text-align:left">Aggregation, de-dupe, I6/I7/I9</td></tr><tr><td style="text-align:left"><code>docs/measurements/{date}-deployed-baseline.md</code></td><td style="text-align:left">Generated by the run, interpretation written by hand</td></tr><tr><td style="text-align:left"><code>docs/PRs/PR_INSTRUMENTATION.md</code></td><td style="text-align:left">Summary · Problem · Solution · Changes · How to Test · Changelog</td></tr></tbody></table></div>
+<h3 id="modified"><span class="htext">Modified</span></h3>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">File</th><th style="text-align:left">Change</th></tr></thead><tbody><tr><td style="text-align:left"><code>backend/app/pipeline/protocol.py</code></td><td style="text-align:left"><code>PROTOCOL_VERSION = 3</code>; <code>ClientTimingIn</code>; union + <code>parse_client_message</code> annotation; docstring line moving <code>timings</code> from &quot;reserved&quot; to &quot;client_timing, c→s, Block 3&quot;</td></tr><tr><td style="text-align:left"><code>backend/app/pipeline/turn.py</code></td><td style="text-align:left"><code>timings: TurnTimings</code> parameter; the nine fills; <code>LLMReply</code> unpacking</td></tr><tr><td style="text-align:left"><code>backend/app/providers/base.py</code></td><td style="text-align:left"><code>LLMReply</code>; <code>model</code> on all three Protocols; <code>thinking_level</code> on <code>LLM</code></td></tr><tr><td style="text-align:left"><code>backend/app/providers/gemini_llm.py</code></td><td style="text-align:left"><code>THINKING_LEVEL</code> constant; <code>self.model</code> / <code>self.thinking_level</code>; returns <code>LLMReply</code>; drops the now-redundant <code>logger.info</code></td></tr><tr><td style="text-align:left"><code>backend/app/providers/groq_stt.py</code></td><td style="text-align:left"><code>MODEL</code> constant extracted; <code>self.model</code>; <strong>drops</strong> the <code>stt_ms</code> log line (measured at the call site now)</td></tr><tr><td style="text-align:left"><code>backend/app/providers/deepgram_tts.py</code></td><td style="text-align:left"><code>self.model</code>; log key renamed to <code>tts_ttfb_after_connect_ms</code></td></tr><tr><td style="text-align:left"><code>backend/app/main.py</code></td><td style="text-align:left"><code>SARJY_ENV</code>, <code>TURN_INDEX</code>, <code>_TurnState</code> fields, <code>_maybe_emit_timings</code>, <code>_flush_timings</code>, <code>_handle_client_timing</code>, the ten call sites, <code>_process_turn(turns=...)</code></td></tr><tr><td style="text-align:left"><code>backend/modal_app.py</code></td><td style="text-align:left"><code>.env({&quot;SARJY_ENV&quot;: &quot;modal&quot;})</code> on the image (verified: <code>modal.Image.env(vars: dict[str,str])</code> exists in 1.5.5)</td></tr><tr><td style="text-align:left"><code>backend/Makefile</code></td><td style="text-align:left"><code>measure: uv run python -m app.measure $(ARGS)</code> + the usage comment</td></tr><tr><td style="text-align:left"><code>backend/tests/test_turn.py</code></td><td style="text-align:left">Fakes gain <code>model</code> / <code>thinking_level</code>; <code>FakeLLM.reply</code> returns <code>LLMReply</code>; <code>_run</code> builds and returns a <code>TurnTimings</code></td></tr><tr><td style="text-align:left"><code>backend/tests/test_ws.py</code></td><td style="text-align:left">I3 (unknown-turn <code>client_timing</code>), and one end-to-end assertion that a turn prints exactly one <code>turn_timings</code> line (via <code>caplog</code>)</td></tr><tr><td style="text-align:left"><code>frontend/src/protocol.ts</code></td><td style="text-align:left"><code>PROTOCOL_VERSION = 3</code>; <code>ClientTimingMessage</code>; union</td></tr><tr><td style="text-align:left"><code>frontend/src/net/connection.ts</code></td><td style="text-align:left"><code>sendClientTiming()</code></td></tr><tr><td style="text-align:left"><code>frontend/src/audio/turn.ts</code></td><td style="text-align:left"><code>EndpointTiming</code>; <code>onUtterance</code> gains the fourth argument</td></tr><tr><td style="text-align:left"><code>frontend/src/App.tsx</code></td><td style="text-align:left"><code>turnTimingRef</code>, <code>reportTurnTiming</code>, <code>lastTurn</code> state, the one rendered line</td></tr></tbody></table></div>
+<h3 id="not-touched"><span class="htext">Not touched</span></h3>
+<p><code>session.py</code> · <code>capture.ts</code> · <code>playback.ts</code> · <code>config.py</code> · <code>factory.py</code> · the VAD asset pipeline.</p>
+<hr />
+<h2 id="task-list"><span class="htext">Task list</span></h2>
+<p>Failure paths are tasks, and they are numbered before the happy path they protect.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Task</th><th style="text-align:left">Done when</th></tr></thead><tbody><tr><td style="text-align:left">1</td><td style="text-align:left"><code>timings.py</code>: <code>TurnTimings</code> with <strong>every</strong> field including the six reserved ones, <code>LOG_PREFIX</code>, <code>elapsed_ms</code>, <code>emit</code></td><td style="text-align:left"><code>emit(TurnTimings(...))</code> prints one line whose JSON contains <code>&quot;gate_ms&quot;: null</code></td></tr><tr><td style="text-align:left">2</td><td style="text-align:left"><strong>I1</strong> — a test that <code>emit</code> swallows a raising <code>model_dump_json</code> and logs a warning</td><td style="text-align:left">Test passes; nothing propagates</td></tr><tr><td style="text-align:left">3</td><td style="text-align:left"><code>base.py</code>: <code>LLMReply</code>, <code>model</code> on three Protocols, <code>thinking_level</code> on <code>LLM</code></td><td style="text-align:left"><code>make typecheck</code> names every implementer that is now incomplete</td></tr><tr><td style="text-align:left">4</td><td style="text-align:left">Adapters: constants extracted, attributes set, <code>GeminiLLM.reply</code> returns <code>LLMReply</code>, <code>groq_stt</code>'s <code>stt_ms</code> line deleted, <code>deepgram_tts</code>'s key renamed</td><td style="text-align:left"><code>make typecheck</code> clean</td></tr><tr><td style="text-align:left">5</td><td style="text-align:left"><code>run_turn(..., timings=)</code> and the nine fills</td><td style="text-align:left"><code>make test</code> green after the fakes are updated</td></tr><tr><td style="text-align:left">6</td><td style="text-align:left"><strong>I4</strong> — tests: STT raises → <code>outcome=&quot;failed&quot;</code>, <code>failed_stage=&quot;stt&quot;</code>, <code>llm_ms is None</code>; happy path → all five server legs non-<code>None</code> and <code>&gt;= 0</code></td><td style="text-align:left">Tests pass</td></tr><tr><td style="text-align:left">7</td><td style="text-align:left"><code>protocol.py</code>: version bump, <code>ClientTimingIn</code>, union, docstring</td><td style="text-align:left"><code>test_protocol.py</code> passes; an unknown field on <code>client_timing</code> raises <code>ValidationError</code></td></tr><tr><td style="text-align:left">8</td><td style="text-align:left"><code>main.py</code>: <code>_TurnState</code> fields, the two emit functions, <code>_handle_client_timing</code>, all ten call sites, <code>SARJY_ENV</code>, <code>TURN_INDEX</code></td><td style="text-align:left">A local turn prints exactly one <code>turn_timings</code> line</td></tr><tr><td style="text-align:left">9</td><td style="text-align:left"><strong>I2/I3</strong> — tests: <code>client_timing</code> for an unknown turn is ignored with no error message; a turn with no <code>client_timing</code> still prints a record with <code>flush_reason=&quot;next_turn&quot;</code> on the next <code>start</code></td><td style="text-align:left">Tests pass</td></tr><tr><td style="text-align:left">10</td><td style="text-align:left"><code>modal_app.py</code>: <code>SARJY_ENV</code></td><td style="text-align:left"><code>env</code> reads <code>&quot;modal&quot;</code> in a deployed record and <code>&quot;local&quot;</code> under <code>make dev</code></td></tr><tr><td style="text-align:left">11</td><td style="text-align:left"><code>measure.py</code>: parse → de-dupe → filter <code>ok</code> → table → residual → doc; <strong>I5/I6/I7/I9 first</strong></td><td style="text-align:left"><code>make measure ARGS=&quot;/dev/null&quot;</code> exits 1 cleanly; <code>make measure</code> on a tty exits 2 with usage</td></tr><tr><td style="text-align:left">12</td><td style="text-align:left"><code>test_measure.py</code> against a handful of synthetic lines: median correct, malformed skipped, duplicate collapsed, failed excluded, mixed config warned</td><td style="text-align:left">Tests pass</td></tr><tr><td style="text-align:left">13</td><td style="text-align:left">Frontend: <code>protocol.ts</code>, <code>connection.ts</code>, <code>turn.ts</code>, <code>App.tsx</code> send path</td><td style="text-align:left"><code>npm run typecheck &amp;&amp; npm run lint</code> clean</td></tr><tr><td style="text-align:left">14</td><td style="text-align:left">The one on-screen line</td><td style="text-align:left">A local turn renders <code>last turn 1.xx s voice-to-voice · endpoint 0.xx s · redemption 600 ms</code></td></tr><tr><td style="text-align:left">15</td><td style="text-align:left">Full local turn: speak, hear, read the line, read the log record</td><td style="text-align:left">One record, client legs non-null, <code>outcome=&quot;ok&quot;</code></td></tr><tr><td style="text-align:left">16</td><td style="text-align:left"><code>make deploy</code>, then <strong>ten real turns</strong> against the deployed URL with a fixed script</td><td style="text-align:left">Ten <code>ok</code> records in <code>modal app logs</code></td></tr><tr><td style="text-align:left">17</td><td style="text-align:left"><code>make measure</code> → the doc; write the interpretation paragraph by hand</td><td style="text-align:left"><code>docs/measurements/{date}-deployed-baseline.md</code> exists with n=10 and a named largest term</td></tr><tr><td style="text-align:left">18</td><td style="text-align:left"><code>docs/PRs/PR_INSTRUMENTATION.md</code>, and draft the commits</td><td style="text-align:left">Written; <strong>agents never commit</strong></td></tr></tbody></table></div>
+<hr />
+<h2 id="the-estimate-honestly"><span class="htext">The estimate, honestly</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left"></th><th style="text-align:left">Hours</th></tr></thead><tbody><tr><td style="text-align:left"><code>CUT-DECISION.md</code> allowance</td><td style="text-align:left"><strong>0.5</strong></td></tr><tr><td style="text-align:left">Record + emit + the nine fills</td><td style="text-align:left">0.2</td></tr><tr><td style="text-align:left"><code>LLMReply</code> + Protocol attributes + fake updates</td><td style="text-align:left">0.15</td></tr><tr><td style="text-align:left">The merge in <code>main.py</code> (two flags, three flush paths)</td><td style="text-align:left">0.25</td></tr><tr><td style="text-align:left">Wire message + version bump, both sides</td><td style="text-align:left">0.1</td></tr><tr><td style="text-align:left">Frontend send path + the one line</td><td style="text-align:left">0.2</td></tr><tr><td style="text-align:left"><code>measure.py</code> + its tests</td><td style="text-align:left">0.25</td></tr><tr><td style="text-align:left">Deploy, ten turns, the doc</td><td style="text-align:left">0.2</td></tr><tr><td style="text-align:left"><strong>Honest</strong></td><td style="text-align:left"><strong>~1.3</strong></td></tr></tbody></table></div>
+<p><strong>~0.8 h over the cut.</strong> That is the price of the two client legs, and the caller's scope note is explicit that they are the measurement, not polish. Cut ladder, pre-committed:</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Trigger</th><th style="text-align:left">Cut</th><th style="text-align:left">Saves</th></tr></thead><tbody><tr><td style="text-align:left"><strong>T+35 min</strong>, the record is not printing</td><td style="text-align:left">Drop <code>model</code>/<code>thinking_level</code> on the Protocols and the five config fields; hardcode the model ids in the measurement doc's header by hand</td><td style="text-align:left">~0.15</td></tr><tr><td style="text-align:left"><strong>T+50 min</strong>, the client leg is not merging</td><td style="text-align:left"><strong>Stop merging.</strong> The client's numbers go out as their own <code>client_timing {...}</code> log line carrying <code>turn_id</code>, and <code>measure.py</code> joins the two lines by <code>turn_id</code>. Two lines per turn instead of one, still fully correlated, still one command to a median. Invariant 2 survives intact</td><td style="text-align:left">~0.2</td></tr><tr><td style="text-align:left"><strong>T+70 min</strong></td><td style="text-align:left"><code>measure.py</code> prints the table and stops writing the markdown doc; paste it into <code>docs/measurements/</code> by hand</td><td style="text-align:left">~0.1</td></tr><tr><td style="text-align:left"><strong>Never cut</strong></td><td style="text-align:left">The record itself · the on-screen line · the ten-turn median against the deployment</td><td style="text-align:left">—</td></tr></tbody></table></div>
+<hr />
+<h2 id="the-endpointing-sweep-now-runnable"><span class="htext">The endpointing sweep, now runnable</span></h2>
+<p>Block 2 shipped the instrument and left the number unmeasured — <code>DEFAULT_REDEMPTION_MS = 600</code> is a placeholder, and endpointing is the <strong>largest single term in the chain</strong> (TDD §Latency budget). This block makes the sweep produce comparable numbers instead of console noise: <code>redemption_ms</code> rides in every record, and the on-screen line shows both the setting and its effect without opening devtools.</p>
+<p><strong>Omar runs this</strong> (it needs a human ear; nothing here can be scripted):</p>
+<ol>
+<li>Deployed URL + <code>?redemptionMs=400</code>. Speak the same sentence five times, letting each endpoint naturally.</li>
+<li>Read the on-screen line after each turn — <code>endpoint 0.xx s</code> is the number; note whether any turn <em>felt</em> like it cut you off.</li>
+<li>Repeat at <code>600</code> and <code>800</code>.</li>
+<li><code>modal app logs sarjy --since 30m --tail 2000 &gt; /tmp/sweep.log</code>, then <code>make measure ARGS=&quot;--label sweep-400 --redemption 400 /tmp/sweep.log&quot;</code> for each value.</li>
+<li>Fill the table in <code>docs/measurements/block2-voice-loop.md</code> §Endpointing sweep, write down <strong>why</strong> the chosen value wins, set <code>DEFAULT_REDEMPTION_MS</code> in <code>frontend/src/audio/turn.ts</code>, and replace the TDD's &quot;~600 ms, still an estimate&quot; row with the measured value and its <code>n</code>.</li>
+</ol>
+<p><strong>Sanity check on the instrument</strong> — verified by reading <code>node_modules/@ricky0123/vad-web/dist/frame-processor.js</code>: the redemption counter only advances on frames below <code>negativeSpeechThreshold</code> (0.25) and resets on any frame at or above <code>positiveSpeechThreshold</code> (0.3), with <code>redemptionFrames = floor(redemptionMs / 32)</code> at model v5's 32 ms frames. So a correct <code>endpoint_ms</code> is <strong>≥ <code>floor(redemption_ms / 32) * 32</code></strong> (576 ms at a 600 ms setting) and typically within ~100 ms above it. <strong>A value below that floor means the instrument is measuring the wrong pair of events, not that the VAD got faster.</strong></p>
+<p><strong>Stated limitation, because a reviewer will probe it:</strong> <code>endpoint_ms</code> starts at the last frame <em>classified</em> as speech, which lags the true acoustic end by up to one frame (32 ms) plus capture buffering. It is a slight under-estimate of the real endpointing delay, and it is the number we can actually observe in a browser.</p>
+<hr />
+<h2 id="secrets-and-what-goes-in-a-log-line"><span class="htext">Secrets and what goes in a log line</span></h2>
+<p><code>AGENTS.md</code> §Secrets: nothing that could contain a key is ever logged. No API key, no <code>Authorization</code> header, no provider response body, and no audio bytes reach a record.</p>
+<p><strong>The judgement call, stated rather than buried: the timing record carries no transcript text and no reply text — only <code>transcript_chars</code> and <code>reply_chars</code>.</strong> Lengths are what the measurement actually needs (TTS TTFB and total generation both track text length), they are useless to an attacker, and they keep the record safe to paste into a PR, a Loom or the writeup without reading it first. The separate <code>stt_transcript turn=%s text=%r</code> line in <code>run_turn()</code> stays exactly as Block 2 left it — it exists to make Whisper's near-silence filler visible and it is a deliberate, scoped decision that is not this block's to reverse. The consequence to know: <strong>a measurement log may be shared freely; the full server log may not.</strong></p>
+<hr />
+<h2 id="verification"><span class="htext">Verification</span></h2>
+<p>Run in order. Show the output; do not assert it passed.</p>
+<div class="codewrap"><pre><code class="lang-bash"># 1 -- backend
+cd backend &amp;&amp; make typecheck &amp;&amp; make lint &amp;&amp; make test
+
+# 2 -- frontend
+cd frontend &amp;&amp; npm run typecheck &amp;&amp; npm run lint
+
+# 3 -- the broken command is no longer broken
+cd backend &amp;&amp; make measure                       # exits 2, prints usage, does NOT hang
+cd backend &amp;&amp; make measure ARGS=&quot;/dev/null&quot;      # exits 1, &quot;no turn_timings records found&quot;
+
+# 4 -- a local turn end to end
+cd backend &amp;&amp; make dev                           # then speak at http://localhost:5173
+#    expect on screen:  last turn 1.xx s voice-to-voice · endpoint 0.xx s · redemption 600 ms
+#    expect in the log: exactly ONE line matching `turn_timings {`
+
+# 5 -- deploy and measure the deployment
+cd backend &amp;&amp; make deploy
+#    ten turns at the deployed URL, fixed script (below)
+modal app logs sarjy --since 30m --tail 2000 | uv run python -m app.measure --label deployed-baseline</code></pre></div>
+<p><strong>Fixed utterance script for the ten turns</strong> — comparable runs need the same words:</p>
+<ol>
+<li>&quot;What's the capital of Japan?&quot; ×4</li>
+<li>&quot;Do I need a visa for Turkey?&quot; ×3</li>
+<li>&quot;Tell me something about Lisbon.&quot; ×3</li>
+</ol>
+<p><strong>What proves it worked:</strong></p>
+<ul>
+<li><code>make test</code> prints the existing suite plus the new tests, all passing, zero failures.</li>
+<li>A deployed record, pretty-printed, contains <strong>non-null</strong> <code>endpoint_ms</code>, <code>first_audio_ms</code>, <code>upload_ms</code>, <code>stt_ms</code>, <code>llm_ms</code>, <code>llm_ttft_ms</code>, <code>tts_ttfb_ms</code>, <code>tts_total_ms</code>, <code>server_ms</code>, <code>redemption_ms</code>, <code>stt_model</code>, <code>llm_model</code>, <code>tts_model</code>, <code>env: &quot;modal&quot;</code>, <code>outcome: &quot;ok&quot;</code> — <strong>and explicit <code>&quot;opener_ready_ms&quot;: null, &quot;tts1_ttfb_ms&quot;: null, &quot;tool_ms&quot;: null, &quot;llm2_ms&quot;: null, &quot;gate_ms&quot;: null, &quot;answer_gap_ms&quot;: null</code>.</strong></li>
+<li><code>llm_ttft_ms</code> is in the tens of milliseconds and <code>llm_ms</code> is materially larger — the shape Block 2 measured (30 ms TTFT). If they are equal, TTFT is being read from the wrong event.</li>
+<li><code>endpoint_ms &gt;= 576</code> at <code>redemption_ms = 600</code>.</li>
+<li><code>make measure</code> prints <code>n = 10</code> on <code>first_audio_ms</code>, a median and a p95 per stage, and a residual row.</li>
+<li>Deliberately fail one turn (unplug the network mid-turn, or point <code>DEEPGRAM_TTS_MODEL</code> at nonsense for one run): the record still prints, <code>outcome=&quot;failed&quot;</code>, and <code>make measure</code> reports it as excluded rather than averaging it.</li>
+</ul>
+<hr />
+<h2 id="gate"><span class="htext">Gate</span></h2>
+<p>Restated from the master plan — <em>&quot;real numbers on screen for a real turn, and a median over ten turns against the deployment&quot;</em> — made observable:</p>
+<ol>
+<li><strong>On screen.</strong> Speaking one turn to <code>https://vitas7777v--sarjy-fastapi-app.us-east.modal.run</code> renders a line reading <code>last turn &lt;N.NN&gt; s voice-to-voice · endpoint &lt;N.NN&gt; s · redemption 600 ms</code>, where both numbers change from turn to turn and neither is a placeholder.</li>
+<li><strong>One line per turn.</strong> <code>modal app logs sarjy</code> shows <strong>exactly one</strong> <code>turn_timings {...}</code> line per turn, containing every field in §Contracts 1, with the six Block 4/5/6 stages present and <code>null</code>.</li>
+<li><strong>A median over ten.</strong> <code>modal app logs sarjy --since 30m --tail 2000 | uv run python -m app.measure --label deployed-baseline</code> prints a stage table with <code>n = 10</code> on <code>first_audio_ms</code> and writes <code>docs/measurements/2026-09-20-deployed-baseline.md</code>, whose config header names the three model ids, <code>env: modal</code> and the <code>redemption_ms</code> in force.</li>
+<li><strong>A finding, not just numbers.</strong> That document's <code>## Interpretation</code> names the largest single term with its median, and says in one sentence what would be done about it — even if the answer is &quot;it sits inside a provider we do not control.&quot;</li>
+<li><strong>Nothing regressed.</strong> <code>make typecheck &amp;&amp; make lint &amp;&amp; make test</code> and <code>npm run typecheck &amp;&amp; npm run lint</code> are clean, and a stale v2 tab is told to reload rather than erroring.</li>
+</ol>
+<hr />
+<h2 id="draft-commits-agents-draft-omar-commits"><span class="htext">Draft commits — agents draft, Omar commits</span></h2>
+<div class="codewrap"><pre><code>feat(timings): one correlated timing record per turn
+
+Per-stage numbers existed as three uncorrelated log lines and the two legs
+the user actually feels -- endpointing and first audio out -- were not
+measured at all. TurnTimings is opened on `start`, filled as each stage
+completes, and printed once both halves of the turn are done: the server's
+last audio chunk and the client's first audible sound.
+
+Stages owned by Blocks 4/5/6 (opener, tool, gate, answer gap) are reserved
+as explicit nulls -- a record retrofitted later would describe nothing about
+what was built first.
+
+LLM.reply() now returns LLMReply so TTFT -- measured to the first
+delta.type == &quot;text&quot;, never the first SSE event -- can leave the adapter.</code></pre></div>
+<div class="codewrap"><pre><code>feat(measure): make `make measure` real
+
+The Makefile has always declared `python -m app.measure`; the module did not
+exist. It now reads turn_timings lines from a log capture, drops duplicates
+and failed turns, and prints median/p95 per stage plus the residual between
+the stage sum and the headline figure.</code></pre></div>
+<div class="codewrap"><pre><code>feat(ui): show the last turn's voice-to-voice number
+
+One line. Invariant 2 says latency is a measured number, and a number nobody
+can see during the demo is an adjective with extra steps.</code></pre></div>
+<hr />
+<h2 id="open-questions-and-stated-assumptions"><span class="htext">Open questions and stated assumptions</span></h2>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">#</th><th style="text-align:left">Item</th><th style="text-align:left">Status</th></tr></thead><tbody><tr><td style="text-align:left">1</td><td style="text-align:left"><strong>The 0.5 h cut cannot buy the client legs.</strong> Honest estimate ~1.3 h</td><td style="text-align:left">Flagged to Omar. The cut ladder above decides the overrun in advance</td></tr><tr><td style="text-align:left">2</td><td style="text-align:left"><code>first_audio_ms</code> ends when the first buffer is <strong>scheduled</strong>, not when a speaker moves</td><td style="text-align:left">Stated as an assumption in the generated doc. <code>output_latency_ms</code> (null on Safari) is the size of the unmeasured remainder — typically 10–50 ms</td></tr><tr><td style="text-align:left">3</td><td style="text-align:left"><code>endpoint_ms</code> lags the true acoustic end by ≤ 1 frame (32 ms) plus capture buffering</td><td style="text-align:left">Stated; it is the best a browser offers</td></tr><tr><td style="text-align:left">4</td><td style="text-align:left">Whether <code>ensureFresh()</code>'s socket rotation lands inside <code>residual_ms</code> often enough to matter</td><td style="text-align:left"><strong>Unknown until the ten-turn run.</strong> If the residual is large and bimodal, that is the first thing to check, and it is a finding for Block 4, not work for this block</td></tr><tr><td style="text-align:left">5</td><td style="text-align:left">Block 2's <code>t_thinking_ms</code> of 660 ms–3.5 s on the upload leg, measured from a sandbox</td><td style="text-align:left"><code>upload_ms</code> replaces it with a server-monotonic number. If it stays large from a normal browser on a normal network, the dual-capture streaming upload named in the Block 2 plan becomes a real candidate</td></tr><tr><td style="text-align:left">6</td><td style="text-align:left">The sweep, the voice choice and the Safari check all still need a human</td><td style="text-align:left">Carried forward from <code>docs/measurements/block2-voice-loop.md</code> §What still needs a human</td></tr></tbody></table></div>
+  </main>
+</div>

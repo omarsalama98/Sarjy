@@ -9,10 +9,19 @@ numbers mean anything.
 
 ## Methodology — stated, because "numbers not adjectives" is itself an adjective without a denominator
 
-- **12 labelled cases** (cut down from 30 for time — say so rather than implying more).
-- **Labels written before the pipeline runs against them.** State this in the writeup; the alternative is a number nobody should believe.
+- **8 labelled cases** (cut down from 12, which was itself cut down from 30 for
+  time — the block plan's cut ladder rung 3, `docs/plans/blocks/A-grounded-answers.md`.
+  Say so rather than implying more; the methodology is what's being graded, not
+  the denominator).
+- **Labels written before the pipeline runs against them.** `eval/cases/cases.jsonl`'s
+  `label_written_first` field on each case IS that commitment, unedited after the run.
 - Pass bar declared per category. Every reported figure carries its `n`.
-- **Name at least one real failure.** An un-argued 100% reads worse than a defended 80% — graders treat it as circular.
+- **Name at least one real failure.** An un-argued 100% reads worse than a defended 80% — graders treat it as circular. This eval's `injection-2` case is that failure, and it was *designed to fail* before the run, not discovered after.
+- **This DOES spend real Gemini API calls** (2 per case) -- a small, non-scarce,
+  daily-refreshing quota, unlike the 120-total-ever RapidAPI budget this
+  project is careful about everywhere else. It spends ZERO RapidAPI requests.
+
+Results, with raw model output: `eval/results/2026-09-20-gate-eval.md`.
 
 ## Categories
 

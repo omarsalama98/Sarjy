@@ -72,81 +72,72 @@ Per-stage timings on every turn, emitted and visible: endpointing → STT → LL
 
 ---
 
-### Block 4 — The LLM turn, with the opener · ~2 h · *needs 2, 3*
+### Block A — Grounded answers · *needs 3* · **the deep dive** · requirements #3 and #5
 
-The architecture's signature move. `update()` plus the real tool call in one response; lookup fired from `step.start` before arguments finish; call 2 streaming NDJSON segments validated per line.
+**Restructured 2026-09-20.** Old Blocks 4, 5, 6 and 9 are one block. Seven blocks meant seven
+plan→implement→review cycles; the base was never the graded part and it ate the budget.
 
-Against a **fake** tool. The real vendor is Block 5 — this block should not be blocked on quota.
+Four things, in dependency order:
 
-🪤 Use `arguments_delta`, not `arguments`. Google's own docs contradict each other and the wrong one silently matches nothing.
+1. **The segmented LLM turn.** Call 2 streams **NDJSON**, one segment per line, validated per line
+   with Pydantic. Each segment carries a register: `sourced` (citation, date, layer) or `judgement`
+   (Sarjy's own view, no citation). Both directions are failures. Against a **fake** tool first, so
+   this is never blocked on vendor quota.
+2. **The vendor client.** Travel Buddy visa requirements. Quota ledger and reserve · resolution
+   order (cached map → warm cache → CSV → live) · the maintained-fork CSV · the colour-legend
+   spike (~6 requests) · normalisation so live and CSV emit one identical shape.
+3. **The gate.** `resolve` · `get_path` · value-level substitution (the model names `{visa.duration}`,
+   deterministic code substitutes the value) · the **digit rule** (no digit in a `sourced` segment
+   outside a placeholder) · the **placeholder rule** (a `sourced` segment contains ≥1 placeholder) ·
+   the reject-and-say-so path. **Tier A unit tests written here, not after.**
+4. **The eval.** Hand-scored adversarial cases, RAGAS-style, cited as such. Proves the gate catches
+   fabrication rather than asserting it.
 
-**Gate:** Sarjy speaks an opener, the fake lookup resolves underneath it, the answer continues. Measured: did first-audio-out drop?
+🪤 `arguments_delta`, not `arguments` — Google's docs contradict each other and the wrong one
+silently matches nothing.
 
----
-
-### Block 5 — Vendor client + normaliser · ~2.25 h · *needs 4*
-
-Quota ledger and reserve · resolution order (cached map → warm cache → CSV → live) · the maintained-fork CSV · **the colour-legend spike (~6 requests)** · normalisation so live and CSV emit one identical shape.
-
-**Gate:** a real visa lookup answers, the ledger decrements correctly, and pulling the network still produces a correct answer that says which layer served it. **Requirement #3.**
-
----
-
-### Block 6 — The gate · ~2 h · *needs 5* · **the deep dive**
-
-`resolve` · `get_path` · the digit rule · the placeholder rule · the opener contract · the reject-and-say-so path. **Tier A unit tests written in this block, not after.**
-
-**Gate:** tests pass; a real turn is gated end to end; a deliberately fabricated number is visibly rejected. **This is the demo.**
-
----
-
-### Block 7 — Memory and identity · ~2 h · *needs 6*
-
-`modal.Dict` store · two tiers (anonymous session-only / signed-in persisted) · voice-first greeting with typed fallback · name + PIN · the extraction call fired after dispatch · the "what Sarjy remembers" panel with a forget button.
-
-**Gate:** favourite colour survives a reload. Two different names do not see each other's facts — **asserted in a test, not just tried once.** Requirement #2.
+**Gate:** a real visa lookup answers and the ledger decrements · pulling the network still answers
+correctly and names which layer served it · a deliberately fabricated number is **visibly rejected**
+· the eval table exists with numbers in it. **This is the demo.**
 
 ---
 
-### Block 8 — The UI · ~1.5 h · *needs 7*
+### Block B — Memory · *needs A* · requirement #2
 
-Most of it arrives free from Blocks 2, 3 and 7. What is left: register styling (sourced vs judgement look different), provenance chips, quota display, the calm first screen, and the failure states actually looking like something.
+`modal.Dict` store · two tiers (anonymous session-only / signed-in persisted) · voice-first greeting
+with typed fallback · name + PIN · the extraction call fired after dispatch · the "what Sarjy
+remembers" panel with a forget button.
 
-**Gate:** the first-five-seconds screen matches what we designed. Every failure mode has a visible state.
+**Invariant 4:** persisted facts are structured and inspectable, not a chat blob. The panel *is* the
+demo — "what's my favourite colour" must work **because a fact was stored**.
 
----
-
-### Block 9 — Eval and judge · ~2.5 h · **Monday** · *needs 6*
-
-Recorded fixtures · 12 hand-labelled cases, **labels written before the pipeline runs** · six categories · hand-rolled RAGAS-style judge · **judge-vs-human agreement reported beside every number** · gate-rejection rate and malformed-line rate as first-class figures.
-
-**Gate:** numbers exist, with their `n`, and a methodology paragraph that survives a sceptical read.
+**Gate:** told in one session, answered correctly in a fresh one after a reload. Shown in the panel.
 
 ---
 
-### Block 10 — Arabic · ~0.75 h · **Monday** · *needs 2*
+### Block C — Demoable · *needs B* · requirements #1, #6
 
-`language=ar` on Whisper · Gemini TTS auto-detects · listen to Sulafat, Vindemiatrix, Rasalgethi in both languages and record the choice.
+The canned opener clip (the `update()` opener was cut — a pre-recorded clip covers the lookup) ·
+the UI pass · **Arabic** (`language=ar` on Whisper, Groq Orpheus out, ⚠️ 200-char cap per request) ·
+README · the demo script · the Loom outline.
 
-**Gate:** one clean Arabic turn, demoed in Egyptian, with the Gulf WER cliff named out loud.
+**Gate:** `/demo-check` passes, the `submission-reviewer` agent has run, and a stranger can open the
+URL and have a conversation without being told anything first.
 
 ---
-
-### Block 11 — Deliverables · ~3 h · **Monday 16:00–19:00** · 🔒 reserved
-
-Demo script and rehearsal · Loom · writeup (API justification, deep-dive numbers, what I'd do with another week) · submission.
-
-**This is reserved time, not leftovers.** The presentation is graded separately from the build, and the most common way a good take-home scores badly is arriving Monday evening with working code and no demo.
 
 ## Dependency shape
 
 ```
-0 ─→ 1 ─→ 2 ─→ 3 ─→ 4 ─→ 5 ─→ 6 ─→ 7 ─→ 8
-                    │              └─→ 9
-                    └─→ 10              └─→ 11
+0 ─→ 1 ─→ 2 ─→ 3 ─→ A ─→ B ─→ C
+         (done)      ▲     the deep dive is A
 ```
 
-Only Blocks 9 and 10 can move. Everything else is a chain, which is why a slip in Block 2 costs the whole day.
+A straight chain, and deliberately so. **Restructured 2026-09-20 from twelve blocks to six**: the
+first four are done, and the remaining three each get one plan → one implementation → one review
+instead of seven cycles over the same ground.
+
+Arabic no longer floats — it lives in C. Nothing else can move.
 
 ## The overflow list — cut from the bottom
 
@@ -169,6 +160,8 @@ Cuts 1–4 close the ~3 h gap. Cut 5 only if Sunday goes badly.
 | Block 0 says no parallel function calling on flash-lite | Sequential flow, no opener. Everything else stands |
 | **Saturday ends without a deployed URL** | Sunday drops Blocks 9 and 10 at the start of the day, not the end |
 | Sunday ends without the gate working | The deep dive becomes "designed and partially built" — say so honestly, show the tests |
+| **Monday 12:00 and Block B is not done** | Memory drops to session-only (no `modal.Dict` persistence) and requirement #2 is answered from the anonymous tier. Say so in the writeup |
+| **Monday 15:00 and Block C is not started** | Arabic goes first, then the UI pass. README, demo script and Loom are never cut — they are requirement #6 |
 
 ### Block 0 outcome — 2026-09-19, full detail in `docs/measurements/day1-spikes.md`
 

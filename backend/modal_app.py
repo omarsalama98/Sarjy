@@ -65,6 +65,14 @@ _REPO_ROOT = _BACKEND_DIR.parent
 image = (
     modal.Image.debian_slim(python_version="3.12")
     .pip_install_from_pyproject(str(_BACKEND_DIR / "pyproject.toml"))
+    # SARJY_ENV lands on every TurnTimings record (app/main.py) so a
+    # measurement doc can say "env: modal" rather than assuming it -- a
+    # local `make dev` run defaults to "local" (os.environ.get's fallback),
+    # never confused with a deployed one. Must come before any
+    # `add_local_*` call below -- Modal treats those as the end of the
+    # image's build steps (mounted at container start, not baked into a
+    # layer), and a build step after one raises at deploy time.
+    .env({"SARJY_ENV": "modal"})
     .add_local_python_source("app")
     # copy=False (the default) mounts at container start rather than baking a
     # layer -- faster deploys, and it means a UI-only change never triggers an
@@ -72,6 +80,13 @@ image = (
     # this reads the *local* dist/ tree at deploy time, and a stale one ships
     # with no error anywhere.
     .add_local_dir(str(_REPO_ROOT / "frontend" / "dist"), remote_path="/root/frontend/dist")
+    # Block A's vendor client reads committed reference data (passports,
+    # destinations, the cached visa map, the CSV fallback) and writes a warm
+    # cache of live lookups -- app/tools/vendor.py's own two_up/one_up
+    # resolver (mirroring main.py's _resolve_dist()) expects it at
+    # /root/data under Modal. Without this line the deployed app would 500
+    # on every visa question -- a working demo depends on it (Invariant 8).
+    .add_local_dir(str(_REPO_ROOT / "data"), remote_path="/root/data")
 )
 
 app = modal.App("sarjy", image=image)

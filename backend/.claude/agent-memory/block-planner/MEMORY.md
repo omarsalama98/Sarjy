@@ -1,0 +1,1 @@
+- [Master-plan estimates run low](master-plan-estimates-run-low.md) — block estimates are ~2.5x optimistic, and Block B's session-only fallback cannot work

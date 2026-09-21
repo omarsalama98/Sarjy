@@ -6,17 +6,16 @@ Fetched once from the upstream API and committed deliberately. **Never re-fetch 
 
 | File | Source | Requests spent | Fetched |
 |---|---|---|---|
-| `passports.json` | Travel Buddy `GET /Passports` | 1 | 2026-09-18 |
-| `destinations.json` | Travel Buddy `GET /Destinations` | 1 | _TBD_ |
-| `visa-map/<CC>.json` | Travel Buddy `POST /VisaMap` — all 211 destinations per passport | 1 each | _TBD_ |
-| `colour-legend.json` | Derived, **verified** against `POST /VisaRequirements` | ~6 | _TBD_ |
-| `passport-index.csv` | [ilyankou/passport-index-dataset](https://github.com/ilyankou/passport-index-dataset) (MIT, Jan 2025) | 0 | _TBD_ |
+| `passports.json` | Travel Buddy (200 passports) | 1 | 2026-09-18 |
+| `destinations.json` | **Derived** from `visa_map_SA.json`'s 211 destination codes, names cross-referenced against `passports.json` + 12 dependent-territory codes filled by hand (see the file's own `_derived_from`/`_manually_supplemented_codes` fields) | 0 | 2026-09-20 |
+| `visa_map_SA.json` | Travel Buddy `POST /v2/visa/map {"passport":"SA"}` — all 211 destinations for one passport | 1 | 2026-09-19/20 (see Upstream correction #1, `docs/plans/blocks/A-grounded-answers.md`) |
+| `visa_reqs_SA_JP.json` | Travel Buddy `POST /v2/visa/check {"passport":"SA","destination":"JP"}` — the shape check the normaliser is written against | 1 | 2026-09-20 |
+| `colour-legend.json` | The vendor's own **published** legend (travel-buddy.ai/api/), cited directly — D8. One observation cross-checked against `visa_reqs_SA_JP.json` (blue→eVisa for this pair). The 6 additional spot-check requests the block plan budgeted were **not spent** — see `colour-legend.json`'s own `_not_yet_spot_checked` field | 0 additional | 2026-09-20 |
+| `passport-index-tidy-iso2.csv` | [visualpharm/visa-free-dataset](https://github.com/visualpharm/visa-free-dataset) (MIT, maintained fork, corrections to 2026-06-14) | 0 | 2026-09-20 |
 
-### The colour legend is verified, not inferred
+### The colour legend is a citable vendor statement, not an inference
 
-`VisaMap` returns destinations bucketed into four colours, but `CustomPassportRank` enumerates **eight** rule types — so the mapping is lossy, and only `blue = eVisa` is confirmed. Every entry in `colour-legend.json` must carry the `VisaRequirements` response that proved it.
-
-A guessed mapping inside a product whose thesis is "never state what you can't source" would be self-defeating.
+The vendor publishes red/green/blue/yellow directly on their own page — blue means *"visa on arrival or eVisa"*, genuinely ambiguous by the vendor's own words. `normalise.normalise_map()` never claims a specific visa type from a colour alone; it emits `visa.category` with the vendor's own wording verbatim. See `.claude/rules/tools/vendor-client.md`'s "colour legend" section and D8/D7 in the block plan for the full argument.
 
 ### Known artifact
 

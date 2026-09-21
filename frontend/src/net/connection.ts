@@ -26,10 +26,16 @@
  */
 
 import {
-  type ClientMessage,
+  type ClientTimingMessage,
   type ClosingReason,
+  type ClientMessage,
   type ConversationState,
   type ErrorMessage,
+  type FactCardMessage,
+  type MemoryMessage,
+  type QuotaMessage,
+  type SegmentWire,
+  type TurnFailedStage,
   PROTOCOL_VERSION,
   parseServerMessage,
 } from "../protocol";
@@ -51,6 +57,24 @@ export interface ConnectionCallbacks {
    * a fatal reason, a server error. Not structured -- there is exactly one
    * consumer (a line of text), so a string is the plainest thing that works. */
   onNotice(message: string): void;
+  onTranscript(turnId: string, text: string): void;
+  onReply(turnId: string, text: string): void;
+  onAudioStart(turnId: string, sampleRate: number): void;
+  /** One binary frame -- raw PCM16 samples, at the rate `onAudioStart` gave. */
+  onAudioChunk(turnId: string, chunk: ArrayBuffer): void;
+  onAudioEnd(turnId: string): void;
+  onTurnFailed(turnId: string, stage: TurnFailedStage, message: string): void;
+  /** Block A -- the gated answer, kept AND rejected segments, and the
+   * exact string TTS was handed. */
+  onSegments(turnId: string, segments: SegmentWire[], spoken: string, hedged: boolean): void;
+  onQuota(quota: Omit<QuotaMessage, "t" | "seq" | "ts_ms">): void;
+  /** D15 -- received and held; Block C renders it, nothing paints it yet. */
+  onFactCard(card: FactCardMessage): void;
+  /** Block B -- drives the WHOLE "what Sarjy remembers" panel. Sent after
+   * `ready`, and again after sign-in, sign-out, forget, or an extraction
+   * that changed something -- there is no client-side memory state to
+   * drift, since every change re-sends the full record. */
+  onMemory(memory: MemoryMessage): void;
 }
 
 // A turn plus its answer, worst case -- ensureFresh() refuses to start one
@@ -93,6 +117,11 @@ export class Connection {
 
   private readyWaiters: Array<() => void> = [];
 
+  // Binary frames carry no turn id (see protocol.py's module doc) -- this is
+  // the one place that gap gets closed, so every other callback can assume
+  // a turn id is always available.
+  private currentAudioTurnId: string | null = null;
+
   constructor(
     private readonly url: string,
     private readonly callbacks: ConnectionCallbacks,
@@ -122,12 +151,78 @@ export class Connection {
    * socket is too close to its scheduled rotation to plausibly finish a
    * turn -- see the module doc's invariant. */
   async ensureFresh(): Promise<void> {
+    // Nothing to rotate if the socket isn't already `ready` -- reconnecting/
+    // offline/stale all mean the reconnect loop already owns getting back
+    // to `ready`, and there's nothing to gain by waiting on a rotate()
+    // here. Without this guard, a user speaking while offline (backoff
+    // exhausted, `connectedAtMs` from a "ready" long in the past) computed
+    // `elapsed` as huge, called rotate() against an already-dead socket,
+    // and parked handleUtterance() forever -- rotate()'s close(1000) on a
+    // socket that's already CLOSED fires no `onclose`, so no reconnect was
+    // ever scheduled and the waiter below never resolved. The caller
+    // (App.tsx's handleUtterance) checks isReady() right after this
+    // returns and surfaces a visible failure instead of sending into a
+    // dead socket.
+    if (this.connectionState !== "ready") return;
     const elapsed = performance.now() - this.connectedAtMs;
     if (elapsed <= this.rotateAfterMs - TURN_BUDGET_MS) return;
     await new Promise<void>((resolve) => {
       this.readyWaiters.push(resolve);
       this.rotate();
     });
+  }
+
+  /** Whether a message sent right now would actually go anywhere. Callers
+   * that are about to start a turn check this after ensureFresh() --
+   * Connection.send/sendBinary silently no-op on a closed socket, and an
+   * utterance sent into that silence would vanish with nothing on screen
+   * (Invariant 7: degrade visibly, never hang). */
+  isReady(): boolean {
+    return this.connectionState === "ready";
+  }
+
+  startTurn(turnId: string): void {
+    this.send({ t: "start", turn_id: turnId, client_ts_ms: Date.now() });
+  }
+
+  /** Raw PCM16 samples, one binary frame. Caller (turn.ts) chunks the
+   * utterance -- this method just puts bytes on the wire. */
+  sendBinary(data: ArrayBuffer): void {
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(data);
+    }
+  }
+
+  endTurn(turnId: string, samples: number): void {
+    this.send({ t: "end", turn_id: turnId, samples, client_ts_ms: Date.now() });
+  }
+
+  bargeTurn(turnId: string): void {
+    this.send({ t: "barge", turn_id: turnId });
+  }
+
+  /** The client's own half of a turn's latency record -- the server can't
+   * see endpointing or first-audio-out, so this is how those two legs cross
+   * the wire. App.tsx's reportTurnTiming() enforces exactly one call per
+   * turn; this method just puts it on the wire like everything else. */
+  sendClientTiming(m: Omit<ClientTimingMessage, "t">): void {
+    this.send({ t: "client_timing", ...m });
+  }
+
+  /** The typed sign-in form -- D3's reliable path (voice sign-in, D8, is a
+   * server-side sub-flow with no dedicated wire message of its own). */
+  signIn(name: string, pin: string): void {
+    this.send({ t: "sign_in", name, pin });
+  }
+
+  signOut(): void {
+    this.send({ t: "sign_out" });
+  }
+
+  /** `key: null` forgets every fact but keeps the signed-in identity --
+   * the panel's "Forget everything" button. */
+  forget(key: string | null): void {
+    this.send({ t: "forget", key });
   }
 
   dispose(): void {
@@ -143,12 +238,24 @@ export class Connection {
 
   private connectNow(): void {
     const ws = new WebSocket(this.url);
+    // Server audio is raw PCM16 binary frames -- without this, a binary
+    // message arrives as a Blob, which needs an async read before its bytes
+    // are usable and would delay scheduling every single audio chunk.
+    ws.binaryType = "arraybuffer";
     this.ws = ws;
     ws.onopen = () => {
       this.send({ t: "hello", v: PROTOCOL_VERSION, session_id: this.sessionId, client_ts_ms: Date.now() });
     };
     ws.onmessage = (ev: MessageEvent<unknown>) => {
-      if (typeof ev.data === "string") this.handleMessage(ev.data);
+      if (typeof ev.data === "string") {
+        this.handleMessage(ev.data);
+      } else if (ev.data instanceof ArrayBuffer) {
+        if (this.currentAudioTurnId !== null) {
+          this.callbacks.onAudioChunk(this.currentAudioTurnId, ev.data);
+        }
+        // Else: a chunk for a turn we've already moved past (a barge raced
+        // ahead of in-flight frames) -- dropped, not an error.
+      }
     };
     ws.onclose = () => this.handleClose();
     ws.onerror = () => {
@@ -218,6 +325,41 @@ export class Connection {
       case "closing":
         this.handleClosing(msg.reason, msg.reconnect);
         break;
+      case "transcript":
+        this.callbacks.onTranscript(msg.turn_id, msg.text);
+        break;
+      case "reply":
+        this.callbacks.onReply(msg.turn_id, msg.text);
+        break;
+      case "audio_start":
+        this.currentAudioTurnId = msg.turn_id;
+        this.callbacks.onAudioStart(msg.turn_id, msg.sample_rate);
+        break;
+      case "audio_end":
+        this.currentAudioTurnId = null;
+        this.callbacks.onAudioEnd(msg.turn_id);
+        break;
+      case "turn_failed":
+        this.currentAudioTurnId = null;
+        this.callbacks.onTurnFailed(msg.turn_id, msg.stage, msg.message);
+        break;
+      case "segments":
+        this.callbacks.onSegments(msg.turn_id, msg.segments, msg.spoken, msg.hedged);
+        break;
+      case "quota":
+        this.callbacks.onQuota({
+          total: msg.total,
+          spent: msg.spent,
+          reserve: msg.reserve,
+          remaining: msg.remaining,
+        });
+        break;
+      case "fact_card":
+        this.callbacks.onFactCard(msg);
+        break;
+      case "memory":
+        this.callbacks.onMemory(msg);
+        break;
     }
   }
 
@@ -266,9 +408,23 @@ export class Connection {
   private rotate(): void {
     if (this.connectionState === "rotating" || this.connectionState === "connecting") return;
     this.nextReconnectMode = "immediate";
+
+    // Defence in depth for ensureFresh()'s guard above: if this is ever
+    // reached against a socket that's already CLOSED (or was never opened),
+    // close(1000) here fires no `onclose` -- a closed socket can't close
+    // again -- so nothing would ever schedule a reconnect and any
+    // readyWaiters would be stranded. Route straight into the same
+    // recovery path an unplanned drop takes instead of "rotating" a socket
+    // that's already dead (which also hides the manual Retry button, gated
+    // on connectionState === "offline").
+    if (!this.ws || this.ws.readyState === WebSocket.CLOSED) {
+      this.handleClose();
+      return;
+    }
+
     this.setConnectionState("rotating");
     this.send({ t: "bye", reason: "rotate" });
-    this.ws?.close(1000);
+    this.ws.close(1000);
   }
 
   private drainReadyWaiters(): void {

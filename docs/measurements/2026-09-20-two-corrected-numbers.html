@@ -1,0 +1,255 @@
+<title>Two numbers Block 2 recorded were measuring the wrong thing</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #f6f7f9;
+    --surface:   #ffffff;
+    --ink:       #14171c;
+    --ink-2:     #474e5a;
+    --ink-3:     #767e8b;
+    --line:      #e2e5ea;
+    --line-2:    #eef0f4;
+    --accent:    #2d4a7c;
+    --accent-bg: #edf1f8;
+    --warn:      #a6421f;
+    --warn-bg:   #fbf0eb;
+    --code-bg:   #f0f2f6;
+    --shadow:    0 1px 2px rgba(20,23,28,.05), 0 8px 24px -12px rgba(20,23,28,.15);
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --sans:  "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #101317;
+      --surface:   #171b21;
+      --ink:       #e7eaef;
+      --ink-2:     #a8b0bc;
+      --ink-3:     #7b838f;
+      --line:      #2a2f38;
+      --line-2:    #22262d;
+      --accent:    #8fb0e6;
+      --accent-bg: #1a2130;
+      --warn:      #e2916d;
+      --warn-bg:   #2a1d17;
+      --code-bg:   #1d222a;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #101317;
+    --surface:   #171b21;
+    --ink:       #e7eaef;
+    --ink-2:     #a8b0bc;
+    --ink-3:     #7b838f;
+    --line:      #2a2f38;
+    --line-2:    #22262d;
+    --accent:    #8fb0e6;
+    --accent-bg: #1a2130;
+    --warn:      #e2916d;
+    --warn-bg:   #2a1d17;
+    --code-bg:   #1d222a;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 54rem;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 4vw, 4rem) clamp(1.1rem, 4vw, 3rem) 6rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 2.5rem; }
+  .masthead h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.9rem, 5vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 1.1rem;
+  }
+  dl.meta { display: flex; flex-wrap: wrap; gap: .5rem 2.25rem; margin: 0; }
+  dl.meta div { display: flex; flex-direction: column; gap: .1rem; }
+  dl.meta dt {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  dl.meta dd { margin: 0; font-size: .9rem; color: var(--ink-2); }
+
+  /* ---- toc ---- */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1.25rem 1.5rem;
+    margin: 0 0 3rem;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--ink-3);
+    margin: 0 0 .75rem;
+  }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+  .toc a {
+    color: var(--ink-2);
+    text-decoration: none;
+    display: flex;
+    gap: .7rem;
+    font-size: .92rem;
+    border-radius: 2px;
+  }
+  .toc a:hover { color: var(--accent); }
+  .tocnum, .secnum {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-size: .8em;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- headings ---- */
+  h2, h3, h4 { font-family: var(--serif); letter-spacing: -.01em; text-wrap: balance; scroll-margin-top: 1.5rem; }
+  h2 {
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    font-weight: 600;
+    margin: 3.5rem 0 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: .75rem;
+    align-items: baseline;
+  }
+  h3 { font-size: 1.14rem; font-weight: 600; margin: 2.25rem 0 .7rem; display: flex; gap: .6rem; align-items: baseline; }
+  h4 { font-size: 1rem; font-weight: 600; margin: 1.75rem 0 .5rem; color: var(--ink-2); }
+  h2 .secnum, h3 .secnum { flex: none; }
+
+  p { margin: 0 0 1.05rem; max-width: 68ch; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  strong { font-weight: 600; }
+  hr { border: 0; border-top: 1px solid var(--line-2); margin: 2.5rem 0; }
+
+  ul, ol { margin: 0 0 1.15rem; padding-left: 1.35rem; max-width: 68ch; }
+  li { margin-bottom: .38rem; }
+  li::marker { color: var(--ink-3); }
+
+  code {
+    font-family: var(--mono);
+    font-size: .855em;
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+  .codewrap { overflow-x: auto; margin: 0 0 1.4rem; }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    padding: 1rem 1.15rem;
+    margin: 0;
+    min-width: min-content;
+  }
+  pre code { background: none; padding: 0; font-size: .845rem; line-height: 1.6; }
+
+  blockquote {
+    margin: 0 0 1.4rem;
+    padding: .1rem 0 .1rem 1.15rem;
+    border-left: 3px solid var(--line);
+    color: var(--ink-2);
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  .callout {
+    margin: 0 0 1.5rem;
+    padding: 1.1rem 1.3rem;
+    background: var(--warn-bg);
+    border: 1px solid color-mix(in srgb, var(--warn) 28%, transparent);
+    border-left: 3px solid var(--warn);
+    border-radius: 3px;
+  }
+  .callout p { margin-bottom: .6rem; color: var(--ink); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout strong { color: var(--warn); }
+
+  .tablewrap { overflow-x: auto; margin: 0 0 1.6rem; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+  th, td { padding: .6rem .85rem; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--accent-bg);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  a:focus-visible, .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="page">
+  <header class="masthead">
+    <h1>Two numbers Block 2 recorded were measuring the wrong thing</h1>
+    <dl class="meta"><div><dt>Date</dt><dd>2026-09-20 · <strong>Run by:</strong> orchestrator, verifying Block 3's implementation report</dd></div><div><dt>Environment</dt><dd>scripted turns from a sandbox against the deployment (<code>us-east</code>), container warm</dd></div><div><dt>Config</dt><dd><code>whisper-large-v3-turbo</code> · <code>gemini-3.5-flash-lite</code> (<code>thinking_level: minimal</code>) · <code>aura-2-thalia-en</code></dd></div></dl>
+  </header>
+  <nav class="toc" aria-label="Contents"><p class="eyebrow">Contents</p><ol><li><a href="#summary-read-this-page">Summary — read this page</a></li><li><a href="#the-records">The records</a></li><li><a href="#what-this-says-about-where-the-time-goes">What this says about where the time goes</a></li><li><a href="#caveats-that-matter-more-than-the-numbers">Caveats that matter more than the numbers</a></li><li><a href="#what-to-do-about-it">What to do about it</a></li></ol></nav>
+  <main>
+<h2 id="summary-read-this-page"><span class="htext">Summary — read this page</span></h2>
+<p>Block 3's instrumentation moved two measurement points to where the user actually feels them. Both numbers moved by an order of magnitude. <strong>The old numbers were wrong, not the new ones</strong>, and both were on their way into the presentation.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Number</th><th style="text-align:left">Block 2 said</th><th style="text-align:left">Actually</th><th style="text-align:left">Why it moved</th></tr></thead><tbody><tr><td style="text-align:left">TTS time-to-first-byte</td><td style="text-align:left"><strong>85 ms</strong></td><td style="text-align:left"><strong>566 ms</strong></td><td style="text-align:left">The clock started <em>after</em> <code>websockets.connect()</code> returned. The Deepgram handshake — the part the user waits through — was outside the measurement</td></tr><tr><td style="text-align:left">LLM time-to-first-token</td><td style="text-align:left"><strong>30 ms</strong></td><td style="text-align:left"><strong>890 ms</strong></td><td style="text-align:left">Same shape: the clock started after the HTTP request was already open, so it excluded the request round trip and the model's prefill</td></tr></tbody></table></div>
+<p>⚠️ <strong>Neither correction is a regression.</strong> No code got slower. The instrument got honest.</p>
+<p><strong>The implementer's report attributed the LLM jump to a cold container.</strong> That is ruled out: the four records below are turn indexes 2–5 on one warm container, and the number does not come down.</p>
+<hr />
+<h2 id="the-records"><span class="htext">The records</span></h2>
+<p>Four consecutive scripted turns, same utterance (&quot;What's the capital of Japan?&quot;), warm container.</p>
+<div class="tablewrap"><table><thead><tr><th style="text-align:left">Stage</th><th style="text-align:left">Values (ms)</th><th style="text-align:left">Median</th></tr></thead><tbody><tr><td style="text-align:left"><code>upload_ms</code></td><td style="text-align:left">887 · 1142 · 1248 · 1419</td><td style="text-align:left"><strong>1195</strong></td></tr><tr><td style="text-align:left"><code>stt_ms</code></td><td style="text-align:left">146 · 147 · 151 · 191</td><td style="text-align:left">149</td></tr><tr><td style="text-align:left"><code>llm_ttft_ms</code></td><td style="text-align:left">771 · 774 · 1006 · 1119</td><td style="text-align:left"><strong>890</strong></td></tr><tr><td style="text-align:left"><code>llm_ms</code> (full completion)</td><td style="text-align:left">970 · 976 · 1203 · 1355</td><td style="text-align:left">1090</td></tr><tr><td style="text-align:left"><code>tts_ttfb_ms</code></td><td style="text-align:left">484 · 498 · 634 · 663</td><td style="text-align:left"><strong>566</strong></td></tr><tr><td style="text-align:left"><code>tts_total_ms</code></td><td style="text-align:left">1145 · 1251 · 1615 · 1707</td><td style="text-align:left">1433</td></tr><tr><td style="text-align:left"><code>server_ms</code> (end received → first audio byte)</td><td style="text-align:left">1791 · 1796 · 1848 · 1985</td><td style="text-align:left">1822</td></tr></tbody></table></div>
+<p><code>server_ms</code> 1822 against <code>stt + llm + tts_ttfb</code> = 1805 leaves a <strong>17 ms residual</strong> — the server-side stage table sums to its own headline, which is the check that says the instrument is wired correctly.</p>
+<h2 id="what-this-says-about-where-the-time-goes"><span class="htext">What this says about where the time goes</span></h2>
+<p><strong>The largest single term is <code>upload_ms</code>, and it was not in the spec.</strong> <code>.claude/skills/measure/SKILL.md</code>'s stage table goes straight from endpointing to STT; the leg where the user's audio crosses the network to the server was never listed. Block 3's planner added it. It is now the biggest number on the board.</p>
+<p><strong>The LLM is the most expensive server leg, not the cheapest.</strong> <code>PR_VOICE_LOOP.md</code> says the opposite, on the strength of the 30 ms figure. That line needs correcting before the walkthrough — a reviewer who asks &quot;what's your slowest stage?&quot; should not get an answer contradicted by the app's own log.</p>
+<h2 id="caveats-that-matter-more-than-the-numbers"><span class="htext">Caveats that matter more than the numbers</span></h2>
+<ol>
+<li>🚨 <strong><code>upload_ms</code> here is a sandbox's network, not a browser's.</strong> This is the one term that will</li>
+<p>move most between this run and Omar's. Block 2 observed 660 ms – 3.5 s for the equivalent leg, also from a sandbox. <strong>The browser number is the real one and it is still unmeasured.</strong></p>
+<li><strong><code>endpoint_ms</code> and <code>first_audio_ms</code> are null in every record here.</strong> A script has no VAD and no</li>
+<p>speaker. The headline voice-to-voice figure cannot be produced without a human at a microphone.</p>
+<li>n = 4. Enough to kill the cold-start hypothesis; not enough to quote a p95.</li>
+</ol>
+<h2 id="what-to-do-about-it"><span class="htext">What to do about it</span></h2>
+<ul>
+<li>Correct the LLM claim in <code>docs/PRs/PR_VOICE_LOOP.md</code> and the 85 ms figure in</li>
+<p><code>docs/measurements/block2-voice-loop.md</code>, both of which are currently wrong in the repo.</p>
+<li>Add an upload row to the <code>measure</code> skill's stage table.</li>
+<li>Run the ten browser turns (Block 3 task 16) — that is what replaces this run, not supplements it.</li>
+</ul>
+  </main>
+</div>
