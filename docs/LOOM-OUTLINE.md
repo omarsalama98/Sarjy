@@ -11,7 +11,7 @@ If a turn fails on camera: **keep rolling and say what happened.** A recovered f
 | 1:50–3:10 | **The deep dive.** Tab-switch to `?gate_demo=1`. Row 5. Then one screen of `backend/app/tools/gate.py` — value substitution, digit rule, placeholder rule. | "The model wrote that number; deterministic code refused to let it be spoken. The struck-through line is the product." |
 | 3:10–3:50 | Row 6 — Wakanda / uncovered pair. Refusal card + embassy. Then: the fallback layer has **no live toggle** (D9). Point at the eval table. | "Outside coverage she refuses with a route. Degraded live answers wear a fallback badge — I will not fake a vendor outage on camera." |
 | 3:50–4:25 | Latency numbers from `docs/measurements/2026-09-20-two-corrected-numbers.md`. | "Two earlier numbers were wrong: TTS TTFB was 85 ms until we put the clock before the Deepgram handshake. Honest median is 566 ms. Same story for LLM TTFT, 30 → 890." |
-| 4:25–5:00 | README §What I'd do with another week. | Arabic (cut on purpose). Structured place picks. Paraphrase injection (`injection-2`, labelled fail). A pretend-vendor-down toggle. |
+| 4:25–5:00 | README §What I'd do with another week. | Arabic is parked, not half-shipped (gate is English-only; Orpheus probe in `docs/measurements/2026-09-21-orpheus-wav.md`). Structured place picks. Paraphrase injection (`injection-2`, labelled fail). A pretend-vendor-down toggle. |
 
 ## Recording notes
 

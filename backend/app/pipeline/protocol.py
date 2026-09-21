@@ -13,8 +13,8 @@ pydantic v2 discriminated union on `t` with `extra="forbid"`. Nothing else
 in this app parses raw client input -- the user's speech is untrusted (see
 .claude/rules/tools/grounding-gate.md); so is the user's JSON.
 
-Block 2 adds start/end/barge (client-driven turn boundaries -- the VAD
-decides when a turn begins and ends, not the server) and
+Block 2 adds start/end/barge (client-driven turn boundaries -- the user
+taps or releases to end a turn, not the server) and
 transcript/reply/audio_start/audio_end/turn_failed (the server's half of a
 turn). Binary frames carry no turn id, which is why audio_start/audio_end
 exist: they tell the client which turn a run of binary frames belongs to.
@@ -53,9 +53,9 @@ from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 # the SAME commit -- a mismatch here fails every handshake.
 PROTOCOL_VERSION = 5
 
-# Arabic: STT is told `lang`, and when `lang=ar` call 2 writes Arabic and
-# RoutedTTS selects Orpheus. "en" is Deepgram Aura-2. PROTOCOL_VERSION stays 5
-# because StartIn.lang was already on the wire, defaulted.
+# StartIn.lang stays on the wire (default "en") so a later Arabic pass does
+# not bump PROTOCOL_VERSION. The demo UI always sends "en"; get_tts() is
+# Deepgram regardless. PROTOCOL_VERSION stays 5 because the field is additive.
 Lang = Literal["en", "ar"]
 
 

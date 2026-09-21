@@ -69,6 +69,7 @@ export function TripDossier({
       )}
 
       <h3>What she remembers</h3>
+      {!memory && <p className="hint">Waiting for the session…</p>}
       {memory && (
         <>
           <p className="memory-tier">

@@ -1,5 +1,9 @@
 # Orpheus Arabic TTS — live probe 2026-09-21
 
+**Parked.** This is why Arabic is not on the demo path. The adapter
+(`backend/app/providers/groq_tts.py`) is in tree; `get_tts()` returns
+Deepgram. Re-wire only after the gate covers Arabic number-words.
+
 Groq `canopylabs/orpheus-arabic-saudi`, voice `noura`, `response_format=wav`,
 `sample_rate=24000`. Terms accepted on the org (a prior call 400'd
 `model_terms_required`). SDK return type is `AsyncBinaryAPIResponse`;

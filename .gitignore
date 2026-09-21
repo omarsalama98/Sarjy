@@ -15,9 +15,9 @@ __pycache__/
 *.pyc
 .venv/
 
-# Copied from node_modules by sync-vad-assets.mjs on every dev/build -- not
-# a source file, and the models/WASM are binary (frontend/scripts/sync-vad-assets.mjs).
+# Copied from node_modules by the old VAD sync script -- leftover, not source.
 frontend/public/vad/
+*.tsbuildinfo
 
 # Claude Code local state
 .claude/settings.local.json

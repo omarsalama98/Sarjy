@@ -15,7 +15,6 @@ from app.providers.base import LLM, STT, TTS, ProviderUnavailable, VisaTool
 from app.providers.deepgram_tts import DeepgramTTS
 from app.providers.gemini_llm import GeminiLLM
 from app.providers.groq_stt import GroqSTT
-from app.providers.groq_tts import GroqOrpheusTTS
 from app.tools.fake import FakeVisaTool
 from app.tools.quota import QuotaLedger
 from app.tools.vendor import TravelBuddyTool
@@ -24,9 +23,12 @@ __all__ = ["ProviderUnavailable", "RoutedTTS", "get_llm", "get_stt", "get_tool",
 
 
 class RoutedTTS:
-    """Deepgram Aura-2 has no Arabic voice (verified 2026-09-21), so the TTS
-    boundary picks the voice from the language the turn is in. `TTS.synthesize`
-    always carried `language`; this is the first thing to implement it."""
+    """Parked. `get_tts()` returns Deepgram only — the demo is English.
+
+    Arabic TTS is not half-wired: the Orpheus adapter in groq_tts.py and this
+    dispatcher stay in tree so a later pass can re-attach them after the gate
+    covers Arabic number-words. Do not construct this from get_tts() until
+    then; a reviewer who toggles a language chip deserves a gated answer."""
 
     def __init__(self, *, en: TTS, ar: TTS) -> None:
         self._en = en
@@ -65,14 +67,7 @@ def get_tts() -> TTS:
         settings = load_settings()
     except RuntimeError as e:
         raise ProviderUnavailable(str(e)) from e
-    return RoutedTTS(
-        en=DeepgramTTS(api_key=settings.deepgram_api_key, model=settings.deepgram_tts_model),
-        ar=GroqOrpheusTTS(
-            api_key=settings.groq_api_key,
-            model=settings.orpheus_tts_model,
-            voice=settings.orpheus_voice,
-        ),
-    )
+    return DeepgramTTS(api_key=settings.deepgram_api_key, model=settings.deepgram_tts_model)
 
 
 @functools.lru_cache(maxsize=1)

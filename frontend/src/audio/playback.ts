@@ -29,6 +29,7 @@ export class PlaybackQueue {
   private lastCtxTime = 0;
   private onHealth: ((health: AudioHealth) => void) | null = null;
   private onDeadClock: (() => void) | null = null;
+  private everUsed = false;
 
   constructor(private ctx: AudioContext) {
     this.nextStartTime = ctx.currentTime;
@@ -39,7 +40,9 @@ export class PlaybackQueue {
   setHealthListener(onHealth: (health: AudioHealth) => void, onDeadClock: () => void): void {
     this.onHealth = onHealth;
     this.onDeadClock = onDeadClock;
-    this.reportState();
+    // Do not reportState() here. A fresh AudioContext is suspended until a
+    // gesture; treating that as blocked/dead paints a failure banner on every
+    // cold open. Health is reported from ensureRunning / enqueue / beginTurn.
   }
 
   get context(): AudioContext {
@@ -63,6 +66,7 @@ export class PlaybackQueue {
   }
 
   enqueue(pcm: ArrayBuffer, sampleRate: number): void {
+    this.everUsed = true;
     if (this.ctx.state === "closed") {
       this.onHealth?.("dead");
       return;
@@ -100,6 +104,7 @@ export class PlaybackQueue {
    * interrupted, but the chip is the guaranteed path.
    */
   async ensureRunning(): Promise<boolean> {
+    this.everUsed = true;
     if (this.ctx.state === "closed") {
       this.onHealth?.("dead");
       return false;
@@ -199,6 +204,7 @@ export class PlaybackQueue {
   }
 
   private reportState(): void {
+    if (!this.everUsed) return;
     if (this.ctx.state === "closed") {
       this.onHealth?.("dead");
       return;

@@ -2,7 +2,7 @@
 
 ## Summary
 
-Unlock path for live visa data (operator-only), silent-playback recovery, user-controlled mic instead of VAD, a now/trail/dossier surface, conversation-level evals, and Arabic input + spoken Arabic behind RoutedTTS.
+Unlock path for live visa data (operator-only), silent-playback recovery, user-controlled mic instead of VAD, a now/trail/dossier surface, and conversation-level evals. Arabic TTS was probed then parked: the gate is English-only, so a language chip would have been a half-feature.
 
 ## Problem
 
@@ -15,7 +15,7 @@ The visa layer was correct and gated off (ledger seeded at 120). Playback could 
 - **Mic:** `MicRecorder` + worklet streams PCM while hot. Toggle / hold Space. Tap barges. VAD deleted.
 - **Surface:** Now pane, trail, accumulating trip dossier. Existing audio `useRef`s untouched.
 - **Eval:** `run_eval.py` threads history through `build_user_block`. Five multi-turn cases, labels written first.
-- **Arabic:** `StartIn.lang` → Whisper; `<reply_language>` on call 2; `GroqOrpheusTTS` + 200-char chunker + `RoutedTTS`. Fixed phrases stay English TTS. Gate gap named in the README.
+- **Arabic:** probed (`docs/measurements/2026-09-21-orpheus-wav.md`), then parked. `get_tts()` is Deepgram. `StartIn.lang` stays on the wire defaulted. No language chip.
 
 PROTOCOL_VERSION stays 5.
 
@@ -27,9 +27,9 @@ cd frontend && npm run typecheck && npm run lint && npm run build
 cd backend && uv run python ../eval/run_eval.py --out ../eval/results/
 ```
 
-Human: quota unlock (`docs/outbound/2026-09-21-quota-unlock.md`); then a spoken Egypt→Germany → "suggest cities" → barge → reload recall, plus one Arabic turn. **Redeploy** — the live URL is still yesterday's VAD bundle until `make deploy`.
+Human: quota unlock (`docs/outbound/2026-09-21-quota-unlock.md`); then a spoken Egypt→Germany → "suggest cities" → barge → reload recall. **Redeploy** — the live URL is still yesterday's VAD bundle until `make deploy`. Arabic is not in the demo.
 
-**Orpheus probe (2026-09-21, after terms accepted):** WAV is ffmpeg unsized (`RIFF`/`data` size `0xFFFFFFFF`, LIST/ISFT `Lavf61.7`), PCM s16le mono @ 24 kHz. SDK bytes via `await read()`, not `aread()`. Voice ids lowercase (`noura`). Short 21-char line: ttfb **805 ms**. 232-char / 2-chunk paragraph: ttfb **2 894 ms**, total **4 550 ms**. Details in `docs/measurements/2026-09-21-orpheus-wav.md`.
+**Orpheus probe (2026-09-21, then parked):** WAV is ffmpeg unsized (`RIFF`/`data` size `0xFFFFFFFF`, LIST/ISFT `Lavf61.7`), PCM s16le mono @ 24 kHz. SDK bytes via `await read()`, not `aread()`. Voice ids lowercase (`noura`). Short 21-char line: ttfb **805 ms**. 232-char / 2-chunk paragraph: ttfb **2 894 ms**, total **4 550 ms**. Adapter kept in tree, not wired. Details in `docs/measurements/2026-09-21-orpheus-wav.md`.
 
 ## Changelog
 
@@ -38,7 +38,7 @@ Draft commits (Omar runs git; agents never commit):
 - `fix(audio): resume playback context so a silent turn cannot look like a success`
 - `feat(mic): replace VAD endpointing with toggle/hold; barge is a tap`
 - `feat(ui): now pane, trail, and accumulating trip dossier`
-- `feat(tts): route Arabic to Orpheus behind the existing TTS interface`
+- `feat(tts): route Arabic to Orpheus behind the existing TTS interface` *(parked 2026-09-21 — not on get_tts())*
 - `test(eval): multi-turn conversation cases for origin vs destination`
 - `docs: quota-unlock notes, Arabic gate gap, demo script for the new mic`
 

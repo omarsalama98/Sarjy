@@ -18,8 +18,7 @@ https://vitas7777v--sarjy-fastapi-app.us-east.modal.run
 Turn shape (what actually shipped — **not** the old `update()` opener):
 
 ```
-mic → client VAD → start/binary/end over WebSocket
-  → Groq Whisper (batch)
+mic → tap/hold to send → Groq Whisper (batch)
   → Gemini call 1 decide()  ± Travel Buddy lookup
   → fact_card message (before call 2)
   → Gemini call 2 NDJSON segments
@@ -56,9 +55,9 @@ Plan: `docs/plans/blocks/C-demoable.md` (authoritative for remaining work).
 | 1 | Fact card renders (refusal / empty / populated + degraded badge); clear card on new turn | **Yes** — `frontend/src/ui/FactCard.tsx`, `App.tsx` |
 | 2 | `frontend/src/index.css` (~120 lines) + import in `main.tsx` | **Yes** — being rewritten by C2 |
 | 2b | **Travel-agent UI** — plan: `docs/plans/blocks/C2-ui-pass.md` | **In progress.** Five phases: dossier · shell · orb · Wikimedia places · documents. Phase 5 is never cut |
-| 3 | Rewrite `README.md` · write `docs/DEMO-SCRIPT.md` · `docs/LOOM-OUTLINE.md` | **C2 Phase 5. Never cut.** README is still wrong |
-| 4 | Arabic | **Cut.** Both rungs. Named as a limit in the README. `StartIn.lang` stays on the wire unused |
-| 5 | Amend the three docs to match what actually shipped | C2 Phase 5 |
+| 3 | Rewrite `README.md` · write `docs/DEMO-SCRIPT.md` · `docs/LOOM-OUTLINE.md` | **Yes** — keep them honest against what ships |
+| 4 | Arabic | **Parked.** Adapter + probe in tree; not on `get_tts()` or the UI |
+| 5 | Amend the three docs to match what actually shipped | In progress |
 | 6 | `/demo-check`, Block A/B human tables, `make measure`, `submission-reviewer`, Loom, Ashby | Not started |
 
 Canned opener clip: **cut** (plan D8). Do not build it.
@@ -76,9 +75,9 @@ Open the **Read** column in order. Stop when you can do the task. Do not open th
 | Slice | Read | Then edit | Avoid |
 |---|---|---|---|
 | **Docs (C2 Phase 5) — start here if the clock is tight** | This file · `C2-ui-pass.md` §Phase 5 · `C-demoable.md` demo-script table · `docs/PRs/PR_GROUNDED_ANSWERS.md` §Gate status · `docs/PRs/PR_MEMORY.md` §Not run here · current `README.md` (so you know what to delete) | `README.md` · **new** `docs/DEMO-SCRIPT.md` · **new** `docs/LOOM-OUTLINE.md` | `eval/` · research `*.md` at repo root |
-| **Arabic** | — | **Cut.** Do not build. Name it in the README limits table | `groq_tts.py` · `RoutedTTS` · bumping `PROTOCOL_VERSION` |
+| **Arabic** | README limits · `docs/measurements/2026-09-21-orpheus-wav.md` | **Parked.** Do not wire `get_tts()` to `RoutedTTS` or add a language chip until the gate covers Arabic number-words | bumping `PROTOCOL_VERSION` |
 | **Fact card / CSS (already built, being restyled)** | `C-demoable.md` Contracts 1–2, F-FC1–F-FC5 | `frontend/src/ui/FactCard.tsx` · `App.tsx` · `index.css` | Re-deriving `degraded` on the client (server sends it) |
-| **Travel-agent UI (C2)** | `docs/plans/blocks/C2-ui-pass.md` — D0's ref-safety rule, Contracts 1–8 · `docs/DESIGN-BRIEF.md` for intent | `App.tsx` · `index.css` · `ui/FactCard.tsx` · **new** `ui/Orb.tsx` · **new** `audio/level.ts` · **new** `ui/PlaceStrip.tsx` · `index.html` · `public/fonts/` · `tools/places.py` · `protocol.py` · `protocol.ts` · `connection.ts` · `turn.py` · `prompts.py` · `main.py` | Rewriting any `useRef` · changing the VAD, PCM path, or `reportTurnTiming` · bumping `PROTOCOL_VERSION` · changing the gate |
+| **Travel-agent UI (C2)** | `docs/plans/blocks/C2-ui-pass.md` — D0's ref-safety rule, Contracts 1–8 · `docs/DESIGN-BRIEF.md` for intent | `App.tsx` · `index.css` · `ui/FactCard.tsx` · **new** `ui/Orb.tsx` · **new** `audio/level.ts` · **new** `ui/PlaceStrip.tsx` · `index.html` · `public/fonts/` · `tools/places.py` · `protocol.py` · `protocol.ts` · `connection.ts` · `turn.py` · `prompts.py` · `main.py` | Rewriting any `useRef` · changing the recorder/PCM path, or `reportTurnTiming` · bumping `PROTOCOL_VERSION` · changing the gate |
 | **PR writeup** | Plan §Group 5 · this file’s landmines | **new** `docs/PRs/PR_DEMOABLE.md` | |
 | **Human gates / submission** | `.claude/skills/demo-check/SKILL.md` · plan §Group 6 / §Gate · `.claude/agents/submission-reviewer.md` | README limits table only, unless a finding is **blocking** | Re-running `eval/` · spending RapidAPI |
 
@@ -120,14 +119,14 @@ Open the **Read** column in order. Stop when you can do the task. Do not open th
 3. **Tests can construct a real `modal.Dict`.** `tests/conftest.py` autouse-patches memory. Quota is *not* fully covered the same way — that is how spent got set to 120. Never call `QuotaLedger()` against the default store in a test without an injected fake.
 4. **Fakes must match `run_turn`’s signature.** A missing kwarg becomes `turn_failed` inside a broad `except`, then barge tests hang waiting for audio that never starts (`PR_MEMORY.md`). `lang` has a default so old fakes still type-check — **run the suite**, do not reason it through.
 5. **`PROTOCOL_VERSION` stays 5** for `StartIn.lang` (additive, default `"en"`). A bump hard-closes old clients (`main.py` equality check, `recoverable=False`).
-6. **`get_tts()` stays zero-argument.** Arabic is a `RoutedTTS` *inside* the factory, dispatching on `synthesize(..., language=)`. Do not change the factory arity — it ripples through every fake.
+6. **`get_tts()` stays zero-argument** and returns Deepgram Aura-2. `RoutedTTS` / `GroqOrpheusTTS` are parked in tree — do not construct them from the factory until Arabic is a real mode.
 7. **Extraction must not fire on the recall question.** `"what's my favourite colour?"` matches the old heuristic (`my `, `favourite`) and would overwrite `learned_at`. That bug was fixed; do not loosen `looks_self_referential()`.
 8. **`persisted` means survives a process restart**, not “the write didn’t raise.” In-process fallback must report `persisted: false`.
-9. **Deepgram Aura-2 has no Arabic voice.** That is why a second TTS exists, not the 200-char cap. Cap still matters for Orpheus (chunk in the adapter; do not shrink the gate’s 400-char `quoted` allowance).
+9. **Deepgram Aura-2 has no Arabic voice.** That is why the parked Orpheus adapter exists, not the 200-char cap. Cap still matters if Arabic is re-wired (chunk in the adapter; do not shrink the gate’s 400-char `quoted` allowance).
 10. **`?gate_demo=1`** injects a fabricated sourced segment so the reviewer *sees* a rejection. There is **no** live “pretend vendor down” toggle (plan D9) — do not add `?force_layer=`.
 11. **TTFT** is first `text` delta, not first SSE event (a `thought` always arrives first).
-12. **Ref-safety (C2).** Everything on a `useRef` stays on a `useRef`. `currentTurnIdRef`, `turnTimingRef`, `turnInFlightRef`, `playbackQueueRef`, `detectorRef` and the barge window are untouched. Only what *renders* moves into the turns array. Timing legs and barge are the two things a state refactor would silently break, and pytest cannot catch either.
-13. **Arabic is cut.** Both rungs. Do not thread `StartIn.lang`. Do not add `GroqOrpheusTTS`.
+12. **Ref-safety (C2).** Everything on a `useRef` stays on a `useRef`. `currentTurnIdRef`, `turnTimingRef`, `turnInFlightRef`, `playbackQueueRef`, `recorderRef` and the barge window are untouched. Only what *renders* moves into the turns array. Timing legs and barge are the two things a state refactor would silently break, and pytest cannot catch either.
+13. **Arabic is parked, not half-shipped.** `StartIn.lang` stays on the wire defaulted to `"en"`. Do not add a language chip. The gate's `NUMBER_WORDS` scan is English-only.
 14. **Places fetch is post-TTS.** Wikimedia lookups run after the answer is handed to TTS. They must not appear in the first-audio path. `place` only ever appears on a `judgement` line; the gate is not changed.
 15. **Do not bump `PROTOCOL_VERSION`** for additive messages (`places` is additive, default-absent). A bump hard-closes old clients.
 
@@ -212,14 +211,14 @@ backend/app/
   tools/{gate,vendor,quota,normalise,card,fake,places}.py
   memory/{store,identity,extract}.py
   providers/{base,factory,groq_stt,gemini_llm,deepgram_tts}.py
+  providers/groq_tts.py        parked Arabic adapter — not in get_tts()
   prompts.py
   measure.py / config.py / session.py
 backend/modal_app.py
 frontend/src/
-  App.tsx  main.tsx  index.css  protocol.ts
-  net/connection.ts  audio/{capture,playback,turn}.ts
-  ui/FactCard.tsx  ui/Orb.tsx  ui/PlaceStrip.tsx
-  audio/{capture,playback,turn,level}.ts
+  App.tsx  main.tsx  index.css  protocol.ts  turns.ts
+  net/connection.ts  audio/{capture,playback,recorder,level}.ts
+  ui/{FactCard,Orb,PlaceStrip,NowPane,TrailRow,TripDossier}.tsx
 .claude/skills/            implement · measure · demo-check · code-review · update-sarj
 .claude/agents/            block-* · guardrails-engineer · submission-reviewer · …
 .claude/rules/             workflow.md (always) · tools/ · voice/

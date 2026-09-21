@@ -14,8 +14,7 @@ If a row breaks live, say the sentence in the last column and keep going. A reco
 | 4 | **Hard reload** (⌘⇧R). Sign back in with the same name + PIN. *"What's my favourite colour?"* | *"Green"* — and the rail shows the **original** `learned_at`, not a new one | **#2, the graded one** | "If it forgot, the salt on Modal may have changed — that's a one-way door, named in the README." |
 | 5 | Open `?gate_demo=1` in a new tab. Sign in. Ask #3 again | One extra segment appears **struck through** with its rejection reason. The spoken answer does not contain it. Audit note: *The model wrote the struck-through line. Deterministic code refused to speak it.* | **#5 — the deep dive, live** | "That's the demo: the model wrote that number; deterministic code refused to let it be spoken." |
 | 6 | *"Do I need a visa for Wakanda?"* (or any uncovered pair) | Refusal card, stamp-red, embassy link. **No invented answer.** Trail still holds Japan | Invariant 6 | "Empty card is a bug. Refusal with a route is the product." |
-| 7 | Barge in: tap the mic while she is speaking | Audio stops immediately, orb returns to HEARING YOU. Same control as talking | #1, Invariant 7 | "The first 300 ms of her voice is ignored so echo cancellation can't false-barge." |
-| 8 | Header chip **English → العربية**. *"هل أحتاج فيزا لليابان بجواز سعودي؟"* | Transcript is Arabic. The answer is spoken in Arabic (Orpheus). Placeholders in sourced lines stay Latin `{visa.duration}`. Do **not** claim the English number-word gate covers this turn | Arabic rungs 1–2 | "If TTS fails immediately, accept Orpheus terms at the Groq playground for `canopylabs/orpheus-arabic-saudi`. If she is silent with text on screen, tap the audio chip." |
+| 7 | Barge in: tap the mic while she is speaking | Audio stops immediately, orb returns to HEARING YOU. Same control as talking | #1, Invariant 7 | "The first 300 ms of her voice is ignored so echo cancellation can't false-barge. If she is silent with text on screen, tap the audio chip." |
 
 If the quota chip still reads `reserve only`, skip any claim that the Japan duration came from live Travel Buddy — unlock first (`docs/outbound/2026-09-21-quota-unlock.md`).
 
@@ -23,4 +22,4 @@ If the quota chip still reads `reserve only`, skip any claim that the Japan dura
 
 - The CSV/map **fallback layer**. There is no `?force_layer=` toggle. Point at the eval's `vendor-failure-1` and `tests/test_vendor.py`. If a live turn happens to serve `map`/`csv`, the card's `fallback source` badge is the tell.
 - Quota hitting zero. If the chip already reads `reserve only`, say so up front — a test once wrote `spent=120` into the live ledger; true committed spend is 3.
-- Gate coverage of Arabic number-words. The digit rule still fires; the English `NUMBER_WORDS` list does not.
+- Spoken Arabic. The Orpheus adapter is in tree, unwired. The gate's English `NUMBER_WORDS` list would not cover it.

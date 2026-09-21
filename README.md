@@ -12,10 +12,7 @@ You speak. She speaks back. The screen is a trip dossier that grows: sourced vis
 
 General assistants confidently invent visa requirements. The answer depends on a passport-and-destination pair that changes without notice, it is not the kind of thing a model can hold reliably, and people miss flights because of it.
 
-So the interesting problem here isn't "can a voice assistant answer travel questions" — it's **can it be trusted about facts it got from a tool**, and can a reviewer *see* that trust without reading a log. That's two deep dives, argued as one system:
-
-- **Guardrails and reliability** — cite-or-refuse. The model proposes; deterministic code disposes. A rejected clause is still sent and shown struck through.
-- **UI/UX and multimodal** — the dossier, an audio-reactive orb driven by the real mic and TTS graphs, and sourced place photos. The second exists to make the first legible.
+So the interesting problem here isn't "can a voice assistant answer travel questions" — it's **can it be trusted about facts it got from a tool**, and can a reviewer *see* that trust without reading a log. The deep dive is **guardrails and reliability**: the model proposes, deterministic code disposes, and a rejected clause is still sent and shown struck through. The trip dossier exists to make that visible, not as a second deep dive.
 
 The bar is *grounded **and still useful***. An assistant that hedges everything has failed this, not passed it.
 
@@ -26,7 +23,6 @@ The bar is *grounded **and still useful***. An assistant that hedges everything 
 - **Falls back visibly.** When the live visa source is unavailable, it answers from a vendored dataset and says which source answered and how old it is.
 - **Refuses with a route.** Outside coverage, it names the gap and gives you the embassy link rather than improvising.
 - **Remembers you across sessions.** Name + 4-digit PIN. Persisted facts are structured, attributable, and viewable in the trip dossier — "what's my favourite colour?" works because a fact was stored.
-- **Understands spoken Arabic.** The language chip sets Whisper's `language` and, for Arabic, routes TTS to Groq Orpheus. The gate's number-word and place-name rules stay English-only — named in Limits.
 
 ## The external APIs, and why these
 
@@ -47,7 +43,7 @@ mic → tap/hold to send → Groq Whisper
   → Gemini decide()  ± Travel Buddy lookup
   → fact card (before the gated answer)
   → Gemini NDJSON segments → gate.py
-  → Deepgram Aura-2 (English) or Groq Orpheus (Arabic)
+  → Deepgram Aura-2 (one TTS request for the gated answer)
   → Wikimedia lookups in parallel, after TTS has started
   → memory extract in the background
 ```
@@ -66,7 +62,7 @@ mic → tap/hold to send → Groq Whisper
 | Frontend | TypeScript · React |
 | STT | Groq `whisper-large-v3-turbo` (batch; the user taps or releases to end the turn) |
 | LLM | Gemini `gemini-3.5-flash-lite`, `thinking_level: "minimal"` |
-| TTS | Deepgram `aura-2` (English, streaming PCM s16le @ 24 kHz) · Groq `canopylabs/orpheus-arabic-saudi` (Arabic, batch WAV, 200-char chunks) |
+| TTS | Deepgram `aura-2` (streaming PCM s16le @ 24 kHz) |
 | Mic | Toggle or hold-to-talk. Interrupting her is the same tap. No VAD. |
 | Deploy | Modal, `us-east` |
 
@@ -91,8 +87,7 @@ Checks: `make typecheck && make lint && make test` in `backend`, `npm run typech
 
 | Limit | What that means |
 |---|---|
-| Arabic output is weakly gated | `NUMBER_WORDS` and the wrong-country place-name scan are English-only. Arabic-Indic digits are still caught. An Arabic number-word fabrication would pass. Named, not implied away. |
-| Arabic is a demo-able turn, not a mode | Orpheus is 200 characters/request, 10 RPM / 100 RPD. A long Arabic answer is sequential chunked requests. Fixed English phrases (sign-in, no-coverage) stay on Aura-2 even during an Arabic turn. The Groq org admin must accept model terms for `canopylabs/orpheus-arabic-saudi` (a 400 `model_terms_required` otherwise) — playground link in Groq console. |
+| Arabic is not in this demo | Groq Orpheus was probed (unsized ffmpeg WAV, 24 kHz s16le, ~800 ms TTFB on a short line, ~3 s on a 150-character chunk — `docs/measurements/2026-09-21-orpheus-wav.md`). The adapter is in tree, unwired. The gate's `NUMBER_WORDS` / place-name scan is English-only; shipping a language chip that spoke ungated Arabic would be a half-feature. |
 | Wikimedia is entity lookup, not a sanitised image API | The photo is the Wikipedia article's lead image. Disambiguation / 404 / no-image / timeout are rejected. It is not claimed as content-moderated beyond that. |
 | Eval is 13 hand-scored cases, no LLM judge | Methodology over denominator. `injection-2` is a named, predicted miss (observed 2026-09-20; this week's rerun timed out before the gate). Three 2026-09-21 turns died on a Gemini timeout and are reported as such. |
 | The gate binds values, not polarity | A sourced template can say "you don't need a visa for {pair.destination_name}" while `visa.type` is "visa required" and still pass every rule — placeholders resolve, digits are absent, the pair matches. The fact card would contradict it. Named, not closed. |
@@ -103,7 +98,7 @@ Checks: `make typecheck && make lint && make test` in `backend`, `npm run typech
 
 ## What I'd do with another week
 
-- Widen the gate's `NUMBER_WORDS` / wrong-country scan to Arabic so spoken Arabic has the same protection as English.
+- Arabic as a real mode: widen `NUMBER_WORDS` / the wrong-country scan, then wire `RoutedTTS` + Orpheus (`backend/app/providers/groq_tts.py` is parked for that).
 - A dedicated suggestions call for structured place picks (name, one-line reason, stay length) instead of parsing `place` off a judgement line.
 - A one-click "pretend the vendor is down" toggle so the fallback layer is demoable live.
 - Widen the injection screen to paraphrases (`injection-2`).

@@ -173,7 +173,6 @@ export function App() {
   const [signInPin, setSignInPin] = useState("");
   const [turns, setTurns] = useState<Turn[]>([]);
   const [audioHealth, setAudioHealth] = useState<AudioHealth>("ok");
-  const [lang, setLang] = useState<"en" | "ar">("en");
 
   const connectionRef = useRef<Connection | null>(null);
   const captureCtxRef = useRef<AudioContext | null>(null);
@@ -199,8 +198,6 @@ export function App() {
   const speakLevelRef = useRef(0);
   const dossierEndRef = useRef<HTMLDivElement | null>(null);
   const recreatePlaybackRef = useRef<() => Promise<boolean>>(async () => false);
-  const langRef = useRef<"en" | "ar">("en");
-  langRef.current = lang;
 
   const patchTurn = useCallback((turnId: string, patch: Partial<Turn>): void => {
     setTurns((ts) => ts.map((t) => (t.id === turnId ? { ...t, ...patch } : t)));
@@ -285,7 +282,7 @@ export function App() {
     };
     outgoingTurnIdRef.current = turnId;
     currentTurnIdRef.current = turnId;
-    connection.startTurn(turnId, langRef.current);
+    connection.startTurn(turnId);
     return turnId;
   }, [handleBarge]);
 
@@ -381,11 +378,14 @@ export function App() {
     queue.setHealthListener(
       (health) => {
         setAudioHealth(health);
-        if (health === "blocked") {
-          setNotice("Audio is blocked — tap AUDIO to restore.");
-        } else if (health === "dead") {
-          setNotice("Audio output died — tap AUDIO to restore.");
-        }
+        // The chip is the idle signal (a fresh context is suspended until a
+        // gesture). Only a *dead* graph needs a banner — and it must clear
+        // when health returns to ok, or a recovered context still looks broken.
+        setNotice((current) => {
+          if (health === "dead") return "Audio output died — tap AUDIO to restore.";
+          if (current.startsWith("Audio ")) return "";
+          return current;
+        });
       },
       () => {
         void recreatePlaybackRef.current();
@@ -679,15 +679,6 @@ export function App() {
           >
             {audioHealth === "ok" ? "audio · live" : audioHealth === "blocked" ? "audio · blocked" : "audio · dead"}
           </button>
-          <button
-            type="button"
-            className="chip chip-lang"
-            disabled={recording || conversationState === "thinking" || conversationState === "speaking"}
-            onClick={() => setLang((current) => (current === "en" ? "ar" : "en"))}
-            title="Whisper language for the next turn. Arabic also selects the Orpheus voice."
-          >
-            {lang === "ar" ? "العربية" : "English"}
-          </button>
         </div>
       </header>
 
@@ -739,12 +730,20 @@ export function App() {
         {notice && <p className="notice">{notice}</p>}
 
         <div className="dossier">
-          {lastTurn && <NowPane turn={lastTurn} rtl={lang === "ar"} />}
+          {turns.length === 0 && !voiceIssue && (
+            <p className="opening-cue">
+              When you're ready, try:{" "}
+              <span className="opening-line">
+                I'm travelling on a Saudi passport. Do I need a visa for Japan?
+              </span>
+            </p>
+          )}
+          {lastTurn && <NowPane turn={lastTurn} />}
           {trail.length > 0 && (
             <div className="trail">
               <h2 className="trail-heading">Earlier</h2>
               {[...trail].reverse().map((turn) => (
-                <TrailRow key={turn.id} turn={turn} rtl={lang === "ar"} />
+                <TrailRow key={turn.id} turn={turn} />
               ))}
             </div>
           )}
@@ -758,17 +757,20 @@ export function App() {
               {fmt(lastTurn.timings.endpointMs)}
             </span>
           )}
-          {sessionId && <span>session {sessionId.slice(0, 8)}</span>}
-          {connectionN > 0 && <span>#{connectionN}</span>}
-          {lastRttMs !== null && <span>{lastRttMs}ms</span>}
-          <button className="secondary" type="button" onClick={() => connectionRef.current?.sendPing()}>
-            Ping
-          </button>
           {connectionState === "offline" && (
             <button type="button" onClick={() => connectionRef.current?.retry()}>
               Retry connection
             </button>
           )}
+          <details className="diagnostics-more">
+            <summary>session</summary>
+            {sessionId && <span>session {sessionId.slice(0, 8)}</span>}
+            {connectionN > 0 && <span>#{connectionN}</span>}
+            {lastRttMs !== null && <span>{lastRttMs}ms rtt</span>}
+            <button className="secondary" type="button" onClick={() => connectionRef.current?.sendPing()}>
+              Ping
+            </button>
+          </details>
         </div>
       </div>
 

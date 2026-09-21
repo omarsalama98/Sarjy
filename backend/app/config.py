@@ -39,9 +39,7 @@ class Settings:
     rapidapi_key: str | None
     rapidapi_host: str
     deepgram_tts_model: str = "aura-2-thalia-en"
-    # Deepgram Aura-2 has no Arabic voice. Orpheus is the Arabic branch of
-    # RoutedTTS. `noura` matches Thalia (female) rather than mixing genders.
-    # Groq's speech API requires the lowercase voice id.
+    # Parked with groq_tts.py / RoutedTTS. get_tts() does not read these.
     orpheus_tts_model: str = "canopylabs/orpheus-arabic-saudi"
     orpheus_voice: str = "noura"
 

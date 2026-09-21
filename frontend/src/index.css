@@ -102,13 +102,9 @@ body {
 .chip-quota.warn { color: var(--board-amber); border-color: #5a4a12; }
 .chip-audio {
   cursor: pointer;
-  font-family: inherit;
-  color: inherit;
   appearance: none;
 }
 .chip-audio.warn { color: var(--stamp); border-color: #5a221c; }
-.chip-lang { cursor: pointer; font-family: inherit; color: inherit; appearance: none; }
-.chip-lang:disabled { cursor: not-allowed; }
 
 .app-main { grid-column: 1; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
 
@@ -226,6 +222,16 @@ a:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
 .hedge-notice { border-color: var(--board-amber); }
 
 .dossier { display: flex; flex-direction: column; gap: 20px; }
+.opening-cue {
+  margin: 0;
+  padding: 16px 18px;
+  border: 1px dashed var(--hairline);
+  color: var(--slate);
+  font-size: 0.95rem;
+}
+.opening-line {
+  color: var(--ivory);
+}
 .now-pane { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .turn { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .trail {
@@ -472,6 +478,20 @@ a:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
   border-top: 1px solid var(--hairline);
 }
 .diagnostics button { padding: 6px 12px; font-size: 0.75rem; }
+.diagnostics-more {
+  margin-left: auto;
+}
+.diagnostics-more summary {
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 0.72rem;
+  color: var(--slate);
+}
+.diagnostics-more[open] summary { margin-bottom: 6px; }
+.diagnostics-more span { margin-right: 12px; }
 
 /* -- rail ----------------------------------------------------------------- */
 .rail {

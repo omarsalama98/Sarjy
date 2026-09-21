@@ -1,9 +1,10 @@
-"""Groq Orpheus Arabic TTS.
+"""Groq Orpheus Arabic TTS — parked, not on the demo path.
 
-Deepgram Aura-2 has no Arabic voice (verified 2026-09-21), so Arabic
-output is a second adapter behind the same TTS protocol. Groq's
-`canopylabs/orpheus-arabic-saudi` is batch WAV, 200 characters per
-request, not a stream — chunk here, never in the gate.
+Probed 2026-09-21 (docs/measurements/2026-09-21-orpheus-wav.md): the body
+is ffmpeg unsized WAV, PCM s16le mono @ 24 kHz, voice ids lowercase.
+Not wired into `get_tts()` because the gate's NUMBER_WORDS / place-name
+scan is English-only and Orpheus is batch + 200 chars/request. Shipping
+a language chip that spoke ungated Arabic would be a half-feature.
 
 `language` is accepted and ignored: this adapter *is* the Arabic branch.
 """
