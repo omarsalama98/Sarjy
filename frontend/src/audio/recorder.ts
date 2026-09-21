@@ -1,5 +1,5 @@
 /**
- * User-controlled capture: toggle or hold-to-talk, no VAD.
+ * User-controlled capture: tap to start, tap to send. No VAD, no hold-to-talk.
  *
  * The worklet copies Float32 frames off the audio thread; this class
  * downsamples to 16 kHz PCM16 and streams binary as it arrives so the

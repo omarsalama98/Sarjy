@@ -125,14 +125,10 @@ app.add_middleware(GZipMiddleware, minimum_size=1024)
 # from landing on a container that has never heard of the session.
 registry = SessionRegistry()
 
-# Measured against this deployment (backend/scripts/ws_lifetime.py; full story
-# in docs/measurements/day1-spikes.md S1's Block 1 addendum): an actively-used
-# connection (real traffic every 5-15s, not just idle) survived a clean 301.6s
-# before the server closed it -- D >= 140s, so the plan's decision table says
-# ship 75s/110s. Comfortable margin: rotation happens at 1/4 of the observed
-# lifetime, not against a number we're hoping holds.
-ROTATE_AFTER_MS = 75_000
-HARD_MAX_MS = ROTATE_AFTER_MS + 35_000
+# Measured 301.6s with traffic (day1-spikes.md). Rotate at ~half that so a
+# 5-minute demo is one silent reconnect, not a chip that flips every minute.
+ROTATE_AFTER_MS = 150_000
+HARD_MAX_MS = ROTATE_AFTER_MS + 40_000
 
 # The client is required to send `hello` immediately on connecting. Bounding
 # the wait keeps a silent connection from holding one of the container's

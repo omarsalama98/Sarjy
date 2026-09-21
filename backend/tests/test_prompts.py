@@ -173,7 +173,35 @@ def test_system_segments_does_not_invite_require_a_visa_type() -> None:
     from app.prompts import SYSTEM_SEGMENTS
 
     assert "Never write \"require a {visa.type}\"" in SYSTEM_SEGMENTS
-    assert "Holders of {pair.passport_name} passports" in SYSTEM_SEGMENTS
+    assert "For {pair.passport_name} travellers" in SYSTEM_SEGMENTS
+    assert "Holders of {pair.passport_name} passports" not in SYSTEM_SEGMENTS
+
+
+def test_build_user_block_omits_long_quoted_fields() -> None:
+    """Application-process essays must not appear in <quotable_fields>."""
+    payload = {
+        "pair": {
+            "passport": "EG",
+            "passport_name": "Egypt",
+            "destination": "GB",
+            "destination_name": "United Kingdom",
+        },
+        "visa": {
+            "type": "Online visa required",
+            "exception": (
+                "To start your application, you will need to apply online through "
+                "the official government website, book an appointment at a local "
+                "visa application centre to submit your biometrics. Fees vary "
+                "depending on the length of your stay, but you can check the "
+                "exact current pricing on the official portal before you finalize "
+                "your booking."
+            ),
+        },
+        "source": {"name": "Travel Buddy"},
+    }
+    result = ToolResult(ok=True, payload=payload, layer="live", reason="ok")
+    block = build_user_block(user_question="visa?", tool_call_id="tb_1", result=result)
+    assert "<quotable_fields" not in block
 
 
 def test_build_user_block_adds_reply_language_only_for_arabic() -> None:

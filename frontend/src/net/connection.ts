@@ -94,7 +94,9 @@ const MAX_AUTO_RETRIES = 5;
 // failing to save a dying connection. This exists to notice a stale socket
 // faster than TCP would, not to hold one open past whatever Modal decides.
 const LIVENESS_PING_INTERVAL_MS = 15_000;
-const LIVENESS_PONG_DEADLINE_MS = 3_000;
+// 3s was too tight Riyadh→us-east: a slow pong looked like a dead socket
+// and forceReconnect()'d in a loop. Detection, not a keepalive.
+const LIVENESS_PONG_DEADLINE_MS = 12_000;
 
 type ReconnectMode = "immediate" | "backoff";
 
@@ -125,6 +127,11 @@ export class Connection {
   // the one place that gap gets closed, so every other callback can assume
   // a turn id is always available.
   private currentAudioTurnId: string | null = null;
+
+  // Only the latest connectNow() owns onclose. An older socket closing
+  // after we have already opened a replacement used to schedule a second
+  // reconnect -- CONNECTED → RECONNECTING → CONNECTED in a tight loop.
+  private socketGen = 0;
 
   constructor(
     private readonly url: string,
@@ -234,12 +241,15 @@ export class Connection {
     window.clearTimeout(this.reconnectTimer);
     this.stopLiveness();
     this.terminal = true;
-    this.ws?.close(1000);
+    this.socketGen += 1;
+    this.dropSocket();
   }
 
   // -- connecting -----------------------------------------------------------
 
   private connectNow(): void {
+    this.dropSocket();
+    const gen = ++this.socketGen;
     const ws = new WebSocket(this.url);
     // Server audio is raw PCM16 binary frames -- without this, a binary
     // message arrives as a Blob, which needs an async read before its bytes
@@ -247,9 +257,11 @@ export class Connection {
     ws.binaryType = "arraybuffer";
     this.ws = ws;
     ws.onopen = () => {
+      if (gen !== this.socketGen) return;
       this.send({ t: "hello", v: PROTOCOL_VERSION, session_id: this.sessionId, client_ts_ms: Date.now() });
     };
     ws.onmessage = (ev: MessageEvent<unknown>) => {
+      if (gen !== this.socketGen) return;
       if (typeof ev.data === "string") {
         this.handleMessage(ev.data);
       } else if (ev.data instanceof ArrayBuffer) {
@@ -260,12 +272,35 @@ export class Connection {
         // ahead of in-flight frames) -- dropped, not an error.
       }
     };
-    ws.onclose = () => this.handleClose();
+    ws.onclose = () => {
+      if (gen !== this.socketGen) return;
+      this.handleClose();
+    };
     ws.onerror = () => {
       // onclose always follows for a browser WebSocket; nothing to act on
       // here beyond visibility during development.
+      if (gen !== this.socketGen) return;
       console.warn("sarjy: websocket error");
     };
+  }
+
+  /** Detach handlers so a replaced socket's `onclose` cannot start a second
+   * reconnect. Close is best-effort; Modal reaps the input slot either way. */
+  private dropSocket(): void {
+    const ws = this.ws;
+    this.ws = null;
+    if (!ws) return;
+    ws.onopen = null;
+    ws.onmessage = null;
+    ws.onerror = null;
+    ws.onclose = null;
+    if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+      try {
+        ws.close(1000);
+      } catch {
+        /* already closing */
+      }
+    }
   }
 
   private send(msg: ClientMessage): void {
@@ -302,9 +337,6 @@ export class Connection {
           resumed: msg.resumed,
           connectionN: msg.connection_n,
         });
-        this.callbacks.onNotice(
-          msg.resumed ? `Reconnected (connection #${msg.connection_n}).` : "New session started.",
-        );
         this.scheduleRotationTimer();
         this.startLiveness();
         this.drainReadyWaiters();
@@ -319,7 +351,7 @@ export class Connection {
         }
         break;
       case "pong":
-        if (msg.id === this.pendingLivenessId) this.pendingLivenessId = null;
+        this.pendingLivenessId = null;
         this.callbacks.onPong(Date.now() - msg.client_ts_ms);
         break;
       case "error":
@@ -480,9 +512,12 @@ export class Connection {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.send({ t: "bye", reason: "leave" });
       this.ws.close(1000);
-    } else {
-      this.connectNow();
+      return;
     }
+    // CONNECTING / already CLOSED: do not open a second socket on top of
+    // one that will also fire onclose. One connectNow owns recovery.
+    if (this.ws && this.ws.readyState === WebSocket.CONNECTING) return;
+    this.connectNow();
   }
 
   // -- liveness ping (detection, not a keepalive) ------------------------------

@@ -148,47 +148,39 @@ button.mic-hot {
   fill: none;
   stroke: var(--orb-color);
   stroke-width: 1.2;
-  transform-origin: 50px 50px;
+  transform-origin: center;
   transform-box: fill-box;
 }
 .orb-ring-1 { stroke-width: 1.8; opacity: 0.95; }
 .orb-ring-2 {
   opacity: calc(0.35 + var(--orb-level) * 0.5);
-  transform: scale(calc(1 + var(--orb-level) * 0.14));
+  transform: scale(calc(1 + var(--orb-level) * 0.08));
 }
 .orb-ring-3 {
   opacity: calc(0.18 + var(--orb-level) * 0.35);
-  transform: scale(calc(1 + var(--orb-level) * 0.22));
+  transform: scale(calc(1 + var(--orb-level) * 0.14));
   stroke-width: 0.8;
 }
-.orb-arc {
-  fill: none;
-  stroke: var(--orb-color);
-  stroke-width: 2;
-  stroke-dasharray: 40 220;
-  stroke-linecap: round;
-  opacity: 0;
-  transform-origin: 50px 50px;
-  transform-box: fill-box;
-}
+.orb-arc { display: none; }
 .orb-mark {
   font-family: var(--display);
   font-weight: 700;
-  font-size: 22px;
+  font-size: 28px;
   fill: var(--orb-color);
-  letter-spacing: 0.08em;
 }
 .ring-idle { --orb-color: var(--slate); }
 .ring-loading { --orb-color: var(--board-amber); }
 .ring-listening { --orb-color: var(--brass); }
 .ring-thinking { --orb-color: var(--board-amber); }
-.ring-thinking .orb-arc {
-  opacity: 1;
-  animation: orb-spin 1.6s linear infinite;
+.ring-thinking .orb-ring-2,
+.ring-thinking .orb-ring-3 {
+  animation: orb-pulse 1.4s ease-in-out infinite;
 }
 .ring-speaking { --orb-color: var(--board-green); }
 .ring-error { --orb-color: var(--stamp); }
-@keyframes orb-spin { to { transform: rotate(360deg); } }
+@keyframes orb-pulse {
+  50% { opacity: 0.55; transform: scale(1.06); }
+}
 
 button {
   font: inherit;
@@ -558,7 +550,8 @@ a:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ring-thinking .orb-arc { animation: none; opacity: 1; }
+  .ring-thinking .orb-ring-2,
+  .ring-thinking .orb-ring-3 { animation: none; }
 }
 
 @media (min-width: 901px) {

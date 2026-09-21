@@ -1,10 +1,10 @@
 # Sarjy — agent handoff
 
-**Written:** 2026-09-21 ~03:50 Asia/Riyadh · **Deadline:** today **19:00** · **Current block: C (Demoable)**
+**Written:** 2026-09-21 ~16:20 Asia/Riyadh · **Deadline:** today **19:00** · **Current: C code freeze — Omar submission ops**
 
 Read **this file first** when picking up work. Then open **only** the files in the matching row of [Task → files](#task--files). Do not read the PRD, TDD, research dumps, or every block plan “for context.”
 
-`AGENTS.md` is always in the session. Parts of it are **stale** (see [Stale docs](#stale-docs)). This file wins on *where we are*; the brief (`Building Sarjy.md`) wins on *what the assignment is*.
+`AGENTS.md` is always in the session. Status/Decided were aligned 2026-09-21 with the shipped turn. This file still wins on *where we are*; the brief (`Building Sarjy.md`) wins on *what the assignment is*.
 
 ---
 
@@ -24,6 +24,7 @@ mic → tap/hold to send → Groq Whisper (batch)
   → Gemini call 2 NDJSON segments
   → gate.py (value substitution + reject)
   → Deepgram Aura-2 (one TTS request for the kept answer)
+  → Wikimedia lookups in parallel, after TTS has started
   → memory extract in the background after the user has heard the reply
 ```
 
@@ -35,7 +36,7 @@ Identity: name + 4-digit PIN, `modal.Dict`. Recalled facts have no `tool_call_id
 
 ## Pickup algorithm
 
-1. Identify the **block** (`MASTER-PLAN.md` is the list; you are almost certainly on **C**).
+1. Identify the **block**. Product code is frozen (C done in git). Remaining is Omar submission ops — `docs/outbound/2026-09-21-submit-now.md`. If asked to build a feature, **stop**.
 2. Open **that block’s plan** in `docs/plans/blocks/`. The plan is the contract. If the work is not in a plan, **stop** — a `block-planner` writes one first.
 3. Open the matching **PR doc** in `docs/PRs/` for *what already landed* and what the human still has to click.
 4. Touch code only in the files the plan names. Path-scoped rules under `.claude/rules/` load themselves.
@@ -45,24 +46,22 @@ Identity: name + 4-digit PIN, `modal.Dict`. Recalled facts have no `tool_call_id
 
 ---
 
-## Where we are — Block C
+## Where we are — code freeze, Omar ops
 
-Plan: `docs/plans/blocks/C-demoable.md` (authoritative for remaining work).
+Product code for Block C / C2 is **in git** at `7bf4fc7` (Arabic parked). Do not add features. Remaining work is the brief’s deploy/demo/submit floor.
 
-| Group | What | In git? |
+Omar runbook (copy-paste, with Pass lines): **`docs/outbound/2026-09-21-submit-now.md`**.
+
+| Group | What | Status |
 |---|---|---|
-| 0 | Preflight: live voice turn, `SARJY_MEMORY_SALT` on Modal, quota unlock | **Omar.** Not done from this environment |
-| 1 | Fact card renders (refusal / empty / populated + degraded badge); clear card on new turn | **Yes** — `frontend/src/ui/FactCard.tsx`, `App.tsx` |
-| 2 | `frontend/src/index.css` (~120 lines) + import in `main.tsx` | **Yes** — being rewritten by C2 |
-| 2b | **Travel-agent UI** — plan: `docs/plans/blocks/C2-ui-pass.md` | **In progress.** Five phases: dossier · shell · orb · Wikimedia places · documents. Phase 5 is never cut |
-| 3 | Rewrite `README.md` · write `docs/DEMO-SCRIPT.md` · `docs/LOOM-OUTLINE.md` | **Yes** — keep them honest against what ships |
+| 0 | Preflight: `SARJY_MEMORY_SALT` on Modal, quota unlock | **Omar.** Ledger likely still `spent=120` |
+| 1–3, 2b, 5 | Fact card, stylesheet, dossier/orb/places, README, demo script, Loom outline | **In git.** README / scripts match shipped behaviour |
 | 4 | Arabic | **Parked.** Adapter + probe in tree; not on `get_tts()` or the UI |
-| 5 | Amend the three docs to match what actually shipped | In progress |
-| 6 | `/demo-check`, Block A/B human tables, `make measure`, `submission-reviewer`, Loom, Ashby | Not started |
+| 6 | Redeploy, `/demo-check`, Loom, GitHub origin, Ashby | **Not done.** Live URL is a **stale VAD bundle** |
 
-Canned opener clip: **cut** (plan D8). Do not build it.
+Canned opener clip: **cut** (plan D8). Do not build it. Do not wire Arabic.
 
-**Working tree was clean** on `master` at `fc08a94` when this was written. That commit bundled Blocks 2–B plus C groups 1–2. **The live Modal bundle may still be older than this commit** — Block B’s verifier last saw a deploy without memory. Confirm before demoing.
+**HEAD `7bf4fc7`**, working tree was clean when the review landed. **Live HTML (verified 2026-09-21 ~16:15):** `/assets/index-CvV_xQIZ.js`, **no CSS**, idle UI is `Start talking` / `Ping`. Local dist is `index-CCAUQrPE.js` + stylesheet. Socket on the old bundle still reaches `ready`. **This clone has no `git remote`.**
 
 ---
 
@@ -70,7 +69,9 @@ Canned opener clip: **cut** (plan D8). Do not build it.
 
 Open the **Read** column in order. Stop when you can do the task. Do not open the Avoid column “just in case.”
 
-### Continue Block C (default)
+### Block C slices (done in git — do not reopen)
+
+Docs, fact card, C2 UI, and Arabic parking already shipped. If you are here to *submit*, ignore this table and run `docs/outbound/2026-09-21-submit-now.md`.
 
 | Slice | Read | Then edit | Avoid |
 |---|---|---|---|
@@ -79,7 +80,7 @@ Open the **Read** column in order. Stop when you can do the task. Do not open th
 | **Fact card / CSS (already built, being restyled)** | `C-demoable.md` Contracts 1–2, F-FC1–F-FC5 | `frontend/src/ui/FactCard.tsx` · `App.tsx` · `index.css` | Re-deriving `degraded` on the client (server sends it) |
 | **Travel-agent UI (C2)** | `docs/plans/blocks/C2-ui-pass.md` — D0's ref-safety rule, Contracts 1–8 · `docs/DESIGN-BRIEF.md` for intent | `App.tsx` · `index.css` · `ui/FactCard.tsx` · **new** `ui/Orb.tsx` · **new** `audio/level.ts` · **new** `ui/PlaceStrip.tsx` · `index.html` · `public/fonts/` · `tools/places.py` · `protocol.py` · `protocol.ts` · `connection.ts` · `turn.py` · `prompts.py` · `main.py` | Rewriting any `useRef` · changing the recorder/PCM path, or `reportTurnTiming` · bumping `PROTOCOL_VERSION` · changing the gate |
 | **PR writeup** | Plan §Group 5 · this file’s landmines | **new** `docs/PRs/PR_DEMOABLE.md` | |
-| **Human gates / submission** | `.claude/skills/demo-check/SKILL.md` · plan §Group 6 / §Gate · `.claude/agents/submission-reviewer.md` | README limits table only, unless a finding is **blocking** | Re-running `eval/` · spending RapidAPI |
+| **Human gates / submission** | `.claude/skills/demo-check/SKILL.md` · `docs/outbound/2026-09-21-submit-now.md` · `docs/WALKTHROUGH.md` | README limits table only, unless a finding is **blocking** | Re-running `eval/` · spending RapidAPI · `make deploy` (Omar) |
 
 ### Earlier blocks (fix / explain, do not reopen)
 
@@ -171,7 +172,7 @@ Block C’s plan wants **≥ 269 passed** (Block B baseline) plus any new `test_
 | RapidAPI dashboard, `QUOTA_SPENT_SEED`, unlocking `sarjy-quota` | Irreplaceable 120-request budget |
 | Set `SARJY_MEMORY_SALT` on Modal | One-way door vs existing PIN hashes |
 | Send email / Slack to Sarj | `.claude/skills/update-sarj` drafts only |
-| Loom recording, Ashby submit, grant GitHub reviewer access | Requirement #6 / #7 |
+| Loom recording, Ashby submit, grant GitHub reviewer access | Requirement #6 / #7. Runbook: `docs/outbound/2026-09-21-submit-now.md` |
 | Read or write `.env` | Deny. Names live in `.env.example` |
 
 Add `SARJY_MEMORY_SALT=` to `.env.example` yourself if it is still missing — agents must not open `.env`.
@@ -182,11 +183,8 @@ Add `SARJY_MEMORY_SALT=` to `.env.example` yourself if it is still missing — a
 
 | Doc | What’s wrong |
 |---|---|
-| `AGENTS.md` §Status | Still says **Block 2 is next**. False. Use this handoff. |
-| `AGENTS.md` §Decided | Several rows describe the **pre-cut** design: `update()` opener, two TTS requests per turn, opener gated separately, 12-case eval + LLM judge. **Shipped:** no opener, **one** TTS of the gated answer, eval is **8 hand-scored cases / 7 pass**, `injection-2` is the labelled fail, **no LLM judge**. TTS English is Deepgram, not Gemini. |
-| `README.md` | Live URL `_TBD_` · TTS still Gemini · lists GOV.UK and Aladhan as sources (both **excluded**) · every status checkbox empty. Rewriting it **is** Block C Group 3. |
-| `CUT-DECISION.md` | Sunday arithmetic. Useful history; Block C’s own cut ladder in `C-demoable.md` §D3 is the one that fires today. |
-| `PRD.md` / `TDD.md` | Design of record for *intent*. Implementation has since cut the opener and collapsed blocks 4/5/6/9 into **A**. Prefer the block plan + PR doc for “what the code does.” |
+| `PRD.md` / `TDD.md` | Design of record for *intent*. Implementation cut the opener, collapsed blocks 4/5/6/9 into **A**, and replaced VAD with tap/hold. Prefer this file + the PR doc for “what the code does.” |
+| `CUT-DECISION.md` | Sunday arithmetic. Useful history; Block C’s own cut ladder in `C-demoable.md` §D3 is the one that fired. |
 | Root `*-research.md` / `docs/research_docs/` | Sep 18 shopping. Provider facts move; re-verify before quoting a model id or a latency number. |
 | HTML siblings of markdown (`*.html`) | Renders. Edit the `.md`. |
 
@@ -202,8 +200,9 @@ docs/plans/MASTER-PLAN.md  block list + gates
 docs/plans/blocks/         00 01 02 03 A B C  ← C-demoable.md is today’s contract
 docs/PRs/                  what each block actually shipped
 docs/measurements/         spike + latency numbers
-docs/outbound/             drafted messages to Sarj
-eval/                      8 adversarial cases + 2026-09-20 results
+docs/outbound/             drafted messages to Sarj + submit-now runbook
+docs/WALKTHROUGH.md        3-file meeting path + hardest questions
+eval/                      8 adversarial cases + conversation eval results
 data/reference/            committed visa fixtures (do not re-fetch)
 backend/app/
   main.py                  WS, session, sign-in, extract task, static mount
@@ -226,17 +225,14 @@ frontend/src/
 
 ---
 
-## Suggested first commit messages (draft only)
+## Suggested commit message (draft only)
 
-From `C-demoable.md` task 31, use only the ones that match what you actually ship:
-
-- `feat(ui): render the fact card — the deep dive's evidence, on screen` *(already in tree; do not re-commit unless Omar never committed it alone)*
-- `feat(ui): one stylesheet — the app had none`
-- `feat(voice): Arabic input — Whisper language routing` *or* `feat(voice): Arabic — Whisper language routing and a Groq Orpheus voice`
-- `docs: README, demo script and Loom outline for submission`
+```
+docs: align Status/Decided with shipped turn; Omar submit runbook
+```
 
 ---
 
 ## If you only have 20 minutes
 
-Do **C2 Phase 5**: honest README + demo script + Loom outline against **what is true right now** (including “not run” rows). That *is* requirement #6. The orb and the places strip are cuttable; those three documents are not.
+Run **`docs/outbound/2026-09-21-submit-now.md`** from the top: env, quota unlock, `make deploy`, confirm CSS on the live HTML. The reviewer opens the URL, not git. Docs and eval are already ahead of the deployment.

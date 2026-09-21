@@ -57,7 +57,7 @@ export function FactCard({ card }: { card: FactCardMessage }): JSX.Element {
         {card.embassy_url && (
           <p>
             <a className="embassy-link" href={card.embassy_url} target="_blank" rel="noreferrer">
-              Embassy page
+              {card.destination_name} embassy listing
             </a>
           </p>
         )}

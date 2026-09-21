@@ -61,8 +61,7 @@ export function Orb({ ring, reducedMotion, micAnalyserRef, speakLevelRef }: OrbP
         <circle className="orb-ring orb-ring-3" cx="50" cy="50" r="42" />
         <circle className="orb-ring orb-ring-2" cx="50" cy="50" r="32" />
         <circle className="orb-ring orb-ring-1" cx="50" cy="50" r="22" />
-        <circle className="orb-arc" cx="50" cy="50" r="42" />
-        <text className="orb-mark" x="50" y="57" textAnchor="middle">
+        <text className="orb-mark" x="50" y="50" textAnchor="middle" dominantBaseline="central">
           S
         </text>
       </svg>

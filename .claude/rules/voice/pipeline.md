@@ -49,7 +49,7 @@ Target ≤ 1.8 s to **first audio out** — which is the opener, not the answer.
 
 ## Endpointing is user-controlled
 
-It runs **client-side** as tap/hold-to-talk, not as a silence threshold.
+It runs **client-side** as tap-to-talk / tap-to-send, not as a silence threshold.
 A pause mid-sentence no longer ends the turn. Interrupting Sarjy is the
 same tap, not an acoustic guess.
 

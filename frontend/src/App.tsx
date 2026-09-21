@@ -21,7 +21,7 @@
  * cannot catch either.
  */
 
-import type { FormEvent, PointerEvent } from "react";
+import type { FormEvent } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { clearSharedMicStream, getSharedMicStream, TARGET_SAMPLE_RATE } from "./audio/capture";
 import { MicAnalyser, pcm16Rms } from "./audio/level";
@@ -51,15 +51,6 @@ interface VoiceIssue {
   kind: VoiceIssueKind;
   message: string;
 }
-
-const CONNECTION_LABEL: Record<ConnectionState, string> = {
-  connecting: "CONNECTING",
-  ready: "CONNECTED",
-  rotating: "REFRESHING",
-  reconnecting: "RECONNECTING",
-  offline: "OFFLINE",
-  stale: "STALE",
-};
 
 function createCaptureContext(): AudioContext {
   try {
@@ -123,17 +114,17 @@ function stateCopy(
     return { ring: "ring-error", headline: "VOICE UNAVAILABLE", sub: voiceIssue.message };
   }
   if (!started) {
-    return { ring: "ring-idle", headline: "READY WHEN YOU ARE", sub: "Tap the mic or hold Space to talk." };
+    return { ring: "ring-idle", headline: "READY WHEN YOU ARE", sub: "Tap the mic to talk." };
   }
   if (recording) {
-    return { ring: "ring-listening", headline: "HEARING YOU", sub: "Tap again or release Space to send." };
+    return { ring: "ring-listening", headline: "HEARING YOU", sub: "Tap again when you're done." };
   }
   const table: Record<ConversationState, { ring: OrbRing; headline: string; sub: string }> = {
-    idle: { ring: "ring-idle", headline: "READY", sub: "Tap the mic or hold Space." },
+    idle: { ring: "ring-idle", headline: "READY", sub: "Tap the mic to talk." },
     listening: {
       ring: "ring-listening",
       headline: "HEARING YOU",
-      sub: "Tap again or release Space to send.",
+      sub: "Tap again when you're done.",
     },
     thinking: {
       ring: "ring-thinking",
@@ -181,8 +172,6 @@ export function App() {
   const recorderRef = useRef<MicRecorder | null>(null);
   const currentTurnIdRef = useRef<string | null>(null);
   const outgoingTurnIdRef = useRef<string | null>(null);
-  const spaceDownAtRef = useRef<number | null>(null);
-  const startedThisGestureRef = useRef(false);
   const currentSampleRateRef = useRef(PLAYBACK_SAMPLE_RATE);
   const speakingStartedAtRef = useRef(0);
   const turnCounterRef = useRef(0);
@@ -334,7 +323,7 @@ export function App() {
       connectionRef.current?.endTurn(turnId, samples);
       turnInFlightRef.current = false;
       setConversationState("idle");
-      setNotice("That was too short — hold a little longer.");
+      setNotice("That was too short — tap, speak, then tap again.");
       return;
     }
 
@@ -346,7 +335,7 @@ export function App() {
 
   const handleConnectionState = useCallback((state: ConnectionState): void => {
     setConnectionState(state);
-    const dropped = state === "reconnecting" || state === "offline" || state === "stale";
+    const dropped = state === "offline";
     if (!dropped || !turnInFlightRef.current) return;
 
     turnInFlightRef.current = false;
@@ -489,60 +478,18 @@ export function App() {
     }
   }, [starting, watchForMicRevocation, detachMicAnalyser, startRecording]);
 
-  const onMicPointerDown = useCallback(
-    (e: PointerEvent<HTMLButtonElement>): void => {
-      e.preventDefault();
-      spaceDownAtRef.current = performance.now();
-      startedThisGestureRef.current = false;
-      if (recorderRef.current?.isRecording) return;
-      startedThisGestureRef.current = true;
-      if (!started) {
-        void handleStart();
-        return;
-      }
-      void startRecording();
-    },
-    [started, handleStart, startRecording],
-  );
-
-  const onMicPointerUp = useCallback((): void => {
-    const down = spaceDownAtRef.current;
-    spaceDownAtRef.current = null;
-    const held = down === null ? 0 : performance.now() - down;
-    if (!recorderRef.current?.isRecording) return;
-    if (held > 250 || !startedThisGestureRef.current) {
+  const onMicClick = useCallback((): void => {
+    if (starting) return;
+    if (recorderRef.current?.isRecording) {
       void stopRecording();
+      return;
     }
-  }, [stopRecording]);
-
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent): void => {
-      if (e.code !== "Space" || e.repeat) return;
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      e.preventDefault();
-      spaceDownAtRef.current = performance.now();
-      startedThisGestureRef.current = false;
-      if (recorderRef.current?.isRecording) return;
-      startedThisGestureRef.current = true;
-      if (!started) {
-        void handleStart();
-        return;
-      }
-      void startRecording();
-    };
-    const onKeyUp = (e: KeyboardEvent): void => {
-      if (e.code !== "Space") return;
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      e.preventDefault();
-      onMicPointerUp();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("keyup", onKeyUp);
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("keyup", onKeyUp);
-    };
-  }, [started, handleStart, startRecording, onMicPointerUp]);
+    if (!started) {
+      void handleStart();
+      return;
+    }
+    void startRecording();
+  }, [starting, started, handleStart, startRecording, stopRecording]);
 
   useEffect(() => {
     const capture = createCaptureContext();
@@ -642,6 +589,12 @@ export function App() {
     });
   }, [turns.length, lastTurn?.factCard, lastTurn?.places, lastTurn?.reply, lastTurn?.segments.length]);
 
+  const connectionChip =
+    connectionState === "offline"
+      ? "OFFLINE"
+      : connectionState === "ready" || connectionN > 0
+        ? "CONNECTED"
+        : "CONNECTING";
   const canStart = !started && !voiceIssue;
   const showRetry = voiceIssue?.kind === "mic-blocked" || voiceIssue?.kind === "mic-missing";
   const copy = stateCopy(started, voiceIssue, conversationState, interrupted, recording);
@@ -654,8 +607,10 @@ export function App() {
           <p className="purpose">A voice for the document · live voice</p>
         </div>
         <div className="header-chips">
-          <span className={`chip chip-connection conn-${connectionState}`}>
-            {CONNECTION_LABEL[connectionState]}
+          <span
+            className={`chip chip-connection conn-${connectionState === "offline" ? "offline" : "ready"}`}
+          >
+            {connectionChip}
           </span>
           {quota && (
             <span
@@ -697,22 +652,17 @@ export function App() {
             <p className="state-sub">{copy.sub}</p>
             <div className="cta">
               {canStart && (
-                <button
-                  className={recording ? "mic-hot" : ""}
-                  disabled={starting}
-                  onPointerDown={onMicPointerDown}
-                  onPointerUp={onMicPointerUp}
-                >
-                  {starting ? "Starting…" : "Tap to talk · hold Space"}
+                <button className={recording ? "mic-hot" : ""} disabled={starting} onClick={onMicClick}>
+                  {starting ? "Starting…" : "Tap to talk"}
                 </button>
               )}
               {started && !voiceIssue && (
-                <button
-                  className={recording ? "mic-hot" : ""}
-                  onPointerDown={onMicPointerDown}
-                  onPointerUp={onMicPointerUp}
-                >
-                  {recording ? "Listening — tap to send" : conversationState === "speaking" ? "Tap to interrupt" : "Tap to talk"}
+                <button className={recording ? "mic-hot" : ""} onClick={onMicClick}>
+                  {recording
+                    ? "Listening — tap to send"
+                    : conversationState === "speaking"
+                      ? "Tap to interrupt"
+                      : "Tap to talk"}
                 </button>
               )}
               {showRetry && (
@@ -753,7 +703,7 @@ export function App() {
         <div className="diagnostics" aria-live="off">
           {lastTurn?.timings && (
             <span>
-              last turn {fmt(lastTurn.timings.firstAudioMs)} voice-to-voice · held{" "}
+              last turn {fmt(lastTurn.timings.firstAudioMs)} voice-to-voice · spoke{" "}
               {fmt(lastTurn.timings.endpointMs)}
             </span>
           )}

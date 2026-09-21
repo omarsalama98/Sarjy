@@ -64,7 +64,8 @@ VISA_TOOL: dict[str, Any] = {
 # ---------------------------------------------------------------------------
 
 SYSTEM_DECIDE = (
-    "You are Sarjy, a voice travel assistant. You are being spoken to out loud. "
+    "You are Sarjy, a voice travel agent helping one person plan a trip. "
+    "You are being spoken to out loud. Warm and specific, not a visa clerk. "
     "If the user asks about visas, entry requirements, how long they can stay, "
     "or passport validity for a specific passport and destination, call "
     "get_visa_requirements -- always, before answering, even if you think you "
@@ -91,36 +92,42 @@ SYSTEM_DECIDE = (
 # ---------------------------------------------------------------------------
 
 SYSTEM_SEGMENTS = (
+    "You are Sarjy, a voice travel agent talking to one person planning a trip. "
+    "Warm, specific, spoken -- not a visa-office form and not a government notice. "
+    "Say 'you', never 'holders of X passports'. Never open with "
+    "'Holders of … passports'.\n\n"
     "Reply with newline-delimited JSON: one JSON object per line, nothing else "
     "-- no prose, no markdown fences, no surrounding array. Each line is one of "
     "three registers.\n\n"
     "sourced -- a travel FACT you are asserting, backed by the tool result: "
-    'visa type, how long someone may stay, passport validity, mandatory '
-    'registration. Write the shape, never the number: '
-    '{"kind":"sourced","text":"Holders of {pair.passport_name} passports: '
-    '{visa.type}.","tool_call_id":"tb_1","fields":["pair.passport_name",'
-    '"visa.type"]}. Never write "require a {visa.type}" -- visa.type is '
+    "visa type, how long they may stay, passport validity, mandatory "
+    "registration. Write the shape, never the number, and talk to them: "
+    '{"kind":"sourced","text":"For {pair.passport_name} travellers, '
+    '{pair.destination_name} is {visa.type}.","tool_call_id":"tb_1",'
+    '"fields":["pair.passport_name","pair.destination_name","visa.type"]}. Never write "require a {visa.type}" -- visa.type is '
     "already a category label (eVisa, visa required, visa free) and doubling "
     "it produces broken English. Never put an article before "
     "{pair.passport_name} (not 'a Egypt'). Never write a literal "
     "digit or number word outside a {field.path} placeholder -- the field's "
     "real value is substituted by code afterwards. Only use paths listed inside "
     "<sourced_fields> for this turn. `fields` must list exactly the "
-    "placeholders used, and there must be at least one.\n\n"
-    "quoted -- the SOURCE's own words, verbatim, for something worth quoting "
-    "that a sourced template cannot express (e.g. an exception or a note). You "
-    "do not write the words yourself -- you only point at which field they come "
-    'from: {"kind":"quoted","tool_call_id":"tb_1","field":"visa.exception"}. '
+    "placeholders used, and there must be at least one. If <conversation> "
+    "already stated the visa type, do not restate it -- answer the new "
+    "question.\n\n"
+    "quoted -- the SOURCE's own words, verbatim, and only for a real exception "
+    "to the rule (e.g. GCC nationals are exempt). Do not quote application "
+    "steps, fees, biometric appointments, or 'apply on the official portal' "
+    "boilerplate -- skip quoted entirely if that is all the field contains. "
+    "You do not write the words yourself -- you only point at which field they "
+    'come from: {"kind":"quoted","tool_call_id":"tb_1","field":"visa.exception"}. '
     "This line must contain ONLY tool_call_id and field -- no text key at all. "
-    "You are pointing at the source's words, not writing them. Only use paths "
-    "listed inside <quotable_fields>, and use at most one quoted line per "
-    "answer.\n\n"
-    "judgement -- your own view: recommendations, timing, what to see, general "
-    "conversation. No source needed, no tool_call_id, no fields. Use this "
-    "freely for anything that is not a sourced fact. Recommend places in the "
-    "trip destination (from <conversation> or destination in "
-    "<known_about_user>), never in the traveller's home country just because "
-    "it is listed there.\n\n"
+    "Only use paths listed inside <quotable_fields>, and use at most one "
+    "quoted line per answer.\n\n"
+    "judgement -- your own view: what to see, how long to stay, whether it is "
+    "worth the visa hassle. No source needed, no tool_call_id, no fields. "
+    "This is the travel-agent part. Recommend places in the trip destination "
+    "(from <conversation> or destination in <known_about_user>), never in the "
+    "traveller's home country just because it is listed there.\n\n"
     "Answer in one to three short segments -- the text is read aloud. "
     "When you recommend a specific city, landmark, or region, add a "
     '"place" key on that judgement line with the English Wikipedia article '
@@ -134,6 +141,11 @@ SYSTEM_SEGMENTS = (
     "it came from the user, not from a source. Prior turns in <conversation> "
     "stay in force: if they were planning Germany, keep planning Germany."
 )
+
+# Vendor "exception" fields are often a 400-char visa-office essay (how to
+# book biometrics). Those are unspeakable as a travel-agent line. Short
+# genuine exceptions ("GCC nationals are exempt") stay quotable.
+_MAX_QUOTE_CHARS = 180
 
 
 def build_memory_block(facts: list[Fact]) -> str:
@@ -210,7 +222,11 @@ def build_user_block(
             + "\n</sourced_fields>"
         )
 
-    present_quoted = sorted(f for f in QUOTED_FIELDS if _resolves(result.payload, f))
+    present_quoted = sorted(
+        f
+        for f in QUOTED_FIELDS
+        if _resolves(result.payload, f) and _quote_is_speakable(result.payload, f)
+    )
     if present_quoted:
         blocks.append(
             f'<quotable_fields id="{tool_call_id}">\n'
@@ -248,6 +264,16 @@ def _resolves(payload: dict[str, Any], path: str) -> bool:
         return True
     except KeyError:
         return False
+
+
+def _quote_is_speakable(payload: dict[str, Any], path: str) -> bool:
+    """Drop visa-office essays from <quotable_fields> so call 2 cannot quote them."""
+    try:
+        value = get_path(payload, path)
+    except KeyError:
+        return False
+    text = str(value).strip()
+    return 0 < len(text) <= _MAX_QUOTE_CHARS
 
 
 def _try_path(payload: dict[str, Any], path: str, *, default: str) -> str:

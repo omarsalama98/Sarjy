@@ -6,7 +6,7 @@ If a row breaks live, say the sentence in the last column and keep going. A reco
 
 | # | Say / do | Should happen | Proves | If this breaks, say |
 |---|---|---|---|---|
-| 0 | Open the URL cold. **Tap to talk** (or hold Space), allow the mic | Orb reads READY WHEN YOU ARE → HEARING YOU. Tap again or release Space to send. The button stays; it is how you talk and how you interrupt | #4, #1 | "Mic permission is in the address bar — Retry is the recovery." |
+| 0 | Open the URL cold. **Tap to talk**, allow the mic | Orb reads READY WHEN YOU ARE → HEARING YOU. Tap again to send. The button stays; it is how you talk and how you interrupt | #4, #1 | "Mic permission is in the address bar — Retry is the recovery." |
 | 1 | Type name + PIN in **The trip** rail, **Sign in** | Rail reads *Signed in as …* without scrolling on desktop | #2 setup | "Typed sign-in is the reliable path; voice sign-in exists as a fallback." |
 | 2 | *"I'm travelling on a Saudi passport and my favourite colour is green."* | Rail gains two facts, each with the **verbatim sentence that taught it** and a timestamp | #2, Invariant 4 | "If the colour didn't land, the extract call is post-reply — ask the colour question after the next turn." |
 | 3 | *"Do I need a visa for Japan? What should I see?"* | Spoken answer · ivory fact card with the same values as the spoken sourced clauses · a place strip · the **Now** pane holds this turn; **The trip** rail shows the pair · quota chip may decrement | #1, #3, #5, the travel-agent surface | "If photos are missing, the note still shows — couldn't source a photo is a visible reject, not a hang." |

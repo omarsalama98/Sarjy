@@ -35,7 +35,7 @@ The fiddliest part of this project and the place voice demos usually break. It i
 
 ## VAD — deleted
 
-Endpointing is user-controlled (tap or hold-to-talk). Silence no longer ends a turn.
+Endpointing is user-controlled (tap to start, tap to send). Silence no longer ends a turn.
 Barge-in is the same tap, not an acoustic guess.
 
 ## State must be visible and instant

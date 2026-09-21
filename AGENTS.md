@@ -38,11 +38,11 @@ The brief says they see 5–10 voice take-homes a week. It names the bar explici
 
 **New agent pickup:** `docs/HANDOFF.md` — current block, what is already in git, which files to open for a given task. Prefer it over this Status section.
 
-**Blocks 0, 1, 2, 3, A, B done in git.** Live URL: `https://vitas7777v--sarjy-fastapi-app.us-east.modal.run` (requirement #4). **Block C (Demoable) is in progress** — fact card + stylesheet landed; README / demo script / Loom / Arabic wiring / human gates are open. Deadline today 19:00.
+**Blocks 0, 1, 2, 3, A, B, and C code are in git** (Arabic parked, not wired). HEAD `7bf4fc7`. Live URL: `https://vitas7777v--sarjy-fastapi-app.us-east.modal.run` (requirement #4) — **the bundle on that URL is stale** (VAD-era `index-CvV_xQIZ.js`, no CSS). Remaining work is Omar ops, not product scope: `make deploy`, quota unlock, human `/demo-check`, Loom, GitHub origin + Ashby. Runbook: `docs/outbound/2026-09-21-submit-now.md`. Deadline today 19:00.
 
 Block plans: `docs/plans/blocks/`. Chain: `docs/plans/MASTER-PLAN.md`.
 
-`docs/plans/PRD.md` (what/why) and `docs/plans/TDD.md` (how) are the design of record — do **not** re-read both to pick up a slice; the HANDOFF routes you. `docs/decisions/deep-dive-track.md` (gitignored) carries discarded deep-dive options.
+`docs/plans/PRD.md` (what/why) and `docs/plans/TDD.md` (how) are the design of record for *intent* — they still describe the cut opener. Do **not** re-read both to pick up a slice; the HANDOFF routes you. `docs/decisions/deep-dive-track.md` (gitignored) carries discarded deep-dive options.
 
 **Sarjy is a voice travel assistant that never states a travel fact it cannot source.** Deep dive: **guardrails and reliability** — grounded tool use. Priority ladder: `docs/plans/PRD.md` §Priority ladder.
 
@@ -55,34 +55,36 @@ Full reasoning and evidence: `docs/plans/tdd-review.md`. Provider facts verified
 | Product | Voice travel assistant for Gulf travellers; visa requirements are the anchor |
 | Deep dive | Guardrails & reliability — cite-or-refuse, visible fallback, adversarial eval |
 | Voice architecture | **Cascaded** STT→LLM→TTS — the deep dive needs a text checkpoint to gate |
-| Turn shape | **Sarjy speaks before the lookup returns.** `update()` + tool call in parallel; the lookup runs under its own voice |
+| Turn shape | **No opener.** Call 1 `decide()` ± lookup → fact card → call 2 NDJSON → gate → **one** TTS of the kept answer. Checking sources is a visible wait, not a spoken hedge |
 | Backend | Python · FastAPI · WebSocket · `async` handler |
-| Frontend | TypeScript · React, served by the same ASGI app (no CORS) |
-| STT | Groq `whisper-large-v3-turbo` (**batch** — client-side VAD endpoints the turn) |
+| Frontend | TypeScript · React, served by the same ASGI app (no CORS). Trip dossier + fact card + orb |
+| STT | Groq `whisper-large-v3-turbo` (**batch** — tap or hold-Space endpoints the turn; Silero VAD deleted) |
 | LLM | Gemini `gemini-3.5-flash-lite`, `thinking_level: "minimal"`, `store=False` |
 | TTS (English) | **Deepgram `aura-2`** — WebSocket streaming, raw PCM s16le @ 24 kHz. Gemini TTS was dropped: measured **10 requests/day** free-tier cap and 1.1–1.4 s TTFB |
-| TTS (Arabic, P2) | **Groq `canopylabs/orpheus-arabic-saudi`** — ⚠️ 200-char cap per request |
-| TTS shape | **Two requests per turn**, not per segment — opener, then the whole gated answer |
+| TTS (Arabic) | **Parked.** Adapter `providers/groq_tts.py` + Orpheus probe in tree; `get_tts()` is Deepgram only. Gate `NUMBER_WORDS` is English-only |
+| TTS shape | **One request per turn** — the gated answer. (The two-request opener design was cut.) |
 | Structured output | **NDJSON** (`text/plain` + Pydantic per line) — `response_format` cannot stream discrete objects |
-| Gate | Value-level substitution + **digit rule** + **placeholder rule**. Opener gated separately |
-| Memory | **`modal.Dict`**; two tiers (anonymous session-only / signed-in persisted); voice-first identity |
+| Gate | Value-level substitution + **digit rule** + **placeholder rule** + `wrong_pair`. Binds values, not polarity. `judgement` ungated |
+| Memory | **`modal.Dict`**; two tiers (anonymous session-only / signed-in persisted); typed name+PIN (voice sign-in exists as fallback) |
 | Deploy | Modal, `us-east`, `@modal.concurrent(max_inputs=16)` — **one WebSocket is one input**, and the server does not notice a dead one for ~120 s, so each client holds ~2 slots |
 | WebSocket lifetime | Modal kills it well under a conversation's length. **Transparent reconnect between turns**, never mid-turn — shipped in Block 1 |
-| External API | Travel Buddy visa requirements (**120 requests total** — quota-aware client) |
+| External API | Travel Buddy visa requirements (**120 requests total** — quota-aware client). Wikimedia entity lookup for place photos (no key) |
 | Fallback data | passport-index maintained fork (`visualpharm/visa-free-dataset`), vendored |
-| Eval | 3 layers: gate · assertion tests · offline LLM judge. 12 hand-labelled cases, judge agreement reported |
-| Excluded | Flight search · Aladhan prayer times · GOV.UK · a hand-built RAG tips corpus |
+| Eval | Gate unit tests + 8 hand-scored cases (7 pass; `injection-2` designed miss) + 5 conversation cases. **No LLM judge** |
+| Excluded | Flight search · Aladhan prayer times · GOV.UK · a hand-built RAG tips corpus · live Arabic mode |
 | Repo hygiene | `docs/decisions/` gitignored; research docs ship |
 
 ## Still open
 
 | Decision | Blocks |
 |---|---|
-| RapidAPI dashboard's real spent-count, and confirming `RAPIDAPI_KEY` is configured | **Block A's own live-spend tasks (12/16/19)** — the implementer could not verify either without dashboard access, so 0 of the 9 budgeted requests beyond the 2 already-committed bodies were spent. `scripts/fetch_reference.py` is built and ready; `QUOTA_SPENT_SEED` needs Omar's real number before it runs |
-| Deployed live-voice-turn walkthrough (verification table in `docs/plans/blocks/A-grounded-answers.md`) | Needs a human at a microphone and a browser against the deployed URL — the gate's own human checkpoint |
-| Reviewer's GitHub username | Submission — email sent 2026-09-18, awaiting reply |
+| Live bundle vs HEAD | Confirmed 2026-09-21: URL serves `index-CvV_xQIZ.js` (no CSS). Omar `make deploy`. Runbook: `docs/outbound/2026-09-21-submit-now.md` |
+| RapidAPI dashboard's real spent-count, `RAPIDAPI_KEY` on Modal, unlocking `sarjy-quota` | Ledger was observed at `spent=120`; true committed spend is 3. Until unlock, every visa answer is map/CSV. Omar-only: `docs/outbound/2026-09-21-quota-unlock.md` |
+| Deployed live-voice-turn + reload-memory + `?gate_demo=1` | Human `/demo-check` against the **post-deploy** URL. Not run |
+| Git remote / reviewer GitHub username / Ashby | This clone has **no `git remote`**. Email asking for the reviewer's handle drafted 2026-09-18. Requirement #7 until origin exists, is pushed, and (if private) access is granted |
+| Loom shared before the meeting | Outline written (`docs/LOOM-OUTLINE.md`); recording is Omar-only |
 
-**Closed by Block 0** (`docs/measurements/day1-spikes.md`): the 150 s WebSocket question · TTS time-to-first-byte · parallel function calling on flash-lite (3/3, so the opener stands) · `routing_region` (us-east).
+**Closed by Block 0** (`docs/measurements/day1-spikes.md`): the 150 s WebSocket question · TTS time-to-first-byte · parallel function calling on flash-lite (3/3 — the *opener design* later cut on product grounds, not because parallel FC failed) · `routing_region` (us-east).
 
 **Closed by Block A:** the colour legend (D8 — the vendor's own published legend is a citable statement, 0 additional requests needed) · Deepgram account/key · the S5 browser-audio spike.
 

@@ -45,10 +45,10 @@ export function TripDossier({
             {latestCard.source_name ?? "no live source"}
             {latestCard.layer && <> · {latestCard.layer}</>}
           </p>
-          {latestCard.embassy_url && (
+          {latestCard.embassy_url && !latestCard.covered && (
             <p>
               <a className="embassy-link" href={latestCard.embassy_url} target="_blank" rel="noreferrer">
-                Embassy page
+                {latestCard.destination_name} embassy listing
               </a>
             </p>
           )}
@@ -69,7 +69,7 @@ export function TripDossier({
       )}
 
       <h3>What she remembers</h3>
-      {!memory && <p className="hint">Waiting for the session…</p>}
+      {!memory && <p className="hint">Connecting…</p>}
       {memory && (
         <>
           <p className="memory-tier">

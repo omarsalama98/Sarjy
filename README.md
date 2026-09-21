@@ -63,7 +63,7 @@ mic → tap/hold to send → Groq Whisper
 | STT | Groq `whisper-large-v3-turbo` (batch; the user taps or releases to end the turn) |
 | LLM | Gemini `gemini-3.5-flash-lite`, `thinking_level: "minimal"` |
 | TTS | Deepgram `aura-2` (streaming PCM s16le @ 24 kHz) |
-| Mic | Toggle or hold-to-talk. Interrupting her is the same tap. No VAD. |
+| Mic | Tap to talk, tap to send. Interrupting her is the same tap. No VAD. |
 | Deploy | Modal, `us-east` |
 
 Every provider sits behind an interface we own — provider choice is configuration, not code. No provider API key ever reaches the browser.
@@ -105,7 +105,7 @@ Checks: `make typecheck && make lint && make test` in `backend`, `npm run typech
 
 ## Docs
 
-[`docs/DEMO-SCRIPT.md`](docs/DEMO-SCRIPT.md) — ordered utterances · [`docs/LOOM-OUTLINE.md`](docs/LOOM-OUTLINE.md) — 5-minute shot list · [`docs/plans/PRD.md`](docs/plans/PRD.md) — what and why · [`docs/plans/TDD.md`](docs/plans/TDD.md) — how.
+[`docs/DEMO-SCRIPT.md`](docs/DEMO-SCRIPT.md) — ordered utterances · [`docs/LOOM-OUTLINE.md`](docs/LOOM-OUTLINE.md) — 5-minute shot list · [`docs/WALKTHROUGH.md`](docs/WALKTHROUGH.md) — files to open in the meeting · [`docs/plans/PRD.md`](docs/plans/PRD.md) — what and why · [`docs/plans/TDD.md`](docs/plans/TDD.md) — how.
 
 ---
 
