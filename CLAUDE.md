@@ -6,11 +6,13 @@ Supplements `AGENTS.md` — imported above at session start — with behavior th
 
 The assignment brief itself is `Building Sarjy.md`. Read it before any substantive work; it is short and it is the contract.
 
+**Where we are:** `docs/HANDOFF.md` — current block, landmines, and a task→files table. Open it before the PRD/TDD. Then open only the files that table names.
+
 ## Before non-trivial work
 
 For anything touching multiple files, making an architectural decision, or taking more than a couple of edits:
 
-1. **Read the plan.** `docs/plans/PRD.md` (what/why) and `docs/plans/TDD.md` (how) are the plan of record. If the work isn't in them, say so before building it — scope drift is the main risk left.
+1. **Read `docs/HANDOFF.md`**, then **the current block plan** (`docs/plans/blocks/C-demoable.md` until C's gate is met). `docs/plans/PRD.md` / `TDD.md` are the design of record, not the pickup path — do not re-read them for a slice the HANDOFF already routes. If the work isn't in the block plan, say so before building it.
 2. **Check `.claude/skills/`** and invoke the matching skill (routing table below). Skills carry the deepest task-specific guidance.
 3. **Rules load themselves.** `.claude/rules/` is path-scoped — domain rules enter context automatically when you touch matching files. Only `workflow.md` is always-on. Don't re-read rules manually unless you're working from a description without touching files yet.
 4. **Enter plan mode** for 3+ steps or architectural decisions, and follow `.claude/rules/workflow.md`.

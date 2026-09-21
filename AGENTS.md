@@ -36,14 +36,15 @@ The brief says they see 5–10 voice take-homes a week. It names the bar explici
 
 ## Status
 
-**Blocks 0 and 1 done. Deployed and live: `https://vitas7777v--sarjy-fastapi-app.us-east.modal.run` — requirement #4 is landed.**
+**New agent pickup:** `docs/HANDOFF.md` — current block, what is already in git, which files to open for a given task. Prefer it over this Status section.
 
-Block plans live in `docs/plans/blocks/`; `docs/plans/MASTER-PLAN.md` holds the block list, gates and dependency chain. **Block 2 (the voice loop) is next and is blocked on a Deepgram key and the S5 browser spike.**
+**Blocks 0, 1, 2, 3, A, B done in git.** Live URL: `https://vitas7777v--sarjy-fastapi-app.us-east.modal.run` (requirement #4). **Block C (Demoable) is in progress** — fact card + stylesheet landed; README / demo script / Loom / Arabic wiring / human gates are open. Deadline today 19:00.
 
-`docs/plans/PRD.md` (what/why) and `docs/plans/TDD.md` (how) are the plan of record — read both before any implementation.
-`docs/decisions/deep-dive-track.md` (gitignored) carries the reasoning and the discarded options.
+Block plans: `docs/plans/blocks/`. Chain: `docs/plans/MASTER-PLAN.md`.
 
-**Sarjy is a voice travel assistant that never states a travel fact it cannot source.** Deep dive: **guardrails and reliability** — grounded tool use. Priority ladder: see `docs/plans/PRD.md` §Priority ladder — single source of truth, do not restate it here.
+`docs/plans/PRD.md` (what/why) and `docs/plans/TDD.md` (how) are the design of record — do **not** re-read both to pick up a slice; the HANDOFF routes you. `docs/decisions/deep-dive-track.md` (gitignored) carries discarded deep-dive options.
+
+**Sarjy is a voice travel assistant that never states a travel fact it cannot source.** Deep dive: **guardrails and reliability** — grounded tool use. Priority ladder: `docs/plans/PRD.md` §Priority ladder.
 
 ## Decided
 
@@ -151,6 +152,7 @@ Drafts of outbound messages get written here and sent by Omar. Agents never send
 
 | Need | Read |
 |---|---|
+| Pickup / current block / which files | **`docs/HANDOFF.md`** |
 | The assignment itself | `Building Sarjy.md` (authoritative) |
 | Provider/latency/deployment landscape, Sept 2026 | `voice-stack-research.md` — sourced and dated; **re-verify before relying on a number** |
 | Process: plan → spec → build → measure → document | `.claude/rules/workflow.md` (always loaded) |
