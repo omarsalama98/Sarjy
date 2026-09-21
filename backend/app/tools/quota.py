@@ -105,6 +105,7 @@ class QuotaLedger:
         self._reserve = reserve
         if store is not None:
             self._store: _Store = store
+            self._warn_if_dead()
             return
         try:
             self._store = _ModalDictStore(dict_name, seed_spent)
@@ -116,6 +117,27 @@ class QuotaLedger:
                 exc_info=True,
             )
             self._store = _InProcessStore(seed_spent)
+        self._warn_if_dead()
+
+    def _warn_if_dead(self) -> None:
+        """A seed-plus-reserve that leaves remaining=0 at construction
+        means live lookups can never fire -- every visa answer silently
+        degrades to map/CSV. That is how spent=120 (the pessimistic
+        default) locked the demo onto fallback. Log it as a warning so a
+        container start is enough to notice, rather than a missing live
+        answer three turns into a demo."""
+        status = self.status()
+        if status.remaining > 0:
+            return
+        logger.warning(
+            "quota_ledger DEAD remaining=0 spent=%d total=%d reserve=%d -- "
+            "live Travel Buddy will never be called. If spent was seeded at "
+            "the full budget by mistake, unlock with "
+            "modal.Dict.from_name('sarjy-quota').put('spent', <true count>).",
+            status.spent,
+            status.total,
+            status.reserve,
+        )
 
     def status(self) -> QuotaStatus:
         spent = self._store.get_spent()

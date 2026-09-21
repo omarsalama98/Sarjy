@@ -7,47 +7,38 @@
  * Conflating them is the classic mistake -- a reconnect would then look
  * like the assistant started thinking.
  *
- * Conversation state has two owners, split by who can act first
- * (docs/plans/blocks/02-voice-loop.md, "Who owns which conversation
- * state"): `listening` and `speaking` are set HERE, directly, the instant
- * the VAD or the playback queue notices them -- no round trip. `thinking`
- * and `idle` arrive from the server's own `state` message. Both write to
- * the same `conversationState` value; there is no race between them
- * because the two sides never claim the same value at the same phase of a
- * turn.
+ * Conversation state has two owners, split by who can act first:
+ * `listening` and `speaking` are set HERE, directly, the instant
+ * the user taps the mic or the playback queue schedules a chunk --
+ * no round trip. `thinking` and `idle` arrive from the server's own
+ * `state` message.
  *
  * Display state (transcript, reply, segments, fact card, places) lives in
  * a growing `turns` array. Everything on a useRef stays on a useRef --
  * currentTurnIdRef, turnTimingRef, turnInFlightRef, playbackQueueRef,
- * detectorRef and the barge window are untouched. Timing legs and barge
+ * recorderRef and the barge window are untouched. Timing legs and barge
  * are the two things a state refactor would silently break, and pytest
  * cannot catch either.
  */
 
-import type { FormEvent } from "react";
+import type { FormEvent, PointerEvent } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { clearSharedMicStream, getSharedMicStream, TARGET_SAMPLE_RATE } from "./audio/capture";
 import { MicAnalyser, pcm16Rms } from "./audio/level";
-import { PlaybackQueue } from "./audio/playback";
-import { createTurnDetector, type EndpointTiming, type TurnDetector } from "./audio/turn";
+import { PlaybackQueue, type AudioHealth } from "./audio/playback";
+import { MicRecorder } from "./audio/recorder";
 import type { ConnectionCallbacks, ConnectionState } from "./net/connection";
 import { Connection } from "./net/connection";
-import type {
-  ConversationState,
-  FactCardMessage,
-  MemoryMessage,
-  PlaceCard,
-  SegmentWire,
-} from "./protocol";
-import { FactCard } from "./ui/FactCard";
+import type { ConversationState, MemoryMessage, PlaceCard } from "./protocol";
+import { fmt, type Turn } from "./turns";
+import { NowPane } from "./ui/NowPane";
 import { Orb, type OrbRing } from "./ui/Orb";
-import { PlaceStrip } from "./ui/PlaceStrip";
+import { TrailRow } from "./ui/TrailRow";
+import { TripDossier } from "./ui/TripDossier";
 
 const WS_URL = `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}/ws${window.location.search}`;
 
 const PLAYBACK_SAMPLE_RATE = 24_000; // Deepgram's native output rate -- no resampling on this hot path.
-
-const MAX_BINARY_CHUNK_BYTES = 32 * 1024;
 
 const BARGE_IGNORE_WINDOW_MS = 300;
 
@@ -59,19 +50,6 @@ type VoiceIssueKind = "unavailable" | "mic-blocked" | "mic-missing";
 interface VoiceIssue {
   kind: VoiceIssueKind;
   message: string;
-}
-
-interface Turn {
-  id: string;
-  at: number;
-  transcript: string | null;
-  reply: string | null;
-  segments: SegmentWire[];
-  factCard: FactCardMessage | null;
-  places: PlaceCard[] | null;
-  hedged: boolean;
-  failed: { stage: string; message: string } | null;
-  timings: { firstAudioMs: number | null; endpointMs: number; redemptionMs: number } | null;
 }
 
 const CONNECTION_LABEL: Record<ConnectionState, string> = {
@@ -88,12 +66,24 @@ function createCaptureContext(): AudioContext {
     const ctx = new AudioContext({ sampleRate: TARGET_SAMPLE_RATE });
     if (ctx.sampleRate !== TARGET_SAMPLE_RATE) {
       console.warn(
-        `sarjy: capture context runs at ${ctx.sampleRate}Hz, not the requested ${TARGET_SAMPLE_RATE}Hz -- vad-web's resampler handles this`,
+        `sarjy: capture context runs at ${ctx.sampleRate}Hz, not the requested ${TARGET_SAMPLE_RATE}Hz -- the recorder downsamples`,
       );
     }
     return ctx;
   } catch (err) {
     console.warn("sarjy: 16kHz AudioContext was refused, falling back to the device rate", err);
+    return new AudioContext();
+  }
+}
+
+function createPlaybackContext(): AudioContext {
+  // Prefer Deepgram's 24 kHz so there is no resampling on the hot path.
+  // A device-rate fallback is what recovers from an output-device change
+  // that left a 24 kHz context running-but-silent (the silent-Sarjy bug).
+  try {
+    return new AudioContext({ sampleRate: PLAYBACK_SAMPLE_RATE });
+  } catch (err) {
+    console.warn("sarjy: 24kHz AudioContext was refused, falling back to the device rate", err);
     return new AudioContext();
   }
 }
@@ -116,20 +106,12 @@ function getOutputLatencyMs(ctx: AudioContext | null): number | null {
   return Math.round(ctx.outputLatency * 1000);
 }
 
-function fmt(ms: number | null): string {
-  return ms === null ? "—" : `${(ms / 1000).toFixed(2)} s`;
-}
-
-function registerLabel(kind: SegmentWire["kind"]): string {
-  return kind === "judgement" ? "view" : kind;
-}
-
 function stateCopy(
   started: boolean,
-  assetsReady: boolean,
   voiceIssue: VoiceIssue | null,
   conversationState: ConversationState,
   interrupted: boolean,
+  recording: boolean,
 ): { ring: OrbRing; headline: string; sub: string } {
   if (voiceIssue?.kind === "mic-blocked") {
     return { ring: "ring-error", headline: "MICROPHONE BLOCKED", sub: voiceIssue.message };
@@ -140,25 +122,25 @@ function stateCopy(
   if (voiceIssue?.kind === "unavailable") {
     return { ring: "ring-error", headline: "VOICE UNAVAILABLE", sub: voiceIssue.message };
   }
-  if (!started && !assetsReady) {
-    return { ring: "ring-loading", headline: "WARMING UP", sub: "Loading voice detection…" };
-  }
   if (!started) {
-    return { ring: "ring-idle", headline: "READY WHEN YOU ARE", sub: "Press start, then just talk." };
+    return { ring: "ring-idle", headline: "READY WHEN YOU ARE", sub: "Tap the mic or hold Space to talk." };
+  }
+  if (recording) {
+    return { ring: "ring-listening", headline: "HEARING YOU", sub: "Tap again or release Space to send." };
   }
   const table: Record<ConversationState, { ring: OrbRing; headline: string; sub: string }> = {
-    idle: { ring: "ring-idle", headline: "READY", sub: "Speak whenever you like." },
+    idle: { ring: "ring-idle", headline: "READY", sub: "Tap the mic or hold Space." },
     listening: {
       ring: "ring-listening",
       headline: "HEARING YOU",
-      sub: "Keep going — I'll answer when you stop.",
+      sub: "Tap again or release Space to send.",
     },
     thinking: {
       ring: "ring-thinking",
       headline: "CHECKING SOURCES",
       sub: "Looking for a source for this.",
     },
-    speaking: { ring: "ring-speaking", headline: "SPEAKING", sub: "Interrupt any time." },
+    speaking: { ring: "ring-speaking", headline: "SPEAKING", sub: "Tap the mic to interrupt." },
   };
   const row = table[conversationState];
   if (interrupted) {
@@ -177,7 +159,7 @@ export function App() {
 
   const [started, setStarted] = useState(false);
   const [starting, setStarting] = useState(false);
-  const [assetsReady, setAssetsReady] = useState(false);
+  const [recording, setRecording] = useState(false);
   const [voiceIssue, setVoiceIssue] = useState<VoiceIssue | null>(null);
   const [interrupted, setInterrupted] = useState(false);
   const [quota, setQuota] = useState<{
@@ -190,13 +172,18 @@ export function App() {
   const [signInName, setSignInName] = useState("");
   const [signInPin, setSignInPin] = useState("");
   const [turns, setTurns] = useState<Turn[]>([]);
+  const [audioHealth, setAudioHealth] = useState<AudioHealth>("ok");
+  const [lang, setLang] = useState<"en" | "ar">("en");
 
   const connectionRef = useRef<Connection | null>(null);
   const captureCtxRef = useRef<AudioContext | null>(null);
   const playbackCtxRef = useRef<AudioContext | null>(null);
   const playbackQueueRef = useRef<PlaybackQueue | null>(null);
-  const detectorRef = useRef<TurnDetector | null>(null);
+  const recorderRef = useRef<MicRecorder | null>(null);
   const currentTurnIdRef = useRef<string | null>(null);
+  const outgoingTurnIdRef = useRef<string | null>(null);
+  const spaceDownAtRef = useRef<number | null>(null);
+  const startedThisGestureRef = useRef(false);
   const currentSampleRateRef = useRef(PLAYBACK_SAMPLE_RATE);
   const speakingStartedAtRef = useRef(0);
   const turnCounterRef = useRef(0);
@@ -211,6 +198,9 @@ export function App() {
   const micAnalyserRef = useRef<MicAnalyser | null>(null);
   const speakLevelRef = useRef(0);
   const dossierEndRef = useRef<HTMLDivElement | null>(null);
+  const recreatePlaybackRef = useRef<() => Promise<boolean>>(async () => false);
+  const langRef = useRef<"en" | "ar">("en");
+  langRef.current = lang;
 
   const patchTurn = useCallback((turnId: string, patch: Partial<Turn>): void => {
     setTurns((ts) => ts.map((t) => (t.id === turnId ? { ...t, ...patch } : t)));
@@ -240,18 +230,34 @@ export function App() {
     );
   }, []);
 
-  const handleUtterance = useCallback(async (pcm: ArrayBuffer, endpoint: EndpointTiming): Promise<void> => {
+  const stopRecordingRef = useRef<() => Promise<void>>(async () => undefined);
+
+  const handleBarge = useCallback((): void => {
+    const turnId = currentTurnIdRef.current;
+    if (!turnId) return;
+    if (performance.now() - speakingStartedAtRef.current < BARGE_IGNORE_WINDOW_MS) return;
+
+    turnInFlightRef.current = false;
+    playbackQueueRef.current?.stop();
+    currentTurnIdRef.current = null;
+    speakLevelRef.current = 0;
+    setInterrupted(true);
+    setConversationState("listening");
+    connectionRef.current?.bargeTurn(turnId);
+  }, []);
+
+  const beginOutgoingTurn = useCallback(async (): Promise<string | null> => {
     const connection = connectionRef.current;
-    if (!connection) return;
-
+    if (!connection) return null;
     await connection.ensureFresh();
-
     if (!connection.isReady()) {
       setConversationState("idle");
       setNotice("Connection is down — wait for it to reconnect, then try again.");
-      return;
+      return null;
     }
-
+    if (turnInFlightRef.current) {
+      handleBarge();
+    }
     turnCounterRef.current += 1;
     const turnId = `t-${turnCounterRef.current}`;
     setInterrupted(false);
@@ -270,39 +276,76 @@ export function App() {
         timings: null,
       },
     ]);
-
     turnTimingRef.current = {
       turnId,
-      acousticEndAtMs: endpoint.acousticEndAtMs,
-      endpointMs: endpoint.endpointMs,
-      redemptionMs: endpoint.redemptionMs,
+      acousticEndAtMs: performance.now(),
+      endpointMs: 0,
+      redemptionMs: 0,
       sent: false,
     };
+    outgoingTurnIdRef.current = turnId;
+    currentTurnIdRef.current = turnId;
+    connection.startTurn(turnId, langRef.current);
+    return turnId;
+  }, [handleBarge]);
+
+  const startRecording = useCallback(async (): Promise<void> => {
+    const capture = captureCtxRef.current;
+    if (!capture || recorderRef.current?.isRecording) return;
+    const turnId = await beginOutgoingTurn();
+    if (!turnId) return;
+    const recorder = new MicRecorder(capture, {
+      onChunk: (pcm) => {
+        connectionRef.current?.sendBinary(pcm);
+      },
+      onAutoStop: () => {
+        void stopRecordingRef.current();
+      },
+    });
+    recorderRef.current = recorder;
+    try {
+      await recorder.start();
+    } catch (err) {
+      setVoiceIssue(classifyVoiceError(err));
+      recorderRef.current = null;
+      outgoingTurnIdRef.current = null;
+      return;
+    }
+    setRecording(true);
+    setConversationState("listening");
+  }, [beginOutgoingTurn]);
+
+  const stopRecording = useCallback(async (): Promise<void> => {
+    const recorder = recorderRef.current;
+    const turnId = outgoingTurnIdRef.current;
+    if (!recorder || !turnId) {
+      setRecording(false);
+      return;
+    }
+    const { samples, elapsedMs } = recorder.stop();
+    recorderRef.current = null;
+    outgoingTurnIdRef.current = null;
+    setRecording(false);
+
+    const timing = turnTimingRef.current;
+    if (timing && timing.turnId === turnId) {
+      timing.endpointMs = elapsedMs;
+      timing.acousticEndAtMs = performance.now();
+    }
+
+    if (samples < TARGET_SAMPLE_RATE / 10) {
+      connectionRef.current?.endTurn(turnId, samples);
+      turnInFlightRef.current = false;
+      setConversationState("idle");
+      setNotice("That was too short — hold a little longer.");
+      return;
+    }
 
     turnInFlightRef.current = true;
-    connection.startTurn(turnId);
-    const bytes = new Uint8Array(pcm);
-    for (let offset = 0; offset < bytes.length; offset += MAX_BINARY_CHUNK_BYTES) {
-      const end = Math.min(offset + MAX_BINARY_CHUNK_BYTES, bytes.length);
-      connection.sendBinary(bytes.slice(offset, end).buffer);
-    }
-    connection.endTurn(turnId, bytes.length / 2);
+    connectionRef.current?.endTurn(turnId, samples);
   }, []);
 
-  const handleBarge = useCallback((): void => {
-    const turnId = currentTurnIdRef.current;
-    if (!turnId) return;
-    if (performance.now() - speakingStartedAtRef.current < BARGE_IGNORE_WINDOW_MS) return;
-
-    turnInFlightRef.current = false;
-    playbackQueueRef.current?.stop();
-    detectorRef.current?.setSpeaking(false);
-    currentTurnIdRef.current = null;
-    speakLevelRef.current = 0;
-    setInterrupted(true);
-    setConversationState("listening");
-    connectionRef.current?.bargeTurn(turnId);
-  }, []);
+  stopRecordingRef.current = stopRecording;
 
   const handleConnectionState = useCallback((state: ConnectionState): void => {
     setConnectionState(state);
@@ -312,7 +355,6 @@ export function App() {
     turnInFlightRef.current = false;
     currentTurnIdRef.current = null;
     playbackQueueRef.current?.stop();
-    detectorRef.current?.setSpeaking(false);
     speakLevelRef.current = 0;
     setConversationState("idle");
     setNotice("Connection dropped mid-answer — ask again.");
@@ -335,6 +377,58 @@ export function App() {
     connectionRef.current?.forget(null);
   }, []);
 
+  const attachPlaybackHealth = useCallback((queue: PlaybackQueue): void => {
+    queue.setHealthListener(
+      (health) => {
+        setAudioHealth(health);
+        if (health === "blocked") {
+          setNotice("Audio is blocked — tap AUDIO to restore.");
+        } else if (health === "dead") {
+          setNotice("Audio output died — tap AUDIO to restore.");
+        }
+      },
+      () => {
+        void recreatePlaybackRef.current();
+      },
+    );
+  }, []);
+
+  const recreatePlayback = useCallback(async (): Promise<boolean> => {
+    const old = playbackCtxRef.current;
+    playbackQueueRef.current?.stop();
+    const next = createPlaybackContext();
+    try {
+      await next.resume();
+    } catch (err) {
+      console.warn("sarjy: playback recreate resume failed", err);
+    }
+    playbackCtxRef.current = next;
+    const queue = new PlaybackQueue(next);
+    playbackQueueRef.current = queue;
+    attachPlaybackHealth(queue);
+    if (old && old.state !== "closed") {
+      void old.close();
+    }
+    if (next.state !== "running") {
+      setAudioHealth("blocked");
+      return false;
+    }
+    setAudioHealth("ok");
+    setNotice("");
+    return true;
+  }, [attachPlaybackHealth]);
+
+  recreatePlaybackRef.current = recreatePlayback;
+
+  const restoreAudio = useCallback(async (): Promise<void> => {
+    const queue = playbackQueueRef.current;
+    if (queue && (await queue.ensureRunning())) {
+      setNotice("");
+      return;
+    }
+    await recreatePlayback();
+  }, [recreatePlayback]);
+
   const detachMicAnalyser = useCallback((): void => {
     micAnalyserRef.current?.disconnect();
     micAnalyserRef.current = null;
@@ -342,8 +436,9 @@ export function App() {
 
   const handleMicRevoked = useCallback((): void => {
     detachMicAnalyser();
-    void detectorRef.current?.destroy();
-    detectorRef.current = null;
+    void recorderRef.current?.destroy();
+    recorderRef.current = null;
+    setRecording(false);
     clearSharedMicStream();
     setStarted(false);
     setVoiceIssue({
@@ -370,19 +465,6 @@ export function App() {
     }
   }, [handleMicRevoked]);
 
-  const buildDetector = useCallback(async (): Promise<TurnDetector> => {
-    const capture = captureCtxRef.current;
-    if (!capture) throw new Error("Voice detection has nothing to attach to yet.");
-    return createTurnDetector(capture, {
-      onSpeechStart: () => setConversationState("listening"),
-      onUtterance: (pcm, _sampleRate, _durationMs, endpoint) => void handleUtterance(pcm, endpoint),
-      onMisfire: () => {
-        /* Backchannel ("mhm") -- deliberately no state change, no turn opened. */
-      },
-      onBargeDetected: handleBarge,
-    });
-  }, [handleUtterance, handleBarge]);
-
   const handleStart = useCallback(async (): Promise<void> => {
     const capture = captureCtxRef.current;
     const playback = playbackCtxRef.current;
@@ -393,44 +475,83 @@ export function App() {
     try {
       await capture.resume();
       await playback.resume();
-
-      if (!detectorRef.current) {
-        detectorRef.current = await buildDetector();
-      }
-      await detectorRef.current.start();
+      await playbackQueueRef.current?.ensureRunning();
       watchForMicRevocation();
       detachMicAnalyser();
       const stream = await getSharedMicStream();
       micAnalyserRef.current = new MicAnalyser(capture, stream);
       setStarted(true);
+      await startRecording();
     } catch (err) {
       setVoiceIssue(classifyVoiceError(err));
     } finally {
       setStarting(false);
     }
-  }, [starting, buildDetector, watchForMicRevocation, detachMicAnalyser]);
+  }, [starting, watchForMicRevocation, detachMicAnalyser, startRecording]);
+
+  const onMicPointerDown = useCallback(
+    (e: PointerEvent<HTMLButtonElement>): void => {
+      e.preventDefault();
+      spaceDownAtRef.current = performance.now();
+      startedThisGestureRef.current = false;
+      if (recorderRef.current?.isRecording) return;
+      startedThisGestureRef.current = true;
+      if (!started) {
+        void handleStart();
+        return;
+      }
+      void startRecording();
+    },
+    [started, handleStart, startRecording],
+  );
+
+  const onMicPointerUp = useCallback((): void => {
+    const down = spaceDownAtRef.current;
+    spaceDownAtRef.current = null;
+    const held = down === null ? 0 : performance.now() - down;
+    if (!recorderRef.current?.isRecording) return;
+    if (held > 250 || !startedThisGestureRef.current) {
+      void stopRecording();
+    }
+  }, [stopRecording]);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent): void => {
+      if (e.code !== "Space" || e.repeat) return;
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      e.preventDefault();
+      spaceDownAtRef.current = performance.now();
+      startedThisGestureRef.current = false;
+      if (recorderRef.current?.isRecording) return;
+      startedThisGestureRef.current = true;
+      if (!started) {
+        void handleStart();
+        return;
+      }
+      void startRecording();
+    };
+    const onKeyUp = (e: KeyboardEvent): void => {
+      if (e.code !== "Space") return;
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      e.preventDefault();
+      onMicPointerUp();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+    };
+  }, [started, handleStart, startRecording, onMicPointerUp]);
 
   useEffect(() => {
     const capture = createCaptureContext();
-    const playback = new AudioContext({ sampleRate: PLAYBACK_SAMPLE_RATE });
+    const playback = createPlaybackContext();
     captureCtxRef.current = capture;
     playbackCtxRef.current = playback;
-    playbackQueueRef.current = new PlaybackQueue(playback);
-
-    let cancelled = false;
-    buildDetector()
-      .then((detector) => {
-        if (cancelled) {
-          void detector.destroy();
-          return;
-        }
-        detectorRef.current = detector;
-        setAssetsReady(true);
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        setVoiceIssue(classifyVoiceError(err));
-      });
+    const queue = new PlaybackQueue(playback);
+    playbackQueueRef.current = queue;
+    attachPlaybackHealth(queue);
 
     const callbacks: ConnectionCallbacks = {
       onConnectionState: handleConnectionState,
@@ -455,9 +576,9 @@ export function App() {
       onAudioStart: (turnId, sampleRate) => {
         currentTurnIdRef.current = turnId;
         currentSampleRateRef.current = sampleRate;
+        void playbackQueueRef.current?.ensureRunning();
         playbackQueueRef.current?.beginTurn(() => {
           speakingStartedAtRef.current = performance.now();
-          detectorRef.current?.setSpeaking(true);
           setConversationState("speaking");
           const ref = turnTimingRef.current;
           const firstAudioMs = ref ? Math.round(performance.now() - ref.acousticEndAtMs) : null;
@@ -473,14 +594,12 @@ export function App() {
         if (turnId !== currentTurnIdRef.current) return;
         turnInFlightRef.current = false;
         currentTurnIdRef.current = null;
-        detectorRef.current?.setSpeaking(false);
         speakLevelRef.current = 0;
       },
       onTurnFailed: (turnId, stage, message) => {
         turnInFlightRef.current = false;
         if (turnId === currentTurnIdRef.current) {
           currentTurnIdRef.current = null;
-          detectorRef.current?.setSpeaking(false);
         }
         speakLevelRef.current = 0;
         patchTurn(turnId, { failed: { stage, message } });
@@ -492,16 +611,30 @@ export function App() {
     conn.connect();
 
     return () => {
-      cancelled = true;
       conn.dispose();
       detachMicAnalyser();
-      void detectorRef.current?.destroy();
+      void recorderRef.current?.destroy();
       void capture.close();
       void playback.close();
     };
-  }, [buildDetector, handleConnectionState, reportTurnTiming, patchTurn, detachMicAnalyser]);
+  }, [handleConnectionState, reportTurnTiming, patchTurn, detachMicAnalyser, attachPlaybackHealth]);
 
   const lastTurn = turns[turns.length - 1];
+  const trail = turns.slice(0, -1);
+  const latestCard = [...turns].reverse().find((t) => t.factCard)?.factCard ?? null;
+  const accumulatedPlaces = (() => {
+    const seen = new Set<string>();
+    const out: PlaceCard[] = [];
+    for (const t of turns) {
+      for (const p of t.places ?? []) {
+        const key = p.name;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push(p);
+      }
+    }
+    return out;
+  })();
   useEffect(() => {
     dossierEndRef.current?.scrollIntoView({
       behavior: REDUCED_MOTION ? "auto" : "smooth",
@@ -509,9 +642,9 @@ export function App() {
     });
   }, [turns.length, lastTurn?.factCard, lastTurn?.places, lastTurn?.reply, lastTurn?.segments.length]);
 
-  const canStart = assetsReady && !started && !voiceIssue;
+  const canStart = !started && !voiceIssue;
   const showRetry = voiceIssue?.kind === "mic-blocked" || voiceIssue?.kind === "mic-missing";
-  const copy = stateCopy(started, assetsReady, voiceIssue, conversationState, interrupted);
+  const copy = stateCopy(started, voiceIssue, conversationState, interrupted, recording);
 
   return (
     <div className="app">
@@ -534,6 +667,27 @@ export function App() {
                 : `visa quota · ${quota.remaining} left`}
             </span>
           )}
+          <button
+            type="button"
+            className={`chip chip-audio${audioHealth !== "ok" ? " warn" : ""}`}
+            onClick={() => void restoreAudio()}
+            title={
+              audioHealth === "ok"
+                ? "Playback is running. Click if you can't hear her."
+                : "Audio output is blocked or dead. Click to restore — browsers need a tap."
+            }
+          >
+            {audioHealth === "ok" ? "audio · live" : audioHealth === "blocked" ? "audio · blocked" : "audio · dead"}
+          </button>
+          <button
+            type="button"
+            className="chip chip-lang"
+            disabled={recording || conversationState === "thinking" || conversationState === "speaking"}
+            onClick={() => setLang((current) => (current === "en" ? "ar" : "en"))}
+            title="Whisper language for the next turn. Arabic also selects the Orpheus voice."
+          >
+            {lang === "ar" ? "العربية" : "English"}
+          </button>
         </div>
       </header>
 
@@ -551,10 +705,23 @@ export function App() {
             </p>
             <p className="state-sub">{copy.sub}</p>
             <div className="cta">
-              {!assetsReady && !voiceIssue && <button disabled>Loading voice detection…</button>}
               {canStart && (
-                <button onClick={() => void handleStart()} disabled={starting}>
-                  {starting ? "Starting…" : "Start talking"}
+                <button
+                  className={recording ? "mic-hot" : ""}
+                  disabled={starting}
+                  onPointerDown={onMicPointerDown}
+                  onPointerUp={onMicPointerUp}
+                >
+                  {starting ? "Starting…" : "Tap to talk · hold Space"}
+                </button>
+              )}
+              {started && !voiceIssue && (
+                <button
+                  className={recording ? "mic-hot" : ""}
+                  onPointerDown={onMicPointerDown}
+                  onPointerUp={onMicPointerUp}
+                >
+                  {recording ? "Listening — tap to send" : conversationState === "speaking" ? "Tap to interrupt" : "Tap to talk"}
                 </button>
               )}
               {showRetry && (
@@ -562,7 +729,7 @@ export function App() {
               )}
               {voiceIssue?.kind === "unavailable" && (
                 <button disabled title={voiceIssue.message}>
-                  Start talking
+                  Mic unavailable
                 </button>
               )}
             </div>
@@ -572,17 +739,23 @@ export function App() {
         {notice && <p className="notice">{notice}</p>}
 
         <div className="dossier">
-          {turns.map((turn) => (
-            <TurnBlock key={turn.id} turn={turn} />
-          ))}
+          {lastTurn && <NowPane turn={lastTurn} rtl={lang === "ar"} />}
+          {trail.length > 0 && (
+            <div className="trail">
+              <h2 className="trail-heading">Earlier</h2>
+              {[...trail].reverse().map((turn) => (
+                <TrailRow key={turn.id} turn={turn} rtl={lang === "ar"} />
+              ))}
+            </div>
+          )}
           <div ref={dossierEndRef} />
         </div>
 
         <div className="diagnostics" aria-live="off">
           {lastTurn?.timings && (
             <span>
-              last turn {fmt(lastTurn.timings.firstAudioMs)} voice-to-voice · endpoint{" "}
-              {fmt(lastTurn.timings.endpointMs)} · redemption {lastTurn.timings.redemptionMs} ms
+              last turn {fmt(lastTurn.timings.firstAudioMs)} voice-to-voice · held{" "}
+              {fmt(lastTurn.timings.endpointMs)}
             </span>
           )}
           {sessionId && <span>session {sessionId.slice(0, 8)}</span>}
@@ -599,146 +772,18 @@ export function App() {
         </div>
       </div>
 
-      <aside className="rail memory-panel" aria-live="polite">
-        <h2>What Sarjy remembers</h2>
-        {memory && (
-          <>
-            <p className="memory-tier">
-              {memory.tier === "signed_in"
-                ? `Signed in as ${memory.name}`
-                : "Remembered for this session only — sign in to keep these"}
-            </p>
-            {memory.message && <p className="notice memory-message">{memory.message}</p>}
-
-            {memory.facts.length > 0 ? (
-              <ul className="memory-facts">
-                {memory.facts.map((f) => (
-                  <li key={f.key}>
-                    <strong>{f.label}</strong> — {f.value}
-                    <span className="memory-fact-meta">
-                      {" "}
-                      · learned {new Date(f.learned_at).toLocaleTimeString()}
-                      {f.quote && <> · you said: "{f.quote}"</>}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="hint">Nothing remembered yet.</p>
-            )}
-
-            <p className="memory-capacity">
-              {memory.used} / {memory.capacity}
-            </p>
-
-            {memory.tier === "signed_in" ? (
-              <button onClick={handleSignOut}>Sign out</button>
-            ) : (
-              <form onSubmit={handleSignIn} className="sign-in-form">
-                <input
-                  type="text"
-                  placeholder="Name"
-                  value={signInName}
-                  onChange={(e) => setSignInName(e.target.value)}
-                  maxLength={32}
-                  required
-                />
-                <input
-                  type="password"
-                  inputMode="numeric"
-                  placeholder="4-digit PIN"
-                  value={signInPin}
-                  onChange={(e) => setSignInPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                  maxLength={4}
-                  pattern="\d{4}"
-                  required
-                />
-                <button type="submit">Sign in</button>
-              </form>
-            )}
-
-            <button onClick={handleForgetEverything} disabled={memory.facts.length === 0}>
-              Forget everything
-            </button>
-          </>
-        )}
-      </aside>
+      <TripDossier
+        memory={memory}
+        latestCard={latestCard}
+        places={accumulatedPlaces}
+        signInName={signInName}
+        signInPin={signInPin}
+        onSignInName={setSignInName}
+        onSignInPin={setSignInPin}
+        onSignIn={handleSignIn}
+        onSignOut={handleSignOut}
+        onForget={handleForgetEverything}
+      />
     </div>
-  );
-}
-
-function TurnBlock({ turn }: { turn: Turn }): JSX.Element {
-  const kept = turn.segments.filter((s) => s.ok).length;
-  const rejected = turn.segments.length - kept;
-
-  return (
-    <article className="turn">
-      {turn.transcript && (
-        <p className="transcript">
-          <span className="who">You</span>
-          {turn.transcript}
-        </p>
-      )}
-      {turn.factCard && <FactCard card={turn.factCard} />}
-      {turn.places && turn.places.length > 0 && <PlaceStrip places={turn.places} />}
-      {turn.reply && (
-        <p className="reply">
-          <span className="who">Sarjy</span>
-          {turn.reply}
-        </p>
-      )}
-      {turn.failed && (
-        <p className="notice turn-failed">
-          ({turn.failed.stage}) {turn.failed.message}
-        </p>
-      )}
-      {turn.segments.length > 0 && (
-        <details className="audit" {...(rejected > 0 ? { open: true } : {})}>
-          <summary>
-            What she was allowed to say
-            <span className="audit-count">
-              {kept} spoken · {rejected} refused
-            </span>
-          </summary>
-          <ul className="segments" aria-live="off">
-            {turn.segments.map((s, i) => (
-              <li
-                key={i}
-                className={`segment segment-${registerLabel(s.kind)}${s.ok ? "" : " segment-rejected"}`}
-              >
-                <span className="segment-kind">{registerLabel(s.kind)}</span>{" "}
-                <span className="segment-text">
-                  {s.kind === "quoted" && s.ok && s.attribution ? `${s.attribution} "${s.text}"` : s.text}
-                </span>
-                {!s.ok && s.reason && <span className="segment-reason"> — rejected: {s.reason}</span>}
-                {s.ok && s.citation && (
-                  <span className="segment-provenance">
-                    {" "}
-                    ({s.citation}
-                    {s.layer ? `, ${s.layer}` : ""}
-                    {s.source_date ? `, ${s.source_date}` : ""})
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-          {rejected > 0 && (
-            <p className="audit-note">
-              The model wrote the struck-through line. Deterministic code refused to speak it.
-            </p>
-          )}
-        </details>
-      )}
-      {turn.hedged && (
-        <p className="notice hedge-notice">
-          A tool result came back but nothing was sourced or quoted from it — flagged for review.
-        </p>
-      )}
-      {turn.timings && (
-        <p className="turn-metrics" aria-live="off">
-          {fmt(turn.timings.firstAudioMs)} voice-to-voice
-        </p>
-      )}
-    </article>
   );
 }

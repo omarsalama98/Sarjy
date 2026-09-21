@@ -77,6 +77,14 @@ def test_start_round_trips() -> None:
     msg = parse_client_message(raw)
     assert isinstance(msg, StartIn)
     assert msg.turn_id == "t-1"
+    assert msg.lang == "en"
+
+
+def test_start_accepts_lang_ar() -> None:
+    raw = '{"t":"start","turn_id":"t-1","client_ts_ms":1758300000000,"lang":"ar"}'
+    msg = parse_client_message(raw)
+    assert isinstance(msg, StartIn)
+    assert msg.lang == "ar"
 
 
 def test_end_round_trips() -> None:

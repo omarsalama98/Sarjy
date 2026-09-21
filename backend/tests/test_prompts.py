@@ -174,3 +174,14 @@ def test_system_segments_does_not_invite_require_a_visa_type() -> None:
 
     assert "Never write \"require a {visa.type}\"" in SYSTEM_SEGMENTS
     assert "Holders of {pair.passport_name} passports" in SYSTEM_SEGMENTS
+
+
+def test_build_user_block_adds_reply_language_only_for_arabic() -> None:
+    arabic = build_user_block(
+        user_question="هل أحتاج فيزا؟", tool_call_id=None, result=None, lang="ar"
+    )
+    english = build_user_block(user_question="do I need a visa?", tool_call_id=None, result=None)
+    assert "<reply_language>" in arabic
+    assert "{visa.duration}" in arabic
+    assert "<reply_language>" not in english
+

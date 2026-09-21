@@ -33,13 +33,10 @@ The fiddliest part of this project and the place voice demos usually break. It i
 - Denied, and revoked mid-session, are different states. Both need a clear, recoverable message. Neither is a dead end.
 - Test in **Safari as well as Chrome.** Safari's autoplay and microphone behaviour differ, and it breaks voice apps specifically.
 
-## VAD
+## VAD — deleted
 
-Runs client-side (`@ricky0123/vad-web`) — it saves a network round trip on every single turn.
-
-The silence threshold is a product decision (see `pipeline.md`). Expose it while developing so it can be tuned by feel, then fix a value and record the reason.
-
-Backchannels — "mhm", "yeah" — must not end a turn.
+Endpointing is user-controlled (tap or hold-to-talk). Silence no longer ends a turn.
+Barge-in is the same tap, not an acoustic guess.
 
 ## State must be visible and instant
 

@@ -3,7 +3,7 @@
  * in the graph -- we only *read*, we never reroute:
  *
  *   - Mic: an AnalyserNode tapped off the shared MediaStream (the same
- *     one the VAD uses). Not connected to the destination, so the user
+ *     one the recorder uses). Not connected to the destination, so the user
  *     never hears themselves.
  *   - TTS: RMS of the Int16 PCM already passing through onAudioChunk.
  *     playback.ts is not touched.

@@ -1,7 +1,7 @@
 """Groq Whisper adapter -- batch transcription.
 
-Batch, not streaming: the turn is already endpointed client-side (the VAD
-decides when speech ends) before this is ever called, so there is nothing
+Batch, not streaming: the turn is already endpointed client-side (the user
+taps or releases the mic) before this is ever called, so there is nothing
 to gain from a streaming API here (TDD.md §The batch-STT constraint).
 """
 

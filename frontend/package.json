@@ -3,15 +3,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node scripts/sync-vad-assets.mjs && vite",
-    "build": "node scripts/sync-vad-assets.mjs && tsc -b && vite build",
+    "dev": "vite",
+    "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --max-warnings 0",
     "test": "echo 'No frontend unit tests -- failure modes here are browser-level (permissions, audio graphs, worklet loading), none of which a Node test runner catches. Verification is the end-to-end voice turn (docs/plans/blocks/02-voice-loop.md). This script exists so the command contract in AGENTS.md holds.'"
   },
   "dependencies": {
-    "@ricky0123/vad-web": "^0.0.31",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

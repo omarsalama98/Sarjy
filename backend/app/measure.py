@@ -202,6 +202,13 @@ def build_report(
     )
     lines.append(f"**Configuration:** {config_line}")
     lines.append("")
+    lines.append(
+        "**endpoint_ms semantics:** user-controlled mic — `endpoint_ms` is how "
+        "long the user held the turn (tap-to-talk duration), not VAD "
+        "redemption. `redemption_ms` is 0 by construction. A drop of ~600 ms "
+        "versus earlier runs is this change, not a speedup."
+    )
+    lines.append("")
 
     mixed = [field for field in CONFIG_FIELDS if len(_distinct(ok_records, field)) > 1]
     if mixed:

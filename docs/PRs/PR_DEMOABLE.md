@@ -16,7 +16,7 @@ The previous UI restyled a **single-turn screen**. `handleUtterance` nulled tran
 4. **Places.** Wikimedia `action=query` (no key, no quota). Fetches run **after** TTS is handed the answer, concurrent via `asyncio.gather`. `place` only on `judgement` lines; the gate is unchanged. Failed lookups render as text with a reason, never a broken image.
 5. **Documents.** README, demo script, Loom outline, written against what is true.
 
-Arabic, both rungs, was cut to pay for this.
+Arabic, both rungs, was cut to pay for this. **Superseded 2026-09-21:** Arabic rungs 1–2, the mic rewrite, and the now/trail/dossier surface are in `docs/PRs/PR_NEXT_LEVEL.md`.
 
 ## Changes
 
@@ -41,12 +41,13 @@ cd frontend && npm run typecheck && npm run lint && npm run build
 
 **2026-09-21, this environment:**
 
-- backend `mypy`: clean (29 files)
+- backend `mypy`: clean (30 files)
 - backend `ruff`: clean
-- backend `pytest`: **282 passed**
+- backend `pytest`: **306 passed**
 - frontend `tsc --noEmit`: clean
 - frontend `eslint --max-warnings 0`: clean
-- frontend `vite build`: clean, pre-existing chunk-size warning only
+- frontend `vite build`: clean
+- eval: `eval/results/2026-09-21-gate-eval-raw.txt` (13 cases; 3 Gemini timeouts named in the scored table)
 
 Then, against the **deployed** URL after `make deploy` (Omar-only from this environment):
 

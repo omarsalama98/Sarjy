@@ -56,6 +56,7 @@ export interface StartMessage {
   t: "start";
   turn_id: string;
   client_ts_ms: number;
+  lang: "en" | "ar";
 }
 
 export interface EndMessage {
@@ -71,13 +72,9 @@ export interface BargeMessage {
 }
 
 /**
- * The two legs only the browser can see -- endpointing and first audio
- * out -- plus the VAD setting that produced them. Sent once per turn (App.tsx's
- * reportTurnTiming enforces exactly one send), at the first of: first audio
- * buffer scheduled, or turn_failed. `endpoint_ms`/`first_audio_ms` are
- * nullable because a barge before any audio ever played means neither leg
- * completed -- the message is still sent so the server's merge has a
- * turn_id to key off.
+ * The two legs only the browser can see -- first audio out, plus how long
+ * the user held the mic (`endpoint_ms`). Sent once per turn. `redemption_ms`
+ * is 0 (user-ended turns, not VAD).
  */
 export interface ClientTimingMessage {
   t: "client_timing";

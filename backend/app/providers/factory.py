@@ -8,17 +8,37 @@ Requirement #4 (a working deployed URL) stays banked even with a broken key.
 """
 
 import functools
+from collections.abc import AsyncIterator
 
 from app.config import load_settings
 from app.providers.base import LLM, STT, TTS, ProviderUnavailable, VisaTool
 from app.providers.deepgram_tts import DeepgramTTS
 from app.providers.gemini_llm import GeminiLLM
 from app.providers.groq_stt import GroqSTT
+from app.providers.groq_tts import GroqOrpheusTTS
 from app.tools.fake import FakeVisaTool
 from app.tools.quota import QuotaLedger
 from app.tools.vendor import TravelBuddyTool
 
-__all__ = ["ProviderUnavailable", "get_llm", "get_stt", "get_tool", "get_tts"]
+__all__ = ["ProviderUnavailable", "RoutedTTS", "get_llm", "get_stt", "get_tool", "get_tts"]
+
+
+class RoutedTTS:
+    """Deepgram Aura-2 has no Arabic voice (verified 2026-09-21), so the TTS
+    boundary picks the voice from the language the turn is in. `TTS.synthesize`
+    always carried `language`; this is the first thing to implement it."""
+
+    def __init__(self, *, en: TTS, ar: TTS) -> None:
+        self._en = en
+        self._ar = ar
+        self.model = f"routed(en={en.model}, ar={ar.model})"
+
+    def synthesize(self, text: str, *, language: str | None = None) -> AsyncIterator[bytes]:
+        adapter = self._ar if language == "ar" else self._en
+        # timings.tts_model is read after synthesize() starts -- pin the
+        # adapter that will actually speak, not the routed(en=..., ar=...) label.
+        self.model = adapter.model
+        return adapter.synthesize(text, language=language)
 
 
 @functools.lru_cache(maxsize=1)
@@ -45,7 +65,14 @@ def get_tts() -> TTS:
         settings = load_settings()
     except RuntimeError as e:
         raise ProviderUnavailable(str(e)) from e
-    return DeepgramTTS(api_key=settings.deepgram_api_key, model=settings.deepgram_tts_model)
+    return RoutedTTS(
+        en=DeepgramTTS(api_key=settings.deepgram_api_key, model=settings.deepgram_tts_model),
+        ar=GroqOrpheusTTS(
+            api_key=settings.groq_api_key,
+            model=settings.orpheus_tts_model,
+            voice=settings.orpheus_voice,
+        ),
+    )
 
 
 @functools.lru_cache(maxsize=1)

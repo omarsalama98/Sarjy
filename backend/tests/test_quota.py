@@ -54,6 +54,25 @@ def test_can_spend_true_above_the_reserve() -> None:
     assert ledger.can_spend() is True
 
 
+def test_a_permanently_dead_ledger_logs_loudly_at_construction(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """spent + reserve >= total at construction is the spent=120 trap:
+    can_spend() is false forever and every visa answer silently falls to
+    CSV. Construction itself must scream, not wait for a missing live
+    answer in the demo."""
+    with caplog.at_level("WARNING", logger="sarjy"):
+        ledger = _ledger(total=120, reserve=40, seed=120)
+    assert ledger.can_spend() is False
+    assert any("quota_ledger DEAD" in r.message for r in caplog.records)
+
+
+def test_a_live_ledger_does_not_warn_at_construction(caplog: pytest.LogCaptureFixture) -> None:
+    with caplog.at_level("WARNING", logger="sarjy"):
+        _ledger(total=120, reserve=40, seed=3)
+    assert not any("quota_ledger DEAD" in r.message for r in caplog.records)
+
+
 def test_a_spend_that_is_then_interrupted_still_counts() -> None:
     """V7 -- spend() is called BEFORE a live request's result is used, so a
     barge that cancels the coroutine after spend() already ran must not

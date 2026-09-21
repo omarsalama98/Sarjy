@@ -78,7 +78,10 @@ constant"*) and has no scripted substitute.
 | 600 | | | | | | | |
 | 800 | | | | | | | |
 
-**Chosen value:** _pending_ · **Reason:** _pending_
+**Chosen value:** superseded — VAD endpointing was replaced with user-controlled
+tap/hold-to-talk. `endpoint_ms` is now how long the user held the turn.
+`redemption_ms` is 0. A ~600 ms drop in voice-to-voice versus earlier runs is
+this semantics change, not a speedup.
 
 Once chosen, update `DEFAULT_REDEMPTION_MS` in `frontend/src/audio/turn.ts` and `TDD.md`'s
 latency budget's endpointing row (currently "~600 ms, still an estimate") with the measured

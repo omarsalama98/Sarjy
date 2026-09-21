@@ -59,8 +59,10 @@ class FakeSTT:
     def __init__(self, text: str = "what's the capital of japan", *, raises: bool = False) -> None:
         self._text = text
         self._raises = raises
+        self.last_language: str | None = None
 
     async def transcribe(self, pcm16: bytes, *, language: str | None = None) -> str:
+        self.last_language = language
         if self._raises:
             raise TimeoutError("groq did not answer")
         return self._text
@@ -132,8 +134,12 @@ class FakeTTS:
         # fail_after=N (N>0) yields N chunks then fails (F12).
         self._chunks = chunks if chunks is not None else [b"\x01\x02" * 10, b"\x03\x04" * 10]
         self._fail_after = fail_after
+        self.last_language: str | None = None
+        self.last_text: str | None = None
 
     async def synthesize(self, text: str, *, language: str | None = None) -> AsyncIterator[bytes]:
+        self.last_language = language
+        self.last_text = text
         for i, chunk in enumerate(self._chunks):
             if self._fail_after is not None and i >= self._fail_after:
                 raise ConnectionError("deepgram socket dropped")
@@ -169,6 +175,7 @@ async def _run(
     on_sign_in: Callable[[str, str], None] = lambda name, pin: None,
     get_places: Callable[[], object] | None = None,
     history: list[tuple[str, str]] | None = None,
+    lang: str = "en",
 ) -> tuple[list[object], TurnTimings]:
     timings = _empty_timings()
     items: list[object] = []
@@ -188,6 +195,7 @@ async def _run(
         awaiting_pin=awaiting_pin,
         on_sign_in=on_sign_in,
         get_places=get_places,
+        lang=lang,
     ):
         items.append(item)
     return items, timings
@@ -866,3 +874,34 @@ async def test_places_skipped_when_get_places_is_none() -> None:
     )
     items, _timings = await _run(get_stt=FakeSTT, get_llm=lambda: llm, get_tts=FakeTTS)
     assert "PlacesOut" not in _kinds(items)
+
+
+@pytest.mark.asyncio
+async def test_lang_is_handed_to_stt_and_recorded_on_timings() -> None:
+    stt = FakeSTT()
+    items, timings = await _run(
+        get_stt=lambda: stt, get_llm=FakeLLM, get_tts=FakeTTS, lang="ar"
+    )
+    assert stt.last_language == "ar"
+    assert timings.lang == "ar"
+    assert "TranscriptOut" in _kinds(items)
+
+
+@pytest.mark.asyncio
+async def test_sign_in_fixed_phrase_stays_on_english_tts_during_arabic_turn() -> None:
+    tts = FakeTTS()
+    await _run(
+        get_stt=lambda: FakeSTT("remember me please"),
+        get_llm=FakeLLM,
+        get_tts=lambda: tts,
+        lang="ar",
+    )
+    assert tts.last_language == "en"
+
+
+@pytest.mark.asyncio
+async def test_gated_answer_tts_uses_the_turn_lang() -> None:
+    tts = FakeTTS()
+    await _run(get_stt=FakeSTT, get_llm=FakeLLM, get_tts=lambda: tts, lang="ar")
+    assert tts.last_language == "ar"
+

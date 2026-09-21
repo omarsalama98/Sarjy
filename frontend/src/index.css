@@ -100,6 +100,15 @@ body {
 .chip-connection.conn-rotating,
 .chip-connection.conn-reconnecting { color: var(--board-amber); border-color: #5a4a12; }
 .chip-quota.warn { color: var(--board-amber); border-color: #5a4a12; }
+.chip-audio {
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+  appearance: none;
+}
+.chip-audio.warn { color: var(--stamp); border-color: #5a221c; }
+.chip-lang { cursor: pointer; font-family: inherit; color: inherit; appearance: none; }
+.chip-lang:disabled { cursor: not-allowed; }
 
 .app-main { grid-column: 1; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
 
@@ -125,6 +134,11 @@ body {
 }
 .state-sub { margin: 6px 0 0; color: var(--slate); font-size: 0.95rem; }
 .cta { margin-top: 10px; display: flex; gap: 8px; }
+button.mic-hot {
+  background: var(--brass);
+  color: var(--night);
+  border-color: var(--brass);
+}
 
 /* -- orb ------------------------------------------------------------------ */
 .orb {
@@ -211,8 +225,56 @@ a:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
 .voice-issue, .turn-failed { border-color: var(--stamp); color: #f3c4bf; }
 .hedge-notice { border-color: var(--board-amber); }
 
-.dossier { display: flex; flex-direction: column; gap: 28px; }
+.dossier { display: flex; flex-direction: column; gap: 20px; }
+.now-pane { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .turn { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.trail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--hairline);
+}
+.trail-heading {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--slate);
+}
+.trail-row { min-width: 0; }
+.trail-line {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 8px 10px;
+  align-items: baseline;
+  text-align: left;
+  background: transparent;
+  color: inherit;
+  border: 1px solid var(--hairline);
+  padding: 8px 12px;
+  font-family: inherit;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.trail-line .who { display: inline; margin: 0; }
+.trail-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ivory);
+  font-size: 0.9rem;
+}
+.trail-row .now-pane {
+  margin-top: 8px;
+  padding: 12px;
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+}
 .transcript, .reply {
   margin: 0;
   padding: 12px 0;
@@ -443,6 +505,27 @@ a:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
 .sign-in-form input:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
 .rail button { width: 100%; margin-top: 8px; }
 .rail .sign-in-form button { margin-top: 0; }
+.trip-dossier h3 {
+  margin: 16px 0 8px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--slate);
+}
+.dossier-pair { margin: 0 0 4px; }
+.dossier-route {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.dossier-visa { margin: 4px 0 0; }
+.dossier-source { margin: 4px 0 0; color: var(--slate); font-size: 0.8rem; }
+.dossier-places { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.dossier-places li { color: var(--ivory); font-size: 0.9rem; }
 
 @media (max-width: 900px) {
   .app { grid-template-columns: minmax(0, 1fr); padding: 20px 16px 48px; }
@@ -451,6 +534,7 @@ a:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
   .fact-row { grid-template-columns: minmax(0, 1fr); gap: 2px; }
   .orb { width: 104px; height: 104px; flex-basis: 104px; }
   .state-headline { font-size: 1.3rem; }
+  .trail-line { grid-template-columns: auto minmax(0, 1fr); }
 }
 
 @media (prefers-reduced-motion: reduce) {

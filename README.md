@@ -25,7 +25,8 @@ The bar is *grounded **and still useful***. An assistant that hedges everything 
 - **Shows the evidence while she talks.** The fact card paints before the gated answer; place photos arrive after TTS has started, never on the first-audio path.
 - **Falls back visibly.** When the live visa source is unavailable, it answers from a vendored dataset and says which source answered and how old it is.
 - **Refuses with a route.** Outside coverage, it names the gap and gives you the embassy link rather than improvising.
-- **Remembers you across sessions.** Name + 4-digit PIN. Persisted facts are structured, attributable, and viewable in the rail — "what's my favourite colour?" works because a fact was stored.
+- **Remembers you across sessions.** Name + 4-digit PIN. Persisted facts are structured, attributable, and viewable in the trip dossier — "what's my favourite colour?" works because a fact was stored.
+- **Understands spoken Arabic.** The language chip sets Whisper's `language` and, for Arabic, routes TTS to Groq Orpheus. The gate's number-word and place-name rules stay English-only — named in Limits.
 
 ## The external APIs, and why these
 
@@ -42,11 +43,11 @@ The bar is *grounded **and still useful***. An assistant that hedges everything 
 ## How it works
 
 ```
-mic → client VAD → Groq Whisper
+mic → tap/hold to send → Groq Whisper
   → Gemini decide()  ± Travel Buddy lookup
   → fact card (before the gated answer)
   → Gemini NDJSON segments → gate.py
-  → Deepgram Aura-2 (one TTS request of the kept answer)
+  → Deepgram Aura-2 (English) or Groq Orpheus (Arabic)
   → Wikimedia lookups in parallel, after TTS has started
   → memory extract in the background
 ```
@@ -63,17 +64,17 @@ mic → client VAD → Groq Whisper
 |---|---|
 | Backend | Python · FastAPI · WebSocket |
 | Frontend | TypeScript · React |
-| STT | Groq `whisper-large-v3-turbo` (batch; client-side VAD endpoints the turn) |
+| STT | Groq `whisper-large-v3-turbo` (batch; the user taps or releases to end the turn) |
 | LLM | Gemini `gemini-3.5-flash-lite`, `thinking_level: "minimal"` |
-| TTS | Deepgram `aura-2` (WebSocket streaming, PCM s16le @ 24 kHz) |
-| VAD | `@ricky0123/vad-web`, in-browser |
+| TTS | Deepgram `aura-2` (English, streaming PCM s16le @ 24 kHz) · Groq `canopylabs/orpheus-arabic-saudi` (Arabic, batch WAV, 200-char chunks) |
+| Mic | Toggle or hold-to-talk. Interrupting her is the same tap. No VAD. |
 | Deploy | Modal, `us-east` |
 
 Every provider sits behind an interface we own — provider choice is configuration, not code. No provider API key ever reaches the browser.
 
 ## The eval
 
-8 hand-labelled adversarial cases, labels written before the run. **7/8 pass.** `injection-2` (a paraphrased injection) was labelled *DESIGNED TO FAIL* before the run and failed exactly as predicted — the gate catches the vendor's own injection-shaped payload, not a paraphrase of it. Full table: [`eval/results/2026-09-20-gate-eval.md`](eval/results/2026-09-20-gate-eval.md). Live demo of a rejection: open with `?gate_demo=1`.
+8 original single-turn cases plus 5 conversation-level cases. Labels written before the run. **2026-09-21:** of the turns that completed, the original set held (6/6 scored) and the conversation set held (4/4 scored) — `conv-origin-1` stayed in Germany, not Cairo. Three turns died on a Gemini timeout (`injection-2`, `anchoring-1`, `conv-contradict-1` turn 2) and are reported as timeouts, not as gate misses. The designed `injection-2` miss is still the 2026-09-20 result. Full tables: [`eval/results/2026-09-20-gate-eval.md`](eval/results/2026-09-20-gate-eval.md), [`eval/results/2026-09-21-conversation-eval.md`](eval/results/2026-09-21-conversation-eval.md). Live demo of a rejection: open with `?gate_demo=1`.
 
 ## Running locally
 
@@ -90,17 +91,19 @@ Checks: `make typecheck && make lint && make test` in `backend`, `npm run typech
 
 | Limit | What that means |
 |---|---|
-| Arabic is not shipped | Promised, then cut so the dossier / orb / sourced photos could land. STT and TTS interfaces already carry a `language` parameter; nothing implements it. |
+| Arabic output is weakly gated | `NUMBER_WORDS` and the wrong-country place-name scan are English-only. Arabic-Indic digits are still caught. An Arabic number-word fabrication would pass. Named, not implied away. |
+| Arabic is a demo-able turn, not a mode | Orpheus is 200 characters/request, 10 RPM / 100 RPD. A long Arabic answer is sequential chunked requests. Fixed English phrases (sign-in, no-coverage) stay on Aura-2 even during an Arabic turn. The Groq org admin must accept model terms for `canopylabs/orpheus-arabic-saudi` (a 400 `model_terms_required` otherwise) — playground link in Groq console. |
 | Wikimedia is entity lookup, not a sanitised image API | The photo is the Wikipedia article's lead image. Disambiguation / 404 / no-image / timeout are rejected. It is not claimed as content-moderated beyond that. |
-| Eval is 8 hand-scored cases, no LLM judge | Methodology over denominator. `injection-2` is a named, predicted miss. |
+| Eval is 13 hand-scored cases, no LLM judge | Methodology over denominator. `injection-2` is a named, predicted miss (observed 2026-09-20; this week's rerun timed out before the gate). Three 2026-09-21 turns died on a Gemini timeout and are reported as such. |
+| The gate binds values, not polarity | A sourced template can say "you don't need a visa for {pair.destination_name}" while `visa.type` is "visa required" and still pass every rule — placeholders resolve, digits are absent, the pair matches. The fact card would contradict it. Named, not closed. |
 | Fallback layer has no live "pretend vendor down" toggle | Proven by `tests/test_vendor.py`, the eval's `vendor-failure-1`, and the card's `fallback source` badge when map/CSV served. |
-| Quota ledger may read 0 remaining | A test once wrote `spent=120` into the live `modal.Dict`. True committed spend is 3 (`data/README.md`). Unlock is operator-only. |
+| Quota ledger may read 0 remaining | A test once wrote `spent=120` into the live `modal.Dict`. True committed spend is 3 (`data/README.md`). Unlock is operator-only (`docs/outbound/2026-09-21-quota-unlock.md`). |
 | Cross-session memory needs `SARJY_MEMORY_SALT` set on Modal before the first real sign-in | Unset, it uses a dev default. Changing it later makes every PIN hash miss. |
-| Measured latency, not a latency deep dive | Median TTS TTFB **566 ms**, LLM TTFT **890 ms** (instrument was corrected — earlier 85 ms / 30 ms figures were measuring the wrong clock). See `docs/measurements/2026-09-20-two-corrected-numbers.md`. |
+| Measured latency, not a latency deep dive | Median TTS TTFB **566 ms**, LLM TTFT **890 ms** (instrument was corrected — earlier 85 ms / 30 ms figures were measuring the wrong clock). After the mic change, `endpoint_ms` is hold duration, not VAD redemption — do not read a ~600 ms improvement as a speedup. See `docs/measurements/2026-09-20-two-corrected-numbers.md`. |
 
 ## What I'd do with another week
 
-- Spoken Arabic (Groq Orpheus), with the 200-character cap chunked in the adapter.
+- Widen the gate's `NUMBER_WORDS` / wrong-country scan to Arabic so spoken Arabic has the same protection as English.
 - A dedicated suggestions call for structured place picks (name, one-line reason, stay length) instead of parsing `place` off a judgement line.
 - A one-click "pretend the vendor is down" toggle so the fallback layer is demoable live.
 - Widen the injection screen to paraphrases (`injection-2`).

@@ -54,7 +54,7 @@ class TurnTimings(BaseModel):
     llm_model: str | None = None
     tts_model: str | None = None
     llm_thinking_level: str | None = None
-    redemption_ms: int | None = None  # the client VAD setting in force
+    redemption_ms: int | None = None  # unused (was VAD setting); always 0 on user-ended turns
 
     # -- outcome --------------------------------------------------------
     outcome: Literal["ok", "failed", "barged", "incomplete"] = "incomplete"
@@ -64,7 +64,7 @@ class TurnTimings(BaseModel):
     reply_chars: int | None = None
 
     # -- client legs (performance.now() deltas; null if the client never reported)
-    endpoint_ms: int | None = None  # last speech frame -> onSpeechEnd fired
+    endpoint_ms: int | None = None  # user-hold duration (was last speech frame -> VAD onSpeechEnd)
     first_audio_ms: int | None = None  # HEADLINE: last speech frame -> first buffer scheduled
     output_latency_ms: int | None = None  # AudioContext.outputLatency, null on Safari
 

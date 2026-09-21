@@ -178,9 +178,10 @@ async def run_turn(
     awaiting_pin: bool = False,
     on_sign_in: Callable[[str, str], None] | None = None,
     get_places: Callable[[], Any] | None = None,
+    lang: str = "en",
 ) -> AsyncIterator[TurnItem]:
     """One full turn. `pcm16` is the whole utterance, already endpointed by
-    the client's VAD. Providers are resolved lazily via the `get_*`
+    the client (tap or release, not VAD). Providers are resolved lazily via the `get_*`
     callables, called only when that stage is reached -- a key missing for
     a LATER stage never stops an EARLIER one from running (F14), and
     nothing is built until a turn actually needs it.
@@ -224,10 +225,11 @@ async def run_turn(
         yield failed("stt", "Speech-to-text is not configured.")
         return
     timings.stt_model = stt.model
+    timings.lang = lang
 
     t0 = time.monotonic()
     try:
-        text = await stt.transcribe(pcm16, language=None)
+        text = await stt.transcribe(pcm16, language=lang)
     except Exception:
         logger.exception("stt failed turn=%s", turn_id)
         yield failed(
@@ -358,7 +360,9 @@ async def run_turn(
                 ts_ms=now_ms(),
             )
             yield ReplyOut(turn_id=turn_id, text=spoken, seq=next_seq(), ts_ms=now_ms())
-            async for item in _speak(spoken, turn_id, get_tts, failed, next_seq, now_ms, timings):
+            async for item in _speak(
+                spoken, turn_id, get_tts, failed, next_seq, now_ms, timings, lang="en"
+            ):
                 yield item
             return
 
@@ -385,6 +389,7 @@ async def run_turn(
         result=tool_result,
         memory_block=memory_block,
         history=history,
+        lang=lang,
     )
 
     t0 = time.monotonic()
@@ -473,7 +478,9 @@ async def run_turn(
 
     emitted_places = False
     audio_started = False
-    async for item in _speak(spoken, turn_id, get_tts, failed, next_seq, now_ms, timings):
+    async for item in _speak(
+        spoken, turn_id, get_tts, failed, next_seq, now_ms, timings, lang=lang
+    ):
         yield item
         if isinstance(item, AudioStartOut):
             audio_started = True
@@ -602,7 +609,9 @@ async def _handle_sign_in_turn(
         spoken = SIGNIN_ASK
 
     yield ReplyOut(turn_id=turn_id, text=spoken, seq=next_seq(), ts_ms=now_ms())
-    async for item in _speak(spoken, turn_id, get_tts, failed, next_seq, now_ms, timings):
+    async for item in _speak(
+        spoken, turn_id, get_tts, failed, next_seq, now_ms, timings, lang="en"
+    ):
         yield item
 
 
@@ -614,18 +623,24 @@ async def _speak(
     next_seq: Callable[[], int],
     now_ms: Callable[[], int],
     timings: TurnTimings,
+    *,
+    lang: str = "en",
 ) -> AsyncIterator[TurnItem]:
     """The TTS tail shared by both the deterministic no_coverage refusal and
     the gated answer -- one implementation, so F11/F12's barge/failure
-    semantics can't drift between the two callers."""
+    semantics can't drift between the two callers.
+
+    Deterministic English phrases (sign-in, no_coverage) pass lang="en"
+    explicitly so an Arabic turn never sends English text to Orpheus.
+    """
     try:
         tts = get_tts()
     except ProviderUnavailable:
         yield failed("tts", "I have an answer but couldn't speak it.")
         return
-    timings.tts_model = tts.model
 
-    audio = tts.synthesize(text, language=None)
+    audio = tts.synthesize(text, language=lang)
+    timings.tts_model = tts.model
 
     t_tts = time.monotonic()
     samples_sent = 0
@@ -641,12 +656,25 @@ async def _speak(
             samples_sent += len(chunk) // 2  # PCM16 = 2 bytes/sample
             yield chunk
         timings.tts_total_ms = elapsed_ms(t_tts)
-    except Exception:
+    except Exception as exc:
         logger.exception("tts failed turn=%s (audio_started=%s)", turn_id, audio_started)
+        rate_limited = "429" in str(exc) or "rate" in str(exc).lower()
         if audio_started:
             yield AudioEndOut(turn_id=turn_id, samples=samples_sent, seq=next_seq(), ts_ms=now_ms())
+            if lang == "ar" and rate_limited:
+                yield failed(
+                    "tts",
+                    "My Arabic voice hit its rate limit partway through — "
+                    "the answer above is still correct.",
+                )
+            else:
+                yield failed(
+                    "tts", "My voice cut out partway through — the answer above is still correct."
+                )
+        elif lang == "ar" and rate_limited:
             yield failed(
-                "tts", "My voice cut out partway through — the answer above is still correct."
+                "tts",
+                "The Arabic voice is rate-limited right now. Switch to English and try again.",
             )
         else:
             yield failed("tts", "I have an answer but couldn't speak it.")

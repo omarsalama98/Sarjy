@@ -47,9 +47,9 @@ from app.tools.fake import FakeVisaTool, result_from_live_body  # noqa: E402
 CASES_PATH = _EVAL_DIR / "cases" / "cases.jsonl"
 FIXTURES_DIR = _EVAL_DIR / "fixtures"
 
-# Open Question #4 -- Gemini's free-tier RPD is unpublished. 2 calls/case
-# (decide + segments) at 12 cases max is 24 calls; this spacing is cheap
-# insurance against a burst-rate 429, not a measured requirement.
+# Open Question #4 -- Gemini's free-tier RPD is unpublished. 2 calls/turn
+# (decide + segments). 8 single-turn + 5 two-turn cases ≈ 36 calls; this
+# spacing is cheap insurance against a burst-rate 429, not a measured requirement.
 PACE_S = 4.0
 
 
@@ -80,8 +80,8 @@ class _SilentTTS:
 
 
 @dataclass
-class CaseResult:
-    case: dict[str, Any]
+class TurnSnap:
+    question: str
     transcript: str | None = None
     spoken: str | None = None
     segments: list[dict[str, Any]] = field(default_factory=list)
@@ -89,7 +89,41 @@ class CaseResult:
     failed_stage: str | None = None
     failed_message: str | None = None
     fact_card_covered: bool | None = None
+
+
+@dataclass
+class CaseResult:
+    case: dict[str, Any]
+    turns: list[TurnSnap] = field(default_factory=list)
     timings: TurnTimings | None = None
+
+    @property
+    def spoken(self) -> str | None:
+        return self.turns[-1].spoken if self.turns else None
+
+    @property
+    def segments(self) -> list[dict[str, Any]]:
+        return self.turns[-1].segments if self.turns else []
+
+    @property
+    def hedged(self) -> bool | None:
+        return self.turns[-1].hedged if self.turns else None
+
+    @property
+    def failed_stage(self) -> str | None:
+        return self.turns[-1].failed_stage if self.turns else None
+
+    @property
+    def failed_message(self) -> str | None:
+        return self.turns[-1].failed_message if self.turns else None
+
+    @property
+    def fact_card_covered(self) -> bool | None:
+        return self.turns[-1].fact_card_covered if self.turns else None
+
+    @property
+    def transcript(self) -> str | None:
+        return self.turns[-1].transcript if self.turns else None
 
 
 def _load_cases() -> list[dict[str, Any]]:
@@ -111,32 +145,66 @@ def _load_cases() -> list[dict[str, Any]]:
 # the fixture under both forms so a flaky no_coverage never comes from the
 # harness rather than the pipeline.
 _COUNTRY_NAMES = {
-    "SA": "Saudi Arabia", "JP": "Japan", "BH": "Bahrain", "NR": "Nauru", "TV": "Tuvalu"
+    "SA": "Saudi Arabia",
+    "JP": "Japan",
+    "BH": "Bahrain",
+    "NR": "Nauru",
+    "TV": "Tuvalu",
+    "EG": "Egypt",
+    "DE": "Germany",
 }
+
+
+def _turns_spec(case: dict[str, Any]) -> list[dict[str, Any]]:
+    """A multi-turn case carries `turns: [{question, ...}]`. A single-turn
+    case keeps `question` at the top level so the original 8 cases run
+    unchanged."""
+    if "turns" in case:
+        return list(case["turns"])
+    return [case]
+
+
+def _register_fixture(tool: FakeVisaTool, spec: dict[str, Any]) -> None:
+    fixture_name = spec.get("fixture")
+    passport, destination = spec.get("passport"), spec.get("destination")
+    if not fixture_name or not passport or not destination:
+        return
+    body = json.loads((FIXTURES_DIR / fixture_name).read_text())
+    result = result_from_live_body(body, retrieved="2026-09-20T09:00:00Z", layer="live")
+    for p in {passport, _COUNTRY_NAMES.get(passport, passport)}:
+        for d in {destination, _COUNTRY_NAMES.get(destination, destination)}:
+            tool.add(p, d, result)
 
 
 def _tool_for_case(case: dict[str, Any]) -> FakeVisaTool:
     tool = FakeVisaTool(force_reason=case.get("force_reason"))
-    fixture_name = case.get("fixture")
-    if fixture_name:
-        body = json.loads((FIXTURES_DIR / fixture_name).read_text())
-        result = result_from_live_body(body, retrieved="2026-09-20T09:00:00Z", layer="live")
-        passport, destination = case["passport"], case["destination"]
-        for p in {passport, _COUNTRY_NAMES.get(passport, passport)}:
-            for d in {destination, _COUNTRY_NAMES.get(destination, destination)}:
-                tool.add(p, d, result)
+    _register_fixture(tool, case)
+    for turn in _turns_spec(case):
+        _register_fixture(tool, turn)
     return tool
 
 
-async def _run_one(case: dict[str, Any], get_llm: Any) -> CaseResult:
-    result = CaseResult(case=case)
-    tool = _tool_for_case(case)
+async def _run_turn(
+    *,
+    case_id: str,
+    turn_index: int,
+    question: str,
+    history: list[tuple[str, str]],
+    memory_block: str,
+    tool: FakeVisaTool,
+    get_llm: Any,
+) -> tuple[TurnSnap, TurnTimings]:
+    snap = TurnSnap(question=question)
     timings = TurnTimings(
-        turn_id=case["id"], session="eval0000", connection_n=1, turn_index=1, env="eval"
+        turn_id=f"{case_id}-t{turn_index}",
+        session="eval0000",
+        connection_n=1,
+        turn_index=turn_index,
+        env="eval",
     )
 
     def get_stt() -> STT:
-        return _FixedSTT(case["question"])
+        return _FixedSTT(question)
 
     def get_tts() -> TTS:
         return _SilentTTS()
@@ -145,9 +213,9 @@ async def _run_one(case: dict[str, Any], get_llm: Any) -> CaseResult:
         return tool
 
     async for item in run_turn(
-        turn_id=case["id"],
-        pcm16=b"\x00\x00" * 100,  # never read -- _FixedSTT ignores it
-        history=[],
+        turn_id=f"{case_id}-t{turn_index}",
+        pcm16=b"\x00\x00" * 100,
+        history=history,
         next_seq=lambda: 0,
         now_ms=lambda: 0,
         get_stt=get_stt,
@@ -155,24 +223,52 @@ async def _run_one(case: dict[str, Any], get_llm: Any) -> CaseResult:
         get_tts=get_tts,
         get_tool=get_tool,
         timings=timings,
+        memory_block=memory_block,
     ):
         if isinstance(item, TranscriptOut):
-            result.transcript = item.text
+            snap.transcript = item.text
         elif isinstance(item, SegmentsOut):
-            result.spoken = item.spoken
-            result.hedged = item.hedged
-            result.segments = [s.model_dump() for s in item.segments]
+            snap.spoken = item.spoken
+            snap.hedged = item.hedged
+            snap.segments = [s.model_dump() for s in item.segments]
         elif isinstance(item, ReplyOut):
-            pass  # equals SegmentsOut.spoken by contract -- not re-recorded
+            if snap.spoken is None:
+                snap.spoken = item.text
         elif isinstance(item, TurnFailedOut):
-            result.failed_stage = item.stage
-            result.failed_message = item.message
+            snap.failed_stage = item.stage
+            snap.failed_message = item.message
         elif isinstance(item, FactCardOut):
-            result.fact_card_covered = item.covered
-        # AudioStartOut/AudioEndOut/bytes: _SilentTTS never yields any, so
-        # these never arrive -- nothing to record.
+            snap.fact_card_covered = item.covered
+    return snap, timings
 
-    result.timings = timings
+
+async def _run_one(case: dict[str, Any], get_llm: Any) -> CaseResult:
+    result = CaseResult(case=case)
+    tool = _tool_for_case(case)
+    history: list[tuple[str, str]] = []
+    last_timings: TurnTimings | None = None
+
+    for i, spec in enumerate(_turns_spec(case), start=1):
+        for injected in spec.get("history_inject") or []:
+            history.append((injected[0], injected[1]))
+        memory_block = spec.get("memory_block") or case.get("memory_block") or ""
+        snap, timings = await _run_turn(
+            case_id=case["id"],
+            turn_index=i,
+            question=spec["question"],
+            history=history,
+            memory_block=memory_block,
+            tool=tool,
+            get_llm=get_llm,
+        )
+        result.turns.append(snap)
+        last_timings = timings
+        if snap.transcript and snap.spoken:
+            history.append((snap.transcript, snap.spoken))
+        if i < len(_turns_spec(case)):
+            await asyncio.sleep(PACE_S)
+
+    result.timings = last_timings
     return result
 
 
@@ -193,19 +289,26 @@ def _format_results(results: list[CaseResult]) -> str:
     lines = []
     for r in results:
         lines.append(f"## {r.case['id']} ({r.case['category']})")
-        lines.append(f"question: {r.case['question']}")
+        if "turns" in r.case:
+            lines.append(f"turns: {len(r.turns)}")
+        else:
+            lines.append(f"question: {r.case['question']}")
         lines.append(f"pass_bar: {r.case['pass_bar']}")
         lines.append(f"label_written_first: {r.case['label_written_first']}")
-        if r.failed_stage:
-            lines.append(f"turn_failed: stage={r.failed_stage} message={r.failed_message!r}")
-        if r.spoken is not None:
-            lines.append(f"spoken: {r.spoken!r}")
-            lines.append(f"hedged: {r.hedged}")
-            for s in r.segments:
-                reason = s["reason"]
-                lines.append(f"  - {s['kind']} ok={s['ok']} reason={reason} text={s['text']!r}")
-        if r.fact_card_covered is not None:
-            lines.append(f"fact_card.covered: {r.fact_card_covered}")
+        for i, snap in enumerate(r.turns, start=1):
+            if len(r.turns) > 1:
+                lines.append(f"### turn {i}")
+                lines.append(f"question: {snap.question}")
+            if snap.failed_stage:
+                lines.append(f"turn_failed: stage={snap.failed_stage} message={snap.failed_message!r}")
+            if snap.spoken is not None:
+                lines.append(f"spoken: {snap.spoken!r}")
+                lines.append(f"hedged: {snap.hedged}")
+                for s in snap.segments:
+                    reason = s["reason"]
+                    lines.append(f"  - {s['kind']} ok={s['ok']} reason={reason} text={s['text']!r}")
+            if snap.fact_card_covered is not None:
+                lines.append(f"fact_card.covered: {snap.fact_card_covered}")
         lines.append("")
     return "\n".join(lines)
 

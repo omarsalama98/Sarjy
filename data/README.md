@@ -24,3 +24,7 @@ A passport appears in its own `red` bucket (SA in SA's red list). Self-reference
 ## `cache/` — gitignored
 
 Runtime cache of live `VisaRequirements` lookups, keyed by passport+destination, each stored with its `generated_at`. Warm, not authoritative — every served answer states which layer answered and how fresh it is.
+
+**An empty `data/cache/` is load-bearing, not "not filled in yet."** `TravelBuddyTool` looks here before the live RapidAPI call. If the directory is empty (the committed default — it is gitignored), every pair that is not already in `reference/` falls through to the map/CSV layers, which only carry a category label (`visa.type` / `visa.category`) — no duration, no passport validity, no cost. That is why an Egypt→Germany turn with the quota locked answered "visa required" from the community CSV.
+
+Warming the cache happens at runtime after a live call succeeds (`vendor.py` `_write_cache`). It is not seeded from git. After the quota ledger is unlocked, ask the demo pairs on the deployed URL (see `docs/outbound/2026-09-21-quota-unlock.md`) so the container writes those files itself.

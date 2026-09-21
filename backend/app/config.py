@@ -39,6 +39,11 @@ class Settings:
     rapidapi_key: str | None
     rapidapi_host: str
     deepgram_tts_model: str = "aura-2-thalia-en"
+    # Deepgram Aura-2 has no Arabic voice. Orpheus is the Arabic branch of
+    # RoutedTTS. `noura` matches Thalia (female) rather than mixing genders.
+    # Groq's speech API requires the lowercase voice id.
+    orpheus_tts_model: str = "canopylabs/orpheus-arabic-saudi"
+    orpheus_voice: str = "noura"
 
     # Live vendor requests held back for the demo and the reviewer's own exploration.
     # Below this, the client stops calling live and serves from cache/CSV, saying so.
@@ -78,6 +83,10 @@ def load_settings() -> Settings:
         rapidapi_key=os.environ.get("RAPIDAPI_KEY") or None,
         rapidapi_host=os.environ.get("RAPIDAPI_HOST", "visa-requirement.p.rapidapi.com"),
         deepgram_tts_model=os.environ.get("DEEPGRAM_TTS_MODEL", "aura-2-thalia-en"),
+        orpheus_tts_model=os.environ.get(
+            "ORPHEUS_TTS_MODEL", "canopylabs/orpheus-arabic-saudi"
+        ),
+        orpheus_voice=os.environ.get("ORPHEUS_VOICE", "noura"),
         quota_reserve=int(os.environ.get("QUOTA_RESERVE", "40")),
         quota_spent_seed=int(os.environ.get("QUOTA_SPENT_SEED", "120")),
         vendor_timeout_s=float(os.environ.get("VENDOR_TIMEOUT_S", "4.0")),

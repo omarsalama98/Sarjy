@@ -112,10 +112,10 @@ logger = logging.getLogger("sarjy")
 
 app = FastAPI(title="Sarjy")
 
-# The ORT WASM blob served from /vad is ~14MB uncompressed. GZipMiddleware
-# only touches HTTP responses (it checks scope["type"] == "http" and passes
-# anything else straight through), so it never touches the WebSocket scope
-# -- this is purely a static-asset win, roughly quartering the first load.
+# GZipMiddleware only touches HTTP responses (it checks scope["type"] ==
+# "http" and passes anything else straight through), so it never touches
+# the WebSocket -- this is a static-asset win on first load, not a
+# voice-path change.
 app.add_middleware(GZipMiddleware, minimum_size=1024)
 
 # In-process: one registry per container, and it STAYS in-process even
@@ -209,6 +209,9 @@ class _TurnState:
     # fabricates one bad segment into a REAL turn so a reviewer watches an
     # actual rejection happen live, rather than trusting a unit test.
     gate_demo: bool = False
+
+    # StartIn.lang for the currently open turn -- set on `start`, read on `end`.
+    lang: str = "en"
 
     # -- Block 3: the timing record for the turn currently in flight. Lives
     # here, not on the session, because a turn never spans a connection
@@ -527,6 +530,7 @@ async def _process_turn(
             awaiting_pin=was_awaiting_pin,
             on_sign_in=on_sign_in,
             get_places=_get_places,
+            lang=turns.lang,
         ):
             if session.generation != my_generation:
                 return  # superseded mid-turn -- nothing left to write to
@@ -804,6 +808,7 @@ async def _handle_start(session: Session, turns: _TurnState, msg: StartIn) -> No
 
     turns.open_turn_id = msg.turn_id
     turns.buffer = bytearray()
+    turns.lang = msg.lang
     turns.timings = TurnTimings(
         turn_id=msg.turn_id,
         session=session.session_id[:8],

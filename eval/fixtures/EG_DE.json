@@ -1,0 +1,43 @@
+{
+  "_provenance": "CONSTRUCTED for conversation-level eval -- modeled on the observed SA->JP vendor shape, not independently fetched. Egypt->Germany is the pair that fell to CSV in the live run (home city treated as the trip). Duration and type are plausible labels so a sourced substitution has something to bind; they are not claimed as live Travel Buddy data.",
+  "data": {
+    "passport": {
+      "code": "EG",
+      "name": "Egypt",
+      "currency_code": "EGP"
+    },
+    "destination": {
+      "code": "DE",
+      "name": "Germany",
+      "continent": "Europe",
+      "capital": "Berlin",
+      "currency_code": "EUR",
+      "currency": "Euro",
+      "exchange": "0.018",
+      "passport_validity": "Valid for at least 3 months beyond stay",
+      "phone_code": "+49",
+      "timezone": "+01:00",
+      "population": 83200000,
+      "area_km2": 357022,
+      "embassy_url": "https://www.embassypages.com/egypt#germany"
+    },
+    "mandatory_registration": {
+      "name": "Schengen entry registration",
+      "color": "yellow",
+      "link": "https://link.travel-buddy.ai/?link=EVAL-EG-DE-REG"
+    },
+    "visa_rules": {
+      "primary_rule": {
+        "name": "visa required",
+        "duration": "90 days",
+        "color": "red",
+        "link": "https://link.travel-buddy.ai/?link=EVAL-EG-DE"
+      }
+    }
+  },
+  "meta": {
+    "version": "2.0",
+    "language": "en",
+    "generated_at": "2026-09-21T00:00:00+00:00"
+  }
+}

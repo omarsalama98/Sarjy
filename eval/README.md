@@ -9,10 +9,9 @@ numbers mean anything.
 
 ## Methodology — stated, because "numbers not adjectives" is itself an adjective without a denominator
 
-- **8 labelled cases** (cut down from 12, which was itself cut down from 30 for
-  time — the block plan's cut ladder rung 3, `docs/plans/blocks/A-grounded-answers.md`.
-  Say so rather than implying more; the methodology is what's being graded, not
-  the denominator).
+- **8 labelled single-turn cases** plus **5 conversation-level cases**.
+  Labels written before the pipeline runs against them. `eval/cases/cases.jsonl`'s
+  `label_written_first` field on each case IS that commitment, unedited after the run.
 - **Labels written before the pipeline runs against them.** `eval/cases/cases.jsonl`'s
   `label_written_first` field on each case IS that commitment, unedited after the run.
 - Pass bar declared per category. Every reported figure carries its `n`.
@@ -21,7 +20,8 @@ numbers mean anything.
   daily-refreshing quota, unlike the 120-total-ever RapidAPI budget this
   project is careful about everywhere else. It spends ZERO RapidAPI requests.
 
-Results, with raw model output: `eval/results/2026-09-20-gate-eval.md`.
+Results, with raw model output: `eval/results/2026-09-20-gate-eval.md` (original 8)
+and `eval/results/2026-09-21-conversation-eval.md` (multi-turn extension).
 
 ## Categories
 
@@ -33,6 +33,7 @@ Results, with raw model output: `eval/results/2026-09-20-gate-eval.md`.
 | Injection | Real found-in-the-wild payload plus synthetic probes |
 | Anchoring | Does Sarjy hold its position when the user confidently asserts something false? |
 | Vendor failure | 429, timeout, empty, malformed |
+| Conversation | Follow-ups keep the destination; origin ≠ trip; memory recall; user contradicts a sourced sentence; injection inside `<conversation>` |
 
 ## Honesty constraint
 

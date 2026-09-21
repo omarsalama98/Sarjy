@@ -14,7 +14,7 @@ paths:
 # The voice pipeline
 
 ```
-mic → VAD/endpoint → STT → [TEXT CHECKPOINT] → LLM + tools → [GROUNDING GATE] → TTS → speaker
+mic → user endpoint → STT → [TEXT CHECKPOINT] → LLM + tools → [GROUNDING GATE] → TTS → speaker
 ```
 
 **Cascaded by design, not by convenience.** The two bracketed checkpoints are why. An end-to-end speech-to-speech model gives neither — you cannot validate a citation that never exists as text. If a change would erase a checkpoint, it is changing the deep dive, not the plumbing.
@@ -47,13 +47,14 @@ Voice-to-voice is the headline; the breakdown is the answer to "where does the t
 
 Target ≤ 1.8 s to **first audio out** — which is the opener, not the answer. Adding a stage, a round trip, or a blocking await to this path without instrumenting it is a blocking review issue.
 
-## Endpointing is the largest controllable term
+## Endpointing is user-controlled
 
-It runs **client-side** — it saves a network round trip on every turn.
+It runs **client-side** as tap/hold-to-talk, not as a silence threshold.
+A pause mid-sentence no longer ends the turn. Interrupting Sarjy is the
+same tap, not an acoustic guess.
 
-The silence threshold is a **product decision, not a constant**: it trades cutting the user off against making them wait. Whatever value is chosen, the reason is written down. A default threshold can exceed the entire STT+LLM+TTS budget on this stack.
-
-STT here is **batch** (Groq Whisper, 30-second windows), so endpointing gates the whole turn. That is a known constraint, measured at +200–450 ms versus streaming — state it, don't hide it.
+STT here is **batch** (Groq Whisper, 30-second windows), so the user's
+release still gates the whole turn. That is a known constraint.
 
 ## Barge-in is not optional
 

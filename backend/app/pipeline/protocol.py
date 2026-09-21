@@ -53,10 +53,9 @@ from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 # the SAME commit -- a mismatch here fails every handshake.
 PROTOCOL_VERSION = 5
 
-# Arabic rung 1 (D6): STT understands Arabic, but the answer stays in
-# English -- Deepgram Aura-2 has no Arabic voice, and rung 2 (a second TTS
-# provider) is not shipped (see PR_DEMOABLE.md, AR-0). "ar" only changes
-# what language Whisper is told to expect.
+# Arabic: STT is told `lang`, and when `lang=ar` call 2 writes Arabic and
+# RoutedTTS selects Orpheus. "en" is Deepgram Aura-2. PROTOCOL_VERSION stays 5
+# because StartIn.lang was already on the wire, defaulted.
 Lang = Literal["en", "ar"]
 
 
@@ -104,11 +103,10 @@ class ByeIn(BaseModel):
 
 
 class StartIn(BaseModel):
-    """Opens a turn. The client's VAD has already decided speech began and
-    ended by the time this is sent -- see turn.ts's design note in the block
-    plan ("nothing goes over the network until onSpeechEnd"). `turn_id` is
-    client-minted and monotonic within a session so a stale reply racing a
-    barge can be told apart from the current one."""
+    """Opens a turn. The client has already decided speech began -- the
+    user tapped or held the mic -- and `end` arrives when they tap again
+    or release. `turn_id` is client-minted and monotonic within a session
+    so a stale reply racing a barge can be told apart from the current one."""
 
     model_config = ConfigDict(extra="forbid")
 

@@ -185,12 +185,11 @@ export class Connection {
     return this.connectionState === "ready";
   }
 
-  startTurn(turnId: string): void {
-    this.send({ t: "start", turn_id: turnId, client_ts_ms: Date.now() });
+  startTurn(turnId: string, lang: "en" | "ar" = "en"): void {
+    this.send({ t: "start", turn_id: turnId, client_ts_ms: Date.now(), lang });
   }
 
-  /** Raw PCM16 samples, one binary frame. Caller (turn.ts) chunks the
-   * utterance -- this method just puts bytes on the wire. */
+  /** Raw PCM16 samples, one binary frame. */
   sendBinary(data: ArrayBuffer): void {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(data);
