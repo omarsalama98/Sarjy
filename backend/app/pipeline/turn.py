@@ -372,12 +372,19 @@ async def run_turn(
         )
 
     # -- LLM call 2: the gated NDJSON answer -----------------------------
-    # D7 -- the SAME memory_block reaches this fresh, stateless call too:
-    # call 1's plain text is never spoken (see this module's own docstring
-    # diagram), so a memory-only question like "what's my favourite colour?"
-    # can ONLY be answered here.
+    # D7 -- the SAME memory_block reaches this fresh call too: call 1's
+    # plain text is never spoken (see this module's own docstring diagram),
+    # so a memory-only question like "what's my favourite colour?" can ONLY
+    # be answered here. `history` is the other half of that: call 1 already
+    # sees prior turns via llm.decide(); without threading them into call 2
+    # as a DATA block, "suggest cities" after a Germany visa turn has no
+    # destination and falls back to home_city.
     user_block = build_user_block(
-        user_question=text, tool_call_id=tool_call_id, result=tool_result, memory_block=memory_block
+        user_question=text,
+        tool_call_id=tool_call_id,
+        result=tool_result,
+        memory_block=memory_block,
+        history=history,
     )
 
     t0 = time.monotonic()

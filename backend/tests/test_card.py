@@ -70,6 +70,9 @@ def test_card_value_equals_gate_substitution() -> None:
     assert facts_by_path["visa.type"] == "eVisa"
     assert facts_by_path["visa.duration"] == "90 days"
     assert facts_by_path["visa.exception"] == rendered[1].text  # the gate's own quoted value
+    # Pair names live in the header, not as duplicate Passport/Destination rows.
+    assert "pair.passport_name" not in facts_by_path
+    assert "pair.destination_name" not in facts_by_path
 
     # And the reverse direction: the substituted text in the SPOKEN answer
     # contains exactly the card's values, not a re-derived paraphrase.
@@ -87,6 +90,8 @@ def test_card_covered_true_lists_only_present_allowlisted_fields_in_labels_order
     # this payload -- correctly excluded, not rendered as empty rows.
     assert "visa.registration" not in paths
     assert "visa.cost" not in paths
+    assert "pair.passport_name" not in paths
+    assert "pair.destination_name" not in paths
 
 
 def _labels_order() -> list[str]:

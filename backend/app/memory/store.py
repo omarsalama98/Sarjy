@@ -7,7 +7,7 @@ keyed by a normalised name, unlocked by a 4-digit PIN (see app/memory/
 identity.py for the name/PIN mechanics).
 
 D1's deliberate deviation from TDD.md's "two kinds of memory": one list of
-`Fact` records with a three-key allowlist (PROFILE_KEYS), not two separate
+`Fact` records with a four-key allowlist (PROFILE_KEYS), not two separate
 stores. `kind` is DERIVED from `key`, never stored -- there is exactly one
 place that decides whether a fact is a travel-profile field or an open one.
 
@@ -36,11 +36,13 @@ MAX_VALUE_CHARS = 80
 MAX_QUOTE_CHARS = 160
 DICT_NAME = "sarjy-memory"
 
-# D1 -- the three fields that drive the travel lookup. Everything else a
+# D1 -- the four fields that drive the travel lookup. Everything else a
 # user states about themselves is an "open" fact (the favourite-colour
 # test). `kind` is derived from membership here, never stored on the Fact
-# itself, so there is exactly one place that decides it.
-PROFILE_KEYS = frozenset({"name", "passport", "home_city"})
+# itself, so there is exactly one place that decides it. `destination` is
+# the trip they are planning; `home_city` / `passport` is where they are
+# FROM -- collapsing those two is how Egypt became the recommended trip.
+PROFILE_KEYS = frozenset({"name", "passport", "home_city", "destination"})
 
 
 @dataclass(frozen=True)
@@ -85,7 +87,7 @@ class MemoryRecord:
     def remember(self, fact: Fact) -> bool:
         """Upsert by key, last write wins. Returns True if an OPEN fact was
         evicted to make room (M8) -- profile keys are never evicted, since
-        they drive the travel lookup and there are at most three of them."""
+        they drive the travel lookup and there are at most four of them."""
         self.facts = [f for f in self.facts if f.key != fact.key]
         self.facts.append(fact)
 

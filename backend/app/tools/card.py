@@ -100,8 +100,14 @@ def fact_card(result: ToolResult) -> FactCard | None:
             embassy_url=result.embassy_url,
         )
 
+    # The card header already reads "{passport_name} → {destination_name}".
+    # Repeating those as rows (Passport / Destination) is the same pair twice.
+    _header_paths = frozenset({"pair.passport_name", "pair.destination_name"})
+
     facts: list[FactRow] = []
     for path, label in LABELS.items():
+        if path in _header_paths:
+            continue
         register: Literal["sourced", "quoted"] | None = None
         if path in SOURCED_FIELDS:
             register = "sourced"

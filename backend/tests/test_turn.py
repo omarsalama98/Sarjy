@@ -168,13 +168,14 @@ async def _run(
     awaiting_pin: bool = False,
     on_sign_in: Callable[[str, str], None] = lambda name, pin: None,
     get_places: Callable[[], object] | None = None,
+    history: list[tuple[str, str]] | None = None,
 ) -> tuple[list[object], TurnTimings]:
     timings = _empty_timings()
     items: list[object] = []
     async for item in run_turn(
         turn_id="t-1",
         pcm16=pcm16,
-        history=[],
+        history=history or [],
         next_seq=_seq_counter(),
         now_ms=_now_ms,
         get_stt=get_stt,
@@ -716,6 +717,27 @@ async def test_d7_memory_block_reaches_both_calls_even_when_a_tool_ran() -> None
 
     assert llm.last_memory_block == MEMORY_BLOCK  # call 1 -- could have filled the passport from it
     assert MEMORY_BLOCK in llm.last_user_block  # call 2 -- still gets it too
+
+
+@pytest.mark.asyncio
+async def test_call_2_sees_prior_turns_as_conversation_data() -> None:
+    """The live-run bug: call 1 had history, call 2 did not, so 'suggest
+    cities' after a Germany visa turn recommended Cairo (home_city=Egypt)."""
+    llm = FakeLLM(tool_name=None)
+    await _run(
+        get_stt=lambda: FakeSTT(text="suggest cities"),
+        get_llm=lambda: llm,
+        get_tts=FakeTTS,
+        history=[
+            (
+                "I'm planning a trip to Germany from Egypt, visa status?",
+                "Holders of Egypt passports: visa required.",
+            )
+        ],
+    )
+    assert "<conversation>" in llm.last_user_block
+    assert "Germany" in llm.last_user_block
+    assert "<user_question>\nsuggest cities\n</user_question>" in llm.last_user_block
 
 
 @pytest.mark.asyncio

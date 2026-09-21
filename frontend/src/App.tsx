@@ -693,11 +693,13 @@ function TurnBlock({ turn }: { turn: Turn }): JSX.Element {
         </p>
       )}
       {turn.segments.length > 0 && (
-        <section className="audit">
-          <h2>What she was allowed to say</h2>
-          <p className="audit-count">
-            {kept} spoken · {rejected} refused
-          </p>
+        <details className="audit" {...(rejected > 0 ? { open: true } : {})}>
+          <summary>
+            What she was allowed to say
+            <span className="audit-count">
+              {kept} spoken · {rejected} refused
+            </span>
+          </summary>
           <ul className="segments" aria-live="off">
             {turn.segments.map((s, i) => (
               <li
@@ -725,7 +727,7 @@ function TurnBlock({ turn }: { turn: Turn }): JSX.Element {
               The model wrote the struck-through line. Deterministic code refused to speak it.
             </p>
           )}
-        </section>
+        </details>
       )}
       {turn.hedged && (
         <p className="notice hedge-notice">

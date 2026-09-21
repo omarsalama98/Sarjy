@@ -49,6 +49,7 @@ def test_kind_is_derived_from_the_profile_allowlist_not_stored() -> None:
     assert _fact("passport").kind == "profile"
     assert _fact("home_city").kind == "profile"
     assert _fact("name").kind == "profile"
+    assert _fact("destination").kind == "profile"
     assert _fact("favourite_colour").kind == "open"
 
 
@@ -79,14 +80,14 @@ def test_m8_profile_keys_are_never_evicted() -> None:
     profile facts eat into that budget but are never themselves the ones
     evicted; only the oldest OPEN fact ever makes way for a new one."""
     record = MemoryRecord()
-    for key in ("name", "passport", "home_city"):
+    for key in ("name", "passport", "home_city", "destination"):
         record.remember(_fact(key))
     for i in range(MAX_FACTS):  # more open facts than the remaining budget has room for
         record.remember(_fact(f"open_{i}"))
 
-    assert len(record.facts) == MAX_FACTS  # the cap, not MAX_FACTS + 3
+    assert len(record.facts) == MAX_FACTS  # the cap, not MAX_FACTS + 4
     profile_keys = {f.key for f in record.facts if f.kind == "profile"}
-    assert profile_keys == {"name", "passport", "home_city"}
+    assert profile_keys == {"name", "passport", "home_city", "destination"}
     open_keys = [f.key for f in record.facts if f.kind == "open"]
     assert "open_0" not in open_keys  # among the earliest evicted to make room
     assert f"open_{MAX_FACTS - 1}" in open_keys  # the most recently learned one survives
@@ -388,9 +389,13 @@ def test_build_extract_block_says_none_when_nothing_is_known_yet() -> None:
     assert "<already_known>NONE</already_known>" in block
 
 
-def test_system_extract_names_the_three_profile_keys() -> None:
+def test_system_extract_names_the_four_profile_keys() -> None:
     # Not a fixed-phrase check (SYSTEM_EXTRACT is a prompt, not a spoken
-    # phrase) -- just a guard against silently dropping one of the three
-    # keys the travel lookup depends on.
-    for key in ("name", "passport", "home_city"):
+    # phrase) -- just a guard against silently dropping one of the four
+    # keys the travel lookup depends on. destination is the trip; home_city
+    # is origin -- collapsing those two is how Egypt became the recommended
+    # trip after a Germany visa question.
+    for key in ("name", "passport", "home_city", "destination"):
         assert key in SYSTEM_EXTRACT
+    assert "travelling from Egypt" in SYSTEM_EXTRACT
+    assert "trip to Germany" in SYSTEM_EXTRACT

@@ -150,9 +150,10 @@ class GeminiLLM:
         )
 
     async def segments(self, *, system: str, user_block: str) -> AsyncIterator[str]:
-        # A FRESH stateless interaction -- `user_block` (built by
-        # prompts.build_user_block) is the WHOLE input; nothing from call 1
-        # is replayed (D5).
+        # A FRESH interaction -- `user_block` (built by
+        # prompts.build_user_block, including prior turns as a DATA block)
+        # is the WHOLE input; nothing from call 1 is replayed as a native
+        # function response (D5).
         buffer = ""
         async with asyncio.timeout(LLM_TIMEOUT_S):
             stream = await self._client.aio.interactions.create(
